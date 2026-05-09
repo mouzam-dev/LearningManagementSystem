@@ -1,7 +1,9 @@
 using System.Text;
 using FluentValidation;
 using LMS.Application;
+using LMS.Application.Auth;
 using LMS.Infrastructure.Persistence;
+using LMS.Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,6 +34,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(AssemblyReference.Assembly));
 builder.Services.AddAutoMapper(cfg => { }, AssemblyReference.Assembly);
 builder.Services.AddValidatorsFromAssembly(AssemblyReference.Assembly);
+
+// Application services
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // ---------------------------------------------------------------------------
 // Authentication — JWT Bearer

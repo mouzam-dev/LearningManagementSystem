@@ -48,7 +48,7 @@ tests/
 └── LMS.Tests/           # xUnit + Moq.
 ```
 
-Reference rule: **Domain has no references; Application references Domain; Infrastructure references Domain; WebAPI references Application + Infrastructure.** Don't let WebAPI reference Domain directly — go through Application DTOs.
+Reference rule: **Domain has no references; Application references Domain; Infrastructure references Application + Domain; WebAPI references Application + Infrastructure.** Application owns abstractions (interfaces, DTOs); Infrastructure implements them (DbContext, AuthService, repositories). WebAPI is the composition root that wires concretes into DI.
 
 ### Frontend — Feature-based
 
