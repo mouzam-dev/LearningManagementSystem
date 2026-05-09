@@ -1,0 +1,18 @@
+namespace LMS.Domain.Entities;
+
+public class Assessment
+{
+    public Guid Id { get; set; }
+    public Guid CourseId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // "Quiz" | "Assignment"
+    public int? TimeLimit { get; set; }              // minutes
+    public int PassingScore { get; set; }            // 0-100
+    public DateTime? DueDate { get; set; }
+    public int? MaxAttempts { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    public Course Course { get; set; } = null!;
+    public ICollection<Question> Questions { get; set; } = new List<Question>();
+    public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
+}
