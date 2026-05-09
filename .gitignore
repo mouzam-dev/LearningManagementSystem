@@ -1,0 +1,113 @@
+# =============================================================================
+# .NET / C# / Visual Studio
+# =============================================================================
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Rider / ReSharper
+.idea/
+*.DotSettings.user
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.pdb
+*.dll.config
+*.exe.config
+
+# EF Core local DBs
+*.mdf
+*.ldf
+*.ndf
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# =============================================================================
+# Angular / Node
+# =============================================================================
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/cache/
+.sass-cache/
+connect.lock/
+coverage/
+libpeerconnection.log
+testem.log
+typings/
+.nyc_output/
+
+# Angular CLI
+.angular/
+
+# =============================================================================
+# IDE / Editor
+# =============================================================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+.history/
+
+# =============================================================================
+# OS
+# =============================================================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =============================================================================
+# Secrets / Config (never commit)
+# =============================================================================
+*.pfx
+*.key
+*.pem
+appsettings.*.local.json
+appsettings.Development.local.json
+.env
+.env.local
+.env.*.local
+secrets.json
+**/UserSecrets/
+
+# =============================================================================
+# Test / Coverage
+# =============================================================================
+TestResults/
+coverage*/
+*.coverage
+*.coveragexml
+.coverlet/
