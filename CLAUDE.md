@@ -16,21 +16,24 @@ The authoritative project documents live in [.claude/](.claude/). Read these bef
 
 | Layer | Technology |
 |---|---|
-| Runtime (backend) | .NET 10 SDK installed (docs target .NET 8 LTS — patterns work on 10) |
-| Web framework | ASP.NET Core Web API |
-| ORM | Entity Framework Core |
+| Runtime (backend) | **.NET 8 LTS** (TargetFramework `net8.0`) — chosen for VS 2022 17.8 compatibility |
+| Web framework | ASP.NET Core 8 Web API |
+| ORM | Entity Framework Core 8.0.x |
 | Database | SQL Server 2022 (LocalDB for dev: `MSSQLLocalDB`) |
 | Auth | JWT (BCrypt for password hashing) |
-| Validation | FluentValidation |
-| Mapping | AutoMapper |
-| App pattern | CQRS via MediatR |
+| Validation | FluentValidation 11.x |
+| Mapping | AutoMapper 12.x |
+| App pattern | CQRS via MediatR 12.x |
 | Logging | Serilog |
+| API docs | Swashbuckle (Swagger UI at `/swagger`) |
 | Testing (backend) | xUnit + Moq |
 | Frontend framework | Angular 20 (docs target 17+ — newer Signals / `@if`/`@for` available) |
 | Frontend language | TypeScript (strict) |
 | State | Signals + RxJS |
 | Styling | Tailwind CSS (Angular Material optional) |
 | Testing (frontend) | Jasmine + Karma; Cypress for E2E |
+
+> **Why .NET 8 and not .NET 10?** The user's Visual Studio install ships with the .NET 8 SDK (8.0.400), and older VS 2022 versions don't recognize `net10.0`. `net8.0` builds and runs identically on both VS and CLI without needing a VS update. To migrate to .NET 10 later: update VS to 17.12+, then change `<TargetFramework>net8.0</TargetFramework>` → `net10.0` in all 5 csproj and bump EF Core / ASP.NET Core packages to 10.0.x.
 
 Docker is optional for local dev. SQL Server LocalDB is installed and works without containers.
 

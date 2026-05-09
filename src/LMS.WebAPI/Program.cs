@@ -32,7 +32,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // MediatR / AutoMapper / FluentValidation — all scan the Application assembly
 // ---------------------------------------------------------------------------
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(AssemblyReference.Assembly));
-builder.Services.AddAutoMapper(cfg => { }, AssemblyReference.Assembly);
+builder.Services.AddAutoMapper(AssemblyReference.Assembly);
 builder.Services.AddValidatorsFromAssembly(AssemblyReference.Assembly);
 
 // Application services
@@ -82,7 +82,8 @@ builder.Services.AddCors(options =>
 // Web API
 // ---------------------------------------------------------------------------
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -91,7 +92,8 @@ var app = builder.Build();
 // ---------------------------------------------------------------------------
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseSerilogRequestLogging();
