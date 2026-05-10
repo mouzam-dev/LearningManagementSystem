@@ -1,0 +1,101 @@
+# Local dev stack for the LMS. Compose v2 (no top-level `version` key).
+#
+# Usage:
+#   docker compose up --build         # foreground
+#   docker compose up -d --build      # detached
+#   docker compose logs -f api        # follow API logs
+#   docker compose down               # stop (keeps the SQL volume)
+#   docker compose down -v            # stop + delete the SQL volume (full reset)
+#
+# Ports on the host:
+#   API:        http://localhost:5116          (Swagger at /swagger)
+#   Angular:    http://localhost:4200
+#   SQL Server: localhost,1433  (sa / YourPassword123!)
+#   Redis:      localhost:6379
+
+name: lms
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: lms-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourPassword123!"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      # The image ships with sqlcmd at /opt/mssql-tools18; -No disables encryption
+      # so we don't have to wrangle dev certificates inside the healthcheck.
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -No -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - lms-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: lms-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - lms-net
+
+  api:
+    build:
+      context: .
+      dockerfile: src/LMS.WebAPI/Dockerfile
+    container_name: lms-api
+    # Map host:5116 -> container:8080 so the existing Angular environment.ts
+    # (apiUrl: http://localhost:5116/api) continues to work unchanged.
+    ports:
+      - "5116:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=LmsDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;MultipleActiveResultSets=true"
+      # Allow both the Angular container's exposed port and the host dev server.
+      Cors__AllowedOrigins__0: "http://localhost:4200"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lms-net
+
+  angular:
+    build:
+      context: ./lms-angular
+      dockerfile: Dockerfile
+    container_name: lms-angular
+    ports:
+      - "4200:4200"
+    # Bind-mount only source files for HMR. node_modules stays inside the
+    # container so the host's OS-specific binaries don't leak in.
+    volumes:
+      - ./lms-angular/src:/app/src
+      - ./lms-angular/public:/app/public
+    depends_on:
+      - api
+    networks:
+      - lms-net
+
+volumes:
+  sqlserver_data:
+
+networks:
+  lms-net:
+    driver: bridge

@@ -88,6 +88,18 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // ---------------------------------------------------------------------------
+// Apply EF Core migrations automatically in Development. Lets `docker compose
+// up` bring up a fresh SQL Server volume and have the schema ready without a
+// manual `dotnet ef database update` step. Idempotent for existing databases.
+// ---------------------------------------------------------------------------
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
+// ---------------------------------------------------------------------------
 // HTTP pipeline
 // ---------------------------------------------------------------------------
 if (app.Environment.IsDevelopment())

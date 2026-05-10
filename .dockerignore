@@ -1,0 +1,36 @@
+# .NET build artefacts (recursive across all projects)
+**/bin/
+**/obj/
+**/out/
+**/publish/
+**/TestResults/
+
+# IDE / editor state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Repo metadata not needed at build time
+.git/
+.gitignore
+.gitattributes
+.github/
+.claude/
+
+# Frontend build context (Angular has its own image)
+lms-angular/
+
+# Compose / docker artefacts that should not be copied into images
+docker-compose*.yml
+**/Dockerfile
+**/.dockerignore
+
+# Misc
+*.log
+*.pid
+*.swp
+README*.md
+LICENSE*
