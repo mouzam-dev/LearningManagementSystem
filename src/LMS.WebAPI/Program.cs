@@ -97,7 +97,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-app.UseHttpsRedirection();
+
+// Skip HTTPS redirect in Development so the Angular dev server can call the HTTP
+// listener directly. A 307 from http→https on the API origin breaks browser CORS
+// preflight for cross-scheme redirects.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors(CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();

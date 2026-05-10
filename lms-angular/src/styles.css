@@ -1,1 +1,134 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles for the LMS Angular app. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+a {
+  color: #4f46e5;
+}
+
+/* Shared auth-card layout used by Login, Register, and Home. */
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+}
+
+.auth-card.wide {
+  max-width: 560px;
+}
+
+.auth-card h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.auth-card .muted {
+  color: #6b7280;
+  margin: 0 0 1.25rem;
+}
+
+.auth-card .small {
+  font-size: 0.875rem;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #ffffff;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+button[type='submit'],
+.actions button {
+  padding: 0.625rem 1rem;
+  background: #4f46e5;
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+button[type='submit']:hover,
+.actions button:hover {
+  background: #4338ca;
+}
+
+button[disabled] {
+  background: #a5b4fc !important;
+  cursor: not-allowed;
+}
+
+.err {
+  color: #b91c1c;
+  font-size: 0.825rem;
+}
+
+.err.banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
