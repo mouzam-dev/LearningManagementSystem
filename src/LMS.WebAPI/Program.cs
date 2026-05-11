@@ -2,8 +2,10 @@ using System.Text;
 using FluentValidation;
 using LMS.Application;
 using LMS.Application.Auth;
+using LMS.Application.Common;
 using LMS.Infrastructure.Persistence;
 using LMS.Infrastructure.Services.Auth;
+using LMS.WebAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -37,6 +39,14 @@ builder.Services.AddValidatorsFromAssembly(AssemblyReference.Assembly);
 
 // Application services
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Expose the EF Core ApplicationDbContext to MediatR handlers via the Application
+// abstraction, so Application code never references the concrete type.
+builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
+// Current-user accessor for handlers that need the authenticated caller's id/role.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // ---------------------------------------------------------------------------
 // Authentication — JWT Bearer
@@ -88,6 +98,18 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // ---------------------------------------------------------------------------
+// Apply EF Core migrations automatically in Development. Lets `docker compose
+// up` bring up a fresh SQL Server volume and have the schema ready without a
+// manual `dotnet ef database update` step. Idempotent for existing databases.
+// ---------------------------------------------------------------------------
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
+// ---------------------------------------------------------------------------
 // HTTP pipeline
 // ---------------------------------------------------------------------------
 if (app.Environment.IsDevelopment())
@@ -97,7 +119,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-app.UseHttpsRedirection();
+
+// Skip HTTPS redirect in Development so the Angular dev server can call the HTTP
+// listener directly. A 307 from http→https on the API origin breaks browser CORS
+// preflight for cross-scheme redirects.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors(CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();

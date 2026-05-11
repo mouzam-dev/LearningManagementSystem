@@ -1,0 +1,21 @@
+# Build outputs and caches
+node_modules/
+dist/
+.angular/
+coverage/
+
+# IDE / editor state
+.vscode/
+.idea/
+
+# Repo / docker metadata
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+
+# Misc
+*.log
+npm-debug.log*
+.env
+.env.*

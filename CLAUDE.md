@@ -89,6 +89,22 @@ ng test
 ng build --configuration production
 ```
 
+### Docker (optional, full stack)
+The repo ships a `docker-compose.yml` that brings up SQL Server, Redis, the API,
+and the Angular dev server. Same host ports as the local workflow so the
+front-end's `environment.ts` and CORS rules need no changes.
+
+```bash
+docker compose up --build -d   # pulls SQL Server (~1.5 GB) on first run
+docker compose logs -f api     # watch API startup + EF migration
+docker compose ps              # health
+docker compose down            # stop, keep volumes
+docker compose down -v         # stop and wipe SQL Server volume
+```
+
+EF migrations run automatically in `Development` (see `Program.cs`), so a fresh
+volume comes up with the schema in place.
+
 ## Conventions
 
 - **Async/await everywhere** in C#; pass `CancellationToken` through handlers.

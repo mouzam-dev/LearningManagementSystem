@@ -1,0 +1,29 @@
+<section class="auth-card wide">
+  <h1>Welcome{{ user() ? ', ' + user()!.firstName : '' }} 👋</h1>
+
+  @if (user(); as u) {
+    <dl class="kv">
+      <dt>Email</dt><dd>{{ u.email }}</dd>
+      <dt>Role</dt><dd>{{ u.role }}</dd>
+      <dt>Verified</dt><dd>{{ u.isVerified ? 'Yes' : 'No' }}</dd>
+      <dt>User Id</dt><dd><code>{{ u.id }}</code></dd>
+    </dl>
+  }
+
+  <div class="actions">
+    @if (user()?.role === 'Student') {
+      <a class="primary-link" routerLink="/student/dashboard">Open student dashboard →</a>
+    }
+    <button type="button" (click)="callMe()" [disabled]="meLoading()">
+      {{ meLoading() ? 'Calling…' : 'Call /api/auth/me (with JWT)' }}
+    </button>
+    <button type="button" class="secondary" (click)="logout()">Sign out</button>
+  </div>
+
+  @if (meResult(); as me) {
+    <pre class="result">{{ me | json }}</pre>
+  }
+  @if (meError()) {
+    <div class="err banner">{{ meError() }}</div>
+  }
+</section>
