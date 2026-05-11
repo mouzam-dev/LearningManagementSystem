@@ -4,9 +4,12 @@
       <h1>Welcome back{{ user() ? ', ' + user()!.firstName : '' }} 👋</h1>
       <p class="muted">Continue your learning journey.</p>
     </div>
-    <button type="button" class="ghost" (click)="load()" [disabled]="loading()">
-      {{ loading() ? 'Refreshing…' : 'Refresh' }}
-    </button>
+    <div class="header-actions">
+      <a routerLink="/student/catalog" class="primary">Browse catalog →</a>
+      <button type="button" class="ghost" (click)="load()" [disabled]="loading()">
+        {{ loading() ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
   </header>
 
   @if (loading() && !dashboard()) {
@@ -37,7 +40,8 @@
       <h2>My courses</h2>
       @if (d.enrolledCourses.length === 0) {
         <div class="empty">
-          You aren't enrolled in any courses yet. Browse the catalog to get started.
+          <p>You aren't enrolled in any courses yet.</p>
+          <a routerLink="/student/catalog" class="cta">Browse the catalog →</a>
         </div>
       } @else {
         <div class="course-grid">

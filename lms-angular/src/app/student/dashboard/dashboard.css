@@ -17,6 +17,30 @@
   gap: 1rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-actions .primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.875rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #c026d3 100%);
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+  transition: filter 120ms ease, transform 120ms ease;
+}
+
+.header-actions .primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
 .dash-header h1 {
   margin: 0 0 0.25rem;
   font-size: 1.5rem;
@@ -34,11 +58,32 @@
 .state,
 .empty {
   background: #ffffff;
-  padding: 1.25rem;
+  padding: 1.5rem;
   border-radius: 12px;
   color: #6b7280;
   border: 1px dashed #d1d5db;
   text-align: center;
+}
+
+.empty p {
+  margin: 0 0 0.75rem;
+}
+
+.empty .cta {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #c026d3 100%);
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+  transition: filter 120ms ease, transform 120ms ease;
+}
+
+.empty .cta:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
 button.ghost {

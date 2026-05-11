@@ -1,7 +1,11 @@
 <header class="app-header">
-  <a routerLink="/home" class="brand">LMS</a>
+  <a [routerLink]="user()?.role === 'Student' ? '/student/dashboard' : '/home'" class="brand">LMS</a>
   <nav>
     @if (isAuthed()) {
+      @if (user()?.role === 'Student') {
+        <a routerLink="/student/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
+        <a routerLink="/student/catalog" routerLinkActive="active" class="nav-link">Browse courses</a>
+      }
       <span class="hello">{{ user()?.firstName }} ({{ user()?.role }})</span>
       <button type="button" (click)="logout()">Sign out</button>
     } @else {
