@@ -54,7 +54,7 @@ export class Register {
           this.errorMessage.set(res.message || 'Registration failed.');
           return;
         }
-        this.router.navigateByUrl('/home');
+        this.router.navigateByUrl(res.user?.role === 'Student' ? '/student/dashboard' : '/home');
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);

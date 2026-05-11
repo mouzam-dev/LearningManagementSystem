@@ -44,7 +44,7 @@ export class Login {
           this.errorMessage.set(res.message || 'Invalid credentials.');
           return;
         }
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? this.defaultLandingFor(res.user?.role);
         this.router.navigateByUrl(returnUrl);
       },
       error: (err: HttpErrorResponse) => {
@@ -52,6 +52,16 @@ export class Login {
         this.errorMessage.set(this.formatError(err));
       },
     });
+  }
+
+  private defaultLandingFor(role: string | undefined): string {
+    switch (role) {
+      case 'Student':
+        return '/student/dashboard';
+      // Teacher / Admin landings land in their own modules later. Fall back for now.
+      default:
+        return '/home';
+    }
   }
 
   private formatError(err: HttpErrorResponse): string {

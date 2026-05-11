@@ -19,5 +19,17 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./home/home').then((m) => m.Home),
   },
+  {
+    path: 'student',
+    canActivate: [authGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./student/dashboard/dashboard').then((m) => m.StudentDashboard),
+      },
+    ],
+  },
   { path: '**', redirectTo: 'home' },
 ];

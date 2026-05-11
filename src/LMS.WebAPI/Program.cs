@@ -2,8 +2,10 @@ using System.Text;
 using FluentValidation;
 using LMS.Application;
 using LMS.Application.Auth;
+using LMS.Application.Common;
 using LMS.Infrastructure.Persistence;
 using LMS.Infrastructure.Services.Auth;
+using LMS.WebAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -37,6 +39,14 @@ builder.Services.AddValidatorsFromAssembly(AssemblyReference.Assembly);
 
 // Application services
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Expose the EF Core ApplicationDbContext to MediatR handlers via the Application
+// abstraction, so Application code never references the concrete type.
+builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+
+// Current-user accessor for handlers that need the authenticated caller's id/role.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // ---------------------------------------------------------------------------
 // Authentication — JWT Bearer

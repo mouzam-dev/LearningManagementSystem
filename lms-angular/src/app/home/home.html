@@ -11,6 +11,9 @@
   }
 
   <div class="actions">
+    @if (user()?.role === 'Student') {
+      <a class="primary-link" routerLink="/student/dashboard">Open student dashboard →</a>
+    }
     <button type="button" (click)="callMe()" [disabled]="meLoading()">
       {{ meLoading() ? 'Calling…' : 'Call /api/auth/me (with JWT)' }}
     </button>

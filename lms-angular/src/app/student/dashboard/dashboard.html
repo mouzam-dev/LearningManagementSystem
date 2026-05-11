@@ -1,0 +1,97 @@
+<section class="dash">
+  <header class="dash-header">
+    <div>
+      <h1>Welcome back{{ user() ? ', ' + user()!.firstName : '' }} 👋</h1>
+      <p class="muted">Continue your learning journey.</p>
+    </div>
+    <button type="button" class="ghost" (click)="load()" [disabled]="loading()">
+      {{ loading() ? 'Refreshing…' : 'Refresh' }}
+    </button>
+  </header>
+
+  @if (loading() && !dashboard()) {
+    <div class="state">Loading dashboard…</div>
+  }
+
+  @if (error()) {
+    <div class="err banner">{{ error() }}</div>
+  }
+
+  @if (dashboard(); as d) {
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">{{ d.totalCourses }}</div>
+        <div class="stat-label">Enrolled courses</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ d.overallProgress }}%</div>
+        <div class="stat-label">Overall progress</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ d.completedCourses }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+
+    <section class="block">
+      <h2>My courses</h2>
+      @if (d.enrolledCourses.length === 0) {
+        <div class="empty">
+          You aren't enrolled in any courses yet. Browse the catalog to get started.
+        </div>
+      } @else {
+        <div class="course-grid">
+          @for (course of d.enrolledCourses; track course.courseId) {
+            <article class="course-card">
+              @if (course.thumbnailUrl) {
+                <img [src]="course.thumbnailUrl" [alt]="course.title" />
+              } @else {
+                <div class="thumb-placeholder" aria-hidden="true">{{ course.title.charAt(0) }}</div>
+              }
+              <h3>{{ course.title }}</h3>
+              <p class="muted small">by {{ course.teacherName }}</p>
+              <div class="progress" [attr.aria-valuenow]="course.progressPercentage"
+                   role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" [style.width.%]="course.progressPercentage"></div>
+              </div>
+              <div class="course-footer">
+                <span class="small muted">{{ course.progressPercentage }}% complete</span>
+                <button type="button" class="link" (click)="continueCourse(course.courseId)">
+                  Continue →
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="block">
+      <h2>Upcoming deadlines</h2>
+      @if (d.upcomingDeadlines.length === 0) {
+        <div class="empty">Nothing due soon. 🎉</div>
+      } @else {
+        <table class="deadlines">
+          <thead>
+            <tr>
+              <th>Assignment</th>
+              <th>Course</th>
+              <th>Type</th>
+              <th>Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of d.upcomingDeadlines; track item.assessmentId) {
+              <tr>
+                <td>{{ item.title }}</td>
+                <td>{{ item.courseTitle }}</td>
+                <td><span class="pill" [class.quiz]="item.type === 'Quiz'">{{ item.type }}</span></td>
+                <td>{{ item.dueDate | date: 'mediumDate' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</section>

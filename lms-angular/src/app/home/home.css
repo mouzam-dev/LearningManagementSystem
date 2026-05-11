@@ -20,8 +20,24 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
   margin: 1rem 0;
+}
+
+.actions .primary-link {
+  display: inline-block;
+  padding: 0.625rem 1rem;
+  background: #4f46e5;
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.actions .primary-link:hover {
+  background: #4338ca;
 }
 
 .actions .secondary {
