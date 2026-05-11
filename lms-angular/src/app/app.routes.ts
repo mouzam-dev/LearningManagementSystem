@@ -29,6 +29,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./student/dashboard/dashboard').then((m) => m.StudentDashboard),
       },
+      {
+        path: 'catalog',
+        loadComponent: () =>
+          import('./student/catalog/catalog').then((m) => m.StudentCatalog),
+      },
     ],
   },
   { path: '**', redirectTo: 'home' },

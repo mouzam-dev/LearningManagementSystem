@@ -1,0 +1,227 @@
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <!-- Page header with gradient accent -->
+  <header class="mb-8">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wider text-primary-600">Discover</p>
+        <h1 class="mt-1 bg-gradient-to-r from-primary-700 via-primary-500 to-fuchsia-500 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl">
+          Course catalog
+        </h1>
+        <p class="mt-2 max-w-2xl text-slate-600">
+          Browse published courses, enroll in one click, and track your progress from the dashboard.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filters bar -->
+  <div class="mb-6 rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm ring-1 ring-slate-900/5 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <div class="grid gap-3 md:grid-cols-[1fr_minmax(0,220px)_auto] md:items-center">
+      <!-- Search -->
+      <label class="relative block">
+        <span class="sr-only">Search courses</span>
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+        <input type="search" [formControl]="searchControl" placeholder="Search by title or description…"
+               class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+      </label>
+
+      <!-- Category select -->
+      <label class="block">
+        <span class="sr-only">Filter by category</span>
+        <select [formControl]="categoryControl"
+                class="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+          <option value="">All categories</option>
+          @for (cat of categories(); track cat) {
+            <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+      </label>
+
+      <!-- Result count + clear -->
+      <div class="flex items-center justify-end gap-3 text-sm text-slate-500">
+        <span>{{ rangeLabel() }}</span>
+        @if (searchControl.value || categoryControl.value) {
+          <button type="button" (click)="clearFilters()"
+                  class="rounded-lg px-2 py-1 font-medium text-primary-600 hover:bg-primary-50">
+            Clear
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Error banner -->
+  @if (error()) {
+    <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+         role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Skeleton grid while loading the first page -->
+  @if (loading() && !result()) {
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (n of [0,1,2,3,4,5,6,7]; track n) {
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div class="aspect-[16/9] animate-pulse bg-slate-200"></div>
+          <div class="space-y-3 p-5">
+            <div class="h-4 w-20 animate-pulse rounded bg-slate-200"></div>
+            <div class="h-5 w-3/4 animate-pulse rounded bg-slate-200"></div>
+            <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
+            <div class="h-3 w-5/6 animate-pulse rounded bg-slate-200"></div>
+            <div class="h-9 w-full animate-pulse rounded-xl bg-slate-200"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && result() && result()!.items.length === 0) {
+    <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white py-16 text-center">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+      </div>
+      <h3 class="mt-4 text-base font-semibold text-slate-900">No matching courses</h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Try clearing your search or picking a different category.
+      </p>
+      @if (searchControl.value || categoryControl.value) {
+        <button type="button" (click)="clearFilters()"
+                class="mt-6 inline-flex items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+          Clear filters
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Course grid -->
+  @if (result(); as r) {
+    @if (r.items.length > 0) {
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @for (course of r.items; track course.courseId) {
+          <article class="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:ring-1 hover:ring-primary-200">
+            <!-- Thumbnail / gradient fallback -->
+            <div class="relative aspect-[16/9] overflow-hidden">
+              @if (course.thumbnailUrl) {
+                <img [src]="course.thumbnailUrl" [alt]="course.title"
+                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+              } @else {
+                <div class="flex h-full w-full items-center justify-center text-5xl font-bold text-white"
+                     [style.background]="'linear-gradient(135deg, hsl(' + hueFor(course.courseId) + ' 75% 55%) 0%, hsl(' + ((hueFor(course.courseId) + 40) % 360) + ' 70% 45%) 100%)'">
+                  {{ initial(course.title) }}
+                </div>
+              }
+              <span class="absolute left-3 top-3 inline-flex items-center rounded-full bg-white/85 px-2.5 py-0.5 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-900/10 backdrop-blur">
+                {{ course.category }}
+              </span>
+              @if (course.isEnrolled) {
+                <span class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm">
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m5 12 5 5L20 7"></path>
+                  </svg>
+                  Enrolled
+                </span>
+              }
+            </div>
+
+            <div class="flex flex-1 flex-col p-5">
+              <h3 class="line-clamp-2 text-base font-semibold text-slate-900" [title]="course.title">
+                {{ course.title }}
+              </h3>
+              <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ course.description }}</p>
+
+              <div class="mt-4 flex items-center gap-2 text-xs text-slate-500">
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700"
+                      aria-hidden="true">{{ initial(course.teacherName) }}</span>
+                <span class="truncate">{{ course.teacherName }}</span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  {{ course.enrolledCount }}{{ course.maxStudents ? '/' + course.maxStudents : '' }} enrolled
+                </span>
+              </div>
+
+              <div class="mt-5">
+                @if (course.isEnrolled) {
+                  <a routerLink="/student/dashboard"
+                     class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-100">
+                    Open in dashboard
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+                    </svg>
+                  </a>
+                } @else {
+                  <button type="button" (click)="enroll(course)"
+                          [disabled]="enrollingIds().has(course.courseId)"
+                          class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary-600 to-fuchsia-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-primary-700 hover:to-fuchsia-700 disabled:cursor-not-allowed disabled:opacity-60">
+                    @if (enrollingIds().has(course.courseId)) {
+                      Enrolling…
+                    } @else {
+                      Enroll
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14"></path><path d="m5 12 7 7 7-7"></path>
+                      </svg>
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- Pagination -->
+    @if (r.totalPages > 1) {
+      <nav class="mt-10 flex items-center justify-between" aria-label="Pagination">
+        <button type="button" (click)="goToPage(r.page - 1)" [disabled]="!r.hasPrevious"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"></path>
+          </svg>
+          Previous
+        </button>
+
+        <ol class="hidden items-center gap-1 sm:flex">
+          @for (p of [].constructor(r.totalPages); track $index) {
+            <li>
+              <button type="button" (click)="goToPage($index + 1)"
+                      [class.bg-primary-600]="$index + 1 === r.page"
+                      [class.text-white]="$index + 1 === r.page"
+                      [class.shadow-sm]="$index + 1 === r.page"
+                      [class.text-slate-700]="$index + 1 !== r.page"
+                      [class.hover:bg-slate-100]="$index + 1 !== r.page"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold transition">
+                {{ $index + 1 }}
+              </button>
+            </li>
+          }
+        </ol>
+
+        <span class="text-sm text-slate-500 sm:hidden">Page {{ r.page }} of {{ r.totalPages }}</span>
+
+        <button type="button" (click)="goToPage(r.page + 1)" [disabled]="!r.hasNext"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+          Next
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </button>
+      </nav>
+    }
+  }
+</section>

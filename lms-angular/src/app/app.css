@@ -41,6 +41,22 @@
   color: #4f46e5;
 }
 
+.app-header nav .nav-link {
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.app-header nav .nav-link:hover {
+  background: #eef2ff;
+}
+
+.app-header nav .nav-link.active {
+  background: #eef2ff;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
 .hello {
   color: #475569;
   font-size: 0.9rem;
