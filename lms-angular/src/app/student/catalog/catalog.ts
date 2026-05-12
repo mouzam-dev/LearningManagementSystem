@@ -8,6 +8,20 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { CourseListItem, PagedResult } from '../models/course.models';
 import { StudentService } from '../student.service';
 
+/**
+ * Branded gradient palettes used as deterministic thumbnail fallbacks.
+ * Listed as full Tailwind utility strings so the v4 content scanner picks them
+ * up at build time.
+ */
+const THUMBNAIL_GRADIENTS = [
+  'from-indigo-500 to-violet-600',
+  'from-violet-500 to-fuchsia-600',
+  'from-fuchsia-500 to-pink-500',
+  'from-blue-500 to-indigo-600',
+  'from-sky-500 to-indigo-500',
+  'from-purple-500 to-indigo-600',
+] as const;
+
 @Component({
   selector: 'app-student-catalog',
   standalone: true,
@@ -38,6 +52,17 @@ export class StudentCatalog implements OnInit {
     const end = Math.min(r.page * r.pageSize, r.totalCount);
     return `${start}–${end} of ${r.totalCount}`;
   });
+
+  /** [1, 2, …, totalPages] for the pagination strip. */
+  readonly pageNumbers = computed<number[]>(() => {
+    const r = this.result();
+    if (!r || r.totalPages <= 1) return [];
+    return Array.from({ length: r.totalPages }, (_, i) => i + 1);
+  });
+
+  readonly hasFilters = computed(
+    () => !!this.searchControl.value || !!this.categoryControl.value,
+  );
 
   ngOnInit(): void {
     this.fetchCategories();
@@ -99,7 +124,7 @@ export class StudentCatalog implements OnInit {
           next.delete(course.courseId);
           return next;
         });
-        // Update the matching item in place so the card re-renders to "Enrolled".
+        // Patch the card in place so the user sees the state flip immediately.
         const r = this.result();
         if (r) {
           this.result.set({
@@ -140,15 +165,11 @@ export class StudentCatalog implements OnInit {
     return (name?.trim()?.charAt(0) || '?').toUpperCase();
   }
 
-  /** Stable hue per-course so the gradient fallback is varied but deterministic. */
-  hueFor(id: string): number {
+  /** Pick a stable branded gradient for a course based on its id. */
+  gradientFor(id: string): string {
     let hash = 0;
     for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
-    return Math.abs(hash) % 360;
-  }
-
-  trackPage(_: number, p: number): number {
-    return p;
+    return THUMBNAIL_GRADIENTS[Math.abs(hash) % THUMBNAIL_GRADIENTS.length];
   }
 
   private formatError(err: HttpErrorResponse): string {

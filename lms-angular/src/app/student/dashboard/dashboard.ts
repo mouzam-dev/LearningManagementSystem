@@ -45,7 +45,6 @@ export class StudentDashboard implements OnInit {
   }
 
   continueCourse(courseId: string): void {
-    // Course detail page lands in Day 4 (catalog) / Day 5 (lessons). Stub for now.
     this.router.navigate(['/student/courses', courseId]);
   }
 

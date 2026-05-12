@@ -34,6 +34,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./student/catalog/catalog').then((m) => m.StudentCatalog),
       },
+      {
+        path: 'courses/:courseId',
+        loadComponent: () =>
+          import('./student/course-detail/course-detail').then((m) => m.StudentCourseDetail),
+      },
+      {
+        path: 'lessons/:lessonId',
+        loadComponent: () =>
+          import('./student/lesson-player/lesson-player').then((m) => m.StudentLessonPlayer),
+      },
     ],
   },
   { path: '**', redirectTo: 'home' },

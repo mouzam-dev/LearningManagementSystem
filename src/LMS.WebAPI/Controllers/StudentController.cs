@@ -69,4 +69,77 @@ public class StudentController : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
+
+    [HttpGet("courses/{courseId:guid}")]
+    [ProducesResponseType(typeof(CourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<CourseDetailDto>> GetCourseDetail(Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseDetailQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("lessons/{lessonId:guid}")]
+    [ProducesResponseType(typeof(LessonDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<LessonDetailDto>> GetLesson(Guid lessonId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetLessonQuery(lessonId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    public class UpdateLessonProgressRequest
+    {
+        public int WatchTimeSeconds { get; set; }
+        public bool MarkComplete { get; set; }
+    }
+
+    [HttpPut("lessons/{lessonId:guid}/progress")]
+    [ProducesResponseType(typeof(LessonDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<LessonDetailDto>> UpdateLessonProgress(
+        Guid lessonId,
+        [FromBody] UpdateLessonProgressRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new UpdateLessonProgressCommand(lessonId, request.WatchTimeSeconds, request.MarkComplete), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
 }

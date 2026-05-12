@@ -1,3 +1,4 @@
+using System.Text.Json;
 using LMS.Application.Common;
 using LMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +19,18 @@ public class DevController : ControllerBase
     private const string DemoTeacherEmail = "demo.teacher@lms.dev";
     private const string DemoTeacherPassword = "Password1!";
 
+    // Public-domain Blender Foundation films, hosted on Google's CDN. Cycled
+    // across lessons so every course has a working playable video.
+    private static readonly string[] SampleVideoUrls =
+    [
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    ];
+
     private readonly IApplicationDbContext _db;
     private readonly IWebHostEnvironment _env;
 
@@ -28,8 +41,9 @@ public class DevController : ControllerBase
     }
 
     /// <summary>
-    /// Idempotently plant a demo teacher and a handful of published courses across
-    /// a few categories so the catalog has something to show on a fresh database.
+    /// Idempotently plant a demo teacher, a handful of published courses across a
+    /// few categories, and a 2-module / 6-lesson syllabus for every course that
+    /// doesn't have one yet. Re-running is safe — only missing pieces are added.
     /// </summary>
     [HttpPost("seed")]
     public async Task<IActionResult> Seed(CancellationToken ct)
@@ -85,17 +99,16 @@ public class DevController : ControllerBase
                   Thumbnail = (string?)null, MaxStudents = (int?)null },
         };
 
-        var existingTitles = await _db.Courses
+        var teacherCourses = await _db.Courses
             .Where(c => c.TeacherId == teacher.Id)
-            .Select(c => c.Title)
             .ToListAsync(ct);
 
-        var added = 0;
+        var coursesAdded = 0;
         foreach (var c in demoCourses)
         {
-            if (existingTitles.Contains(c.Title)) continue;
+            if (teacherCourses.Any(existing => existing.Title == c.Title)) continue;
 
-            _db.Courses.Add(new Course
+            var course = new Course
             {
                 Id = Guid.NewGuid(),
                 TeacherId = teacher.Id,
@@ -107,19 +120,106 @@ public class DevController : ControllerBase
                 IsPublished = true,
                 CreatedAt = now,
                 UpdatedAt = now,
-            });
-            added++;
+            };
+            _db.Courses.Add(course);
+            teacherCourses.Add(course);
+            coursesAdded++;
+        }
+
+        if (coursesAdded > 0)
+        {
+            // Save courses now so subsequent module/lesson lookups can find them.
+            await _db.SaveChangesAsync(ct);
+        }
+
+        // For every demo course that doesn't have any modules yet, plant a
+        // syllabus. Keeps the seed fully idempotent.
+        var modulesAdded = 0;
+        var lessonsAdded = 0;
+        var videoIndex = 0;
+
+        foreach (var course in teacherCourses)
+        {
+            var hasModules = await _db.Modules.AnyAsync(m => m.CourseId == course.Id, ct);
+            if (hasModules) continue;
+
+            var syllabus = new[]
+            {
+                new
+                {
+                    Title = "Getting started",
+                    Description = "Set the stage and get your environment ready.",
+                    Lessons = new[]
+                    {
+                        new { Title = "Welcome and overview", Duration = 5 },
+                        new { Title = "Setting up your environment", Duration = 8 },
+                        new { Title = "Your first hands-on", Duration = 6 },
+                    },
+                },
+                new
+                {
+                    Title = "Core concepts",
+                    Description = "Build a working mental model — patterns, pitfalls, practice.",
+                    Lessons = new[]
+                    {
+                        new { Title = "Fundamentals deep-dive", Duration = 12 },
+                        new { Title = "Patterns and anti-patterns", Duration = 15 },
+                        new { Title = "Hands-on lab", Duration = 10 },
+                    },
+                },
+            };
+
+            for (var mIdx = 0; mIdx < syllabus.Length; mIdx++)
+            {
+                var ms = syllabus[mIdx];
+                var module = new Module
+                {
+                    Id = Guid.NewGuid(),
+                    CourseId = course.Id,
+                    Title = ms.Title,
+                    Description = ms.Description,
+                    Order = mIdx + 1,
+                    CreatedAt = now,
+                };
+                _db.Modules.Add(module);
+                modulesAdded++;
+
+                for (var lIdx = 0; lIdx < ms.Lessons.Length; lIdx++)
+                {
+                    var ls = ms.Lessons[lIdx];
+                    var videoUrl = SampleVideoUrls[videoIndex++ % SampleVideoUrls.Length];
+
+                    _db.Lessons.Add(new Lesson
+                    {
+                        Id = Guid.NewGuid(),
+                        ModuleId = module.Id,
+                        Title = ls.Title,
+                        Type = "Video",
+                        Content = JsonSerializer.Serialize(new { videoUrl }),
+                        Duration = ls.Duration,
+                        Order = lIdx + 1,
+                        IsPublished = true,
+                        CreatedAt = now,
+                        UpdatedAt = now,
+                    });
+                    lessonsAdded++;
+                }
+            }
         }
 
         await _db.SaveChangesAsync(ct);
 
         var totalCourses = await _db.Courses.CountAsync(ct);
+        var totalLessons = await _db.Lessons.CountAsync(ct);
         return Ok(new
         {
             teacherId = teacher.Id,
             teacherEmail = teacher.Email,
-            coursesAdded = added,
+            coursesAdded,
+            modulesAdded,
+            lessonsAdded,
             totalPublishedCourses = totalCourses,
+            totalLessons,
         });
     }
 }

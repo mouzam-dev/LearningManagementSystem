@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { CourseFilter, CourseListItem, PagedResult } from './models/course.models';
 import { Dashboard } from './models/dashboard.models';
+import { CourseDetail, LessonDetail, LessonProgressUpdate } from './models/lesson.models';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
@@ -31,5 +32,23 @@ export class StudentService {
 
   enroll(courseId: string): Observable<CourseListItem> {
     return this.http.post<CourseListItem>(`${this.baseUrl}/enroll/${courseId}`, {});
+  }
+
+  getCourseDetail(courseId: string): Observable<CourseDetail> {
+    return this.http.get<CourseDetail>(`${this.baseUrl}/courses/${courseId}`);
+  }
+
+  getLesson(lessonId: string): Observable<LessonDetail> {
+    return this.http.get<LessonDetail>(`${this.baseUrl}/lessons/${lessonId}`);
+  }
+
+  updateLessonProgress(
+    lessonId: string,
+    update: LessonProgressUpdate,
+  ): Observable<LessonDetail> {
+    return this.http.put<LessonDetail>(
+      `${this.baseUrl}/lessons/${lessonId}/progress`,
+      update,
+    );
   }
 }
