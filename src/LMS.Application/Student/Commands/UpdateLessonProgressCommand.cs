@@ -89,12 +89,54 @@ public class UpdateLessonProgressCommandHandler
 
         if (totalLessons > 0 && completedLessons >= totalLessons)
         {
+            var firstCompletion = !enrollment.IsCompleted;
             enrollment.IsCompleted = true;
             enrollment.CompletedAt ??= DateTime.UtcNow;
+
+            // Auto-issue a certificate the first time the student finishes
+            // every lesson. Unique index on (UserId, CourseId) guarantees we
+            // can never issue twice for the same enrolment, but we also gate
+            // it on firstCompletion so the no-op case doesn't even attempt
+            // the insert.
+            if (firstCompletion)
+            {
+                var alreadyIssued = await _db.Certificates
+                    .AnyAsync(c => c.UserId == userId && c.CourseId == courseId, cancellationToken);
+                if (!alreadyIssued)
+                {
+                    _db.Certificates.Add(new Certificate
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        CourseId = courseId,
+                        VerifyCode = GenerateVerifyCode(),
+                        IssuedAt = DateTime.UtcNow,
+                    });
+                }
+            }
         }
 
         await _db.SaveChangesAsync(cancellationToken);
 
         return await _mediator.Send(new GetLessonQuery(lesson.Id), cancellationToken);
+    }
+
+    /// <summary>
+    /// 12-character URL-safe verification code (e.g. "K7J3-N9PQ-XR2M").
+    /// Random Guid bytes → base32 (no padding, no ambiguous chars) → dashed groups.
+    /// </summary>
+    private static string GenerateVerifyCode()
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Crockford base32 (no I/L/O/0/1)
+        Span<byte> bytes = stackalloc byte[8];
+        Random.Shared.NextBytes(bytes);
+        Span<char> chars = stackalloc char[12];
+        for (var i = 0; i < 12; i++)
+        {
+            chars[i] = alphabet[bytes[i % 8] % alphabet.Length];
+            // Reroll to avoid the same byte producing repeats across the run.
+            bytes[i % 8] = (byte)(bytes[i % 8] * 31 + i);
+        }
+        return $"{new string(chars[..4])}-{new string(chars.Slice(4, 4))}-{new string(chars[8..])}";
     }
 }

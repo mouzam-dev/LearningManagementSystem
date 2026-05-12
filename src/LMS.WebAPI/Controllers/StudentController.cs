@@ -188,6 +188,30 @@ public class StudentController : ControllerBase
         }
     }
 
+    [HttpGet("certificates")]
+    [ProducesResponseType(typeof(IReadOnlyList<CertificateSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<CertificateSummaryDto>>> GetCertificates(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetMyCertificatesQuery(), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("certificates/{certificateId:guid}")]
+    [ProducesResponseType(typeof(CertificateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CertificateDto>> GetCertificate(Guid certificateId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCertificateQuery(certificateId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("assessments/{assessmentId:guid}/submit")]
     [ProducesResponseType(typeof(SubmissionResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

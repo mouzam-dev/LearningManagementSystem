@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { CourseDetail } from '../models/lesson.models';
 import { AssessmentListItem } from '../models/assessment.models';
+import { CertificateSummary } from '../models/certificate.models';
 import { StudentService } from '../student.service';
 
 @Component({
@@ -24,6 +25,7 @@ export class StudentCourseDetail implements OnInit {
   readonly error = signal<string | null>(null);
   readonly course = signal<CourseDetail | null>(null);
   readonly assessments = signal<AssessmentListItem[]>([]);
+  readonly certificate = signal<CertificateSummary | null>(null);
 
   readonly progressLabel = computed(() => {
     const c = this.course();
@@ -57,6 +59,17 @@ export class StudentCourseDetail implements OnInit {
     this.studentService.getCourseAssessments(this.courseId()).subscribe({
       next: (a) => this.assessments.set(a),
       error: () => this.assessments.set([]),
+    });
+
+    // Find any certificate already issued for this course. If progress hits
+    // 100% on a later refresh, the matching cert will appear and we'll show
+    // the completion banner.
+    this.studentService.getMyCertificates().subscribe({
+      next: (list) => {
+        const match = list.find((c) => c.courseId === this.courseId()) ?? null;
+        this.certificate.set(match);
+      },
+      error: () => this.certificate.set(null),
     });
   }
 

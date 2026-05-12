@@ -49,7 +49,23 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./student/assessment/assessment-taker').then((m) => m.StudentAssessmentTaker),
       },
+      {
+        path: 'certificates',
+        loadComponent: () =>
+          import('./student/certificates/certificate-list').then((m) => m.StudentCertificateList),
+      },
+      {
+        path: 'certificates/:certificateId',
+        loadComponent: () =>
+          import('./student/certificates/certificate-detail').then((m) => m.StudentCertificateDetail),
+      },
     ],
+  },
+  // Public certificate verification — no authGuard, anyone with the code can hit this.
+  {
+    path: 'verify/:code',
+    loadComponent: () =>
+      import('./verify/verify-certificate').then((m) => m.VerifyCertificateComponent),
   },
   { path: '**', redirectTo: 'home' },
 ];

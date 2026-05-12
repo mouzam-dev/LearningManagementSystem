@@ -12,6 +12,11 @@ import {
   SubmissionResult,
   SubmitAssessmentBody,
 } from './models/assessment.models';
+import {
+  Certificate,
+  CertificateSummary,
+  VerifyCertificate,
+} from './models/certificate.models';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
@@ -75,6 +80,24 @@ export class StudentService {
     return this.http.post<SubmissionResult>(
       `${this.baseUrl}/assessments/${assessmentId}/submit`,
       body,
+    );
+  }
+
+  getMyCertificates(): Observable<CertificateSummary[]> {
+    return this.http.get<CertificateSummary[]>(`${this.baseUrl}/certificates`);
+  }
+
+  getCertificate(certificateId: string): Observable<Certificate> {
+    return this.http.get<Certificate>(`${this.baseUrl}/certificates/${certificateId}`);
+  }
+
+  /**
+   * Public verification — calls the anonymous /api/certificates/verify endpoint
+   * (not under /api/student). Bypasses the JWT interceptor.
+   */
+  verifyCertificate(code: string): Observable<VerifyCertificate> {
+    return this.http.get<VerifyCertificate>(
+      `${environment.apiUrl}/certificates/verify/${encodeURIComponent(code)}`,
     );
   }
 }
