@@ -1,0 +1,190 @@
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <!-- Header -->
+  <header class="mb-8 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Dashboard</h1>
+      <p class="mt-2 max-w-2xl text-sm text-slate-600">
+        Everything you're running, every student making progress, and what's waiting on you.
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <a routerLink="/teacher/courses"
+         class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+        My courses
+      </a>
+      <a routerLink="/teacher/courses/new"
+         class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14"></path><path d="M5 12h14"></path>
+        </svg>
+        New course
+      </a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      @for (i of [0, 1, 2, 3]; track i) {
+        <div class="h-24 animate-pulse rounded-2xl bg-slate-200"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (data(); as d) {
+    <!-- KPI grid -->
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Courses</p>
+        <p class="mt-2 text-3xl font-bold text-slate-900">{{ d.summary.totalCourses }}</p>
+        <p class="mt-1 text-xs text-slate-500">
+          <span class="font-semibold text-emerald-600">{{ d.summary.publishedCourses }} published</span>
+          ·
+          <span class="font-semibold text-amber-600">{{ d.summary.draftCourses }} draft</span>
+        </p>
+      </article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Students</p>
+        <p class="mt-2 text-3xl font-bold text-slate-900">{{ d.summary.totalStudents }}</p>
+        <p class="mt-1 text-xs text-slate-500">
+          <span class="font-semibold text-primary-700">{{ d.summary.totalActiveStudents }}</span> actively learning
+        </p>
+      </article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Completions</p>
+        <p class="mt-2 text-3xl font-bold text-slate-900">{{ d.summary.completedEnrollments }}</p>
+        <p class="mt-1 text-xs text-slate-500">
+          <span class="font-semibold text-emerald-700">{{ d.summary.certificatesIssued }}</span> certificates issued
+        </p>
+      </article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+               [class.ring-2]="d.summary.pendingGradingCount > 0"
+               [class.ring-amber-200]="d.summary.pendingGradingCount > 0">
+        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">To grade</p>
+        <p class="mt-2 text-3xl font-bold"
+           [class.text-amber-600]="d.summary.pendingGradingCount > 0"
+           [class.text-slate-900]="d.summary.pendingGradingCount === 0">
+          {{ d.summary.pendingGradingCount }}
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+          @if (d.summary.pendingGradingCount === 0) {
+            All caught up 🎉
+          } @else {
+            assignment submissions waiting
+          }
+        </p>
+      </article>
+    </div>
+
+    <!-- Top courses -->
+    <section class="mt-10">
+      <div class="flex items-end justify-between">
+        <h2 class="text-lg font-semibold text-slate-900">Your top courses</h2>
+        <a routerLink="/teacher/courses" class="text-sm font-semibold text-primary-600 hover:text-primary-700">View all →</a>
+      </div>
+      @if (d.topCourses.length === 0) {
+        <div class="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+          <p class="text-sm font-semibold text-slate-900">No courses yet</p>
+          <p class="mt-1 text-sm text-slate-500">Create your first one to see students show up here.</p>
+          <a routerLink="/teacher/courses/new"
+             class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+            New course
+          </a>
+        </div>
+      } @else {
+        <ul class="mt-4 grid gap-4 lg:grid-cols-2">
+          @for (c of d.topCourses; track c.courseId) {
+            <li>
+              <a [routerLink]="['/teacher/courses']" [fragment]="c.courseId"
+                 class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary-300 hover:shadow-md">
+                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 font-bold"
+                      aria-hidden="true">{{ c.title.charAt(0) }}</span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    @if (c.isPublished) {
+                      <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        Published
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                        Draft
+                      </span>
+                    }
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{{ c.category }}</span>
+                  </div>
+                  <p class="mt-0.5 truncate text-sm font-semibold text-slate-900 group-hover:text-primary-700">{{ c.title }}</p>
+                  <p class="mt-0.5 text-xs text-slate-500">
+                    <span class="font-semibold text-slate-700">{{ c.studentCount }}</span> students
+                    · <span class="font-semibold text-slate-700">{{ c.lessonCount }}</span> lessons
+                  </p>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Two-column: recent enrollments + pending grading -->
+    <div class="mt-10 grid gap-6 lg:grid-cols-2">
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">Recent enrollments</h2>
+        @if (d.recentEnrollments.length === 0) {
+          <div class="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500">
+            No enrollments yet.
+          </div>
+        } @else {
+          <ul class="mt-4 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            @for (e of d.recentEnrollments; track e.enrollmentId) {
+              <li class="flex items-center gap-3 px-4 py-3">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600 text-xs font-bold"
+                      aria-hidden="true">{{ e.studentName.charAt(0) }}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-slate-900">{{ e.studentName }}</p>
+                  <p class="truncate text-xs text-slate-500">enrolled in <span class="font-medium text-slate-700">{{ e.courseTitle }}</span></p>
+                </div>
+                <span class="shrink-0 text-xs text-slate-400">{{ relativeTime(e.enrolledAt) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">Waiting to grade</h2>
+        @if (d.pendingGrading.length === 0) {
+          <div class="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-10 text-center">
+            <p class="text-sm font-semibold text-emerald-700">All caught up 🎉</p>
+            <p class="mt-1 text-xs text-slate-500">When students submit assignments, they'll appear here.</p>
+          </div>
+        } @else {
+          <ul class="mt-4 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            @for (p of d.pendingGrading; track p.submissionId) {
+              <li class="flex items-start gap-3 px-4 py-3">
+                <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600"
+                      aria-hidden="true">
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                  </svg>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-slate-900">{{ p.assessmentTitle }}</p>
+                  <p class="truncate text-xs text-slate-500">
+                    <span class="font-medium text-slate-700">{{ p.studentName }}</span>
+                    · {{ p.courseTitle }}
+                  </p>
+                </div>
+                <span class="shrink-0 text-xs text-slate-400">{{ relativeTime(p.submittedAt) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  }
+</section>

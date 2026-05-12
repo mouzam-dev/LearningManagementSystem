@@ -61,6 +61,28 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'teacher',
+    canActivate: [authGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./teacher/dashboard/teacher-dashboard').then((m) => m.TeacherDashboardPage),
+      },
+      {
+        path: 'courses',
+        loadComponent: () =>
+          import('./teacher/courses/teacher-courses').then((m) => m.TeacherCoursesPage),
+      },
+      {
+        path: 'courses/new',
+        loadComponent: () =>
+          import('./teacher/courses/create-course').then((m) => m.TeacherCreateCoursePage),
+      },
+    ],
+  },
   // Public certificate verification — no authGuard, anyone with the code can hit this.
   {
     path: 'verify/:code',

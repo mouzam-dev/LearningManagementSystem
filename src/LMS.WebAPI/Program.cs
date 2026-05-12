@@ -1,5 +1,6 @@
 using System.Text;
 using FluentValidation;
+using MediatR;
 using LMS.Application;
 using LMS.Application.Auth;
 using LMS.Application.Common;
@@ -36,6 +37,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(AssemblyReference.Assembly));
 builder.Services.AddAutoMapper(AssemblyReference.Assembly);
 builder.Services.AddValidatorsFromAssembly(AssemblyReference.Assembly);
+
+// FluentValidation runs automatically before every MediatR handler. Failures
+// surface as ValidationException, which controllers translate to HTTP 400.
+builder.Services.AddTransient(
+    typeof(IPipelineBehavior<,>),
+    typeof(LMS.Application.Common.Behaviors.ValidationBehavior<,>));
 
 // Application services
 builder.Services.AddScoped<IAuthService, AuthService>();
