@@ -3,8 +3,11 @@
   "configurations": [
     {
       "name": "lms-angular",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["ng", "serve", "--host", "127.0.0.1", "--port", "4200"],
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd lms-angular && npx ng serve --host 127.0.0.1 --port 4200"
+      ],
       "port": 4200
     }
   ]

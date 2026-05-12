@@ -1,0 +1,275 @@
+<section class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+  <!-- Loading skeleton -->
+  @if (loading() && !assessment()) {
+    <div class="space-y-4">
+      <div class="h-32 animate-pulse rounded-3xl bg-slate-200"></div>
+      <div class="h-40 animate-pulse rounded-2xl bg-slate-200"></div>
+      <div class="h-40 animate-pulse rounded-2xl bg-slate-200"></div>
+    </div>
+  }
+
+  @if (error() && !assessment()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700"
+         role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+      <a routerLink="/student/dashboard"
+         class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-rose-700 underline hover:text-rose-900">
+        Back to dashboard →
+      </a>
+    </div>
+  }
+
+  @if (assessment(); as a) {
+    <!-- Breadcrumb -->
+    <nav class="mb-4 flex items-center gap-1.5 text-sm text-slate-500" aria-label="Breadcrumb">
+      <a routerLink="/student/dashboard" class="hover:text-primary-600">Dashboard</a>
+      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m9 18 6-6-6-6"></path>
+      </svg>
+      <a [routerLink]="['/student/courses', a.courseId]" class="truncate hover:text-primary-600">
+        {{ a.courseTitle }}
+      </a>
+      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m9 18 6-6-6-6"></path>
+      </svg>
+      <span class="truncate text-slate-700">{{ a.title }}</span>
+    </nav>
+
+    <!-- Assessment header -->
+    <header class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider"
+             [class.text-primary-600]="a.type === 'Quiz'"
+             [class.text-amber-600]="a.type !== 'Quiz'">{{ a.type }}</p>
+          <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ a.title }}</h1>
+          <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+            @if (a.questions.length > 0) {
+              <span>{{ a.questions.length }} questions</span>
+              <span aria-hidden="true">·</span>
+            }
+            @if (a.timeLimit) {
+              <span>{{ a.timeLimit }} min suggested</span>
+              <span aria-hidden="true">·</span>
+            }
+            <span>Pass {{ a.passingScore }}%</span>
+            @if (a.totalPoints > 0) {
+              <span aria-hidden="true">·</span>
+              <span>{{ a.totalPoints }} points</span>
+            }
+            @if (a.dueDate) {
+              <span aria-hidden="true">·</span>
+              <span class="font-medium text-slate-700">{{ dueLabel(a.dueDate) }}</span>
+            }
+          </p>
+        </div>
+
+        <!-- Attempts pill -->
+        @if (a.maxAttempts !== null && a.maxAttempts !== undefined) {
+          <div class="rounded-xl bg-slate-50 px-3 py-2 text-right text-xs">
+            <p class="font-semibold text-slate-700">{{ a.attemptCount }}/{{ a.maxAttempts }} attempts</p>
+            @if (a.attemptsRemaining !== null && a.attemptsRemaining !== undefined) {
+              <p class="text-slate-500">
+                {{ a.attemptsRemaining > 0 ? a.attemptsRemaining + ' remaining' : 'No attempts left' }}
+              </p>
+            }
+          </div>
+        }
+      </div>
+    </header>
+
+    <!-- Inline error after a failed submit -->
+    @if (error() && assessment()) {
+      <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+           role="alert">
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Result card (shown after submission OR when re-opened after passing) -->
+    @if (result() || a.lastSubmission) {
+      <ng-container *ngIf="result() ?? a.lastSubmission as r">
+        <div class="mb-6 overflow-hidden rounded-3xl shadow-lg ring-1"
+             [class.bg-linear-to-br]="true"
+             [class.from-emerald-500]="r.isPassed"
+             [class.to-emerald-600]="r.isPassed"
+             [class.ring-emerald-300]="r.isPassed"
+             [class.from-rose-500]="!r.isPassed"
+             [class.to-rose-600]="!r.isPassed"
+             [class.ring-rose-300]="!r.isPassed">
+          <div class="flex flex-wrap items-center gap-6 p-6 text-white sm:p-8">
+            <div class="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white/20 ring-2 ring-white/40 backdrop-blur">
+              <span class="text-3xl font-bold">{{ r.scorePercentage ?? '—' }}{{ r.scorePercentage !== null && r.scorePercentage !== undefined ? '%' : '' }}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold uppercase tracking-wider text-white/85">
+                {{ r.assessmentType === 'Quiz' ? (r.isPassed ? 'You passed' : 'Not yet') : 'Submitted' }}
+              </p>
+              <h2 class="mt-1 text-2xl font-bold">
+                @if (r.assessmentType === 'Quiz') {
+                  {{ r.isPassed ? 'Nice work!' : 'Try again?' }}
+                } @else {
+                  Your submission is in
+                }
+              </h2>
+              <p class="mt-1 text-sm text-white/85">
+                @if (r.assessmentType === 'Quiz') {
+                  Scored {{ r.score }} / {{ r.totalPoints }} ({{ r.scorePercentage }}%) — passing is {{ a.passingScore }}%.
+                } @else {
+                  Your reflection has been recorded. The teacher will grade it; you'll see feedback here when it's ready.
+                }
+              </p>
+            </div>
+            <div class="flex shrink-0 flex-wrap gap-2">
+              @if (!r.isPassed && r.assessmentType === 'Quiz' && (a.attemptsRemaining === null || (a.attemptsRemaining ?? 0) > 0)) {
+                <button type="button" (click)="retry()"
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100">
+                  Try again
+                </button>
+              }
+              <button type="button" (click)="goToCourse()"
+                      class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-2 text-sm font-semibold text-white ring-1 ring-white/30 transition hover:bg-white/25">
+                Back to course
+              </button>
+            </div>
+          </div>
+
+          <!-- Per-question breakdown for quiz auto-grade. Only shown for the
+               freshly-returned result (a.lastSubmission doesn't carry it). -->
+          @if (result()?.questionResults?.length) {
+            <div class="border-t border-white/20 bg-white/10 p-6 backdrop-blur">
+              <h3 class="text-sm font-semibold uppercase tracking-wider text-white/85">Question breakdown</h3>
+              <ul class="mt-3 space-y-2 text-sm">
+                @for (qr of result()!.questionResults!; track qr.questionId) {
+                  <li class="flex items-start gap-3 rounded-xl bg-white/15 p-3 ring-1 ring-white/20">
+                    <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                          [class.bg-emerald-100]="qr.isCorrect"
+                          [class.text-emerald-700]="qr.isCorrect"
+                          [class.bg-rose-100]="!qr.isCorrect"
+                          [class.text-rose-700]="!qr.isCorrect"
+                          aria-hidden="true">
+                      @if (qr.isCorrect) {
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m5 12 5 5L20 7"></path>
+                        </svg>
+                      } @else {
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>
+                        </svg>
+                      }
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <p class="font-medium">{{ qr.questionText }}</p>
+                      <p class="mt-0.5 text-xs text-white/85">
+                        Your answer: <span class="font-semibold">{{ qr.studentAnswer || '—' }}</span>
+                        @if (!qr.isCorrect && qr.correctAnswer) {
+                          <span class="ml-2 text-white/70">·  Correct: <span class="font-semibold">{{ qr.correctAnswer }}</span></span>
+                        }
+                      </p>
+                    </div>
+                    <span class="shrink-0 text-xs font-semibold">
+                      {{ qr.pointsAwarded }}/{{ qr.pointsPossible }} pts
+                    </span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </ng-container>
+    }
+
+    <!-- Quiz form -->
+    @if (a.type === 'Quiz' && a.questions.length > 0 && !readOnly()) {
+      <ol class="space-y-4">
+        @for (q of a.questions; track q.questionId; let i = $index) {
+          <li>
+            <fieldset class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <legend class="text-xs font-semibold uppercase tracking-wider text-primary-600">
+                Question {{ i + 1 }} of {{ a.questions.length }}
+              </legend>
+              <p class="mt-1 text-base font-semibold text-slate-900">{{ q.questionText }}</p>
+
+              @if (q.options && q.options.length > 0) {
+                <div class="mt-4 space-y-2">
+                  @for (opt of q.options; track opt) {
+                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition"
+                           [class.border-primary-500]="isOptionSelected(q, opt)"
+                           [class.bg-primary-50]="isOptionSelected(q, opt)"
+                           [class.ring-2]="isOptionSelected(q, opt)"
+                           [class.ring-primary-200]="isOptionSelected(q, opt)"
+                           [class.border-slate-200]="!isOptionSelected(q, opt)"
+                           [class.hover:bg-slate-50]="!isOptionSelected(q, opt)">
+                      <input type="radio"
+                             [name]="'q-' + q.questionId"
+                             [value]="opt"
+                             [checked]="isOptionSelected(q, opt)"
+                             (change)="setAnswer(q.questionId, opt)"
+                             class="h-4 w-4 accent-primary-600" />
+                      <span class="text-sm text-slate-800">{{ opt }}</span>
+                    </label>
+                  }
+                </div>
+              } @else {
+                <textarea rows="3"
+                          class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                          placeholder="Type your answer…"
+                          (input)="setAnswer(q.questionId, $any($event.target).value)"></textarea>
+              }
+            </fieldset>
+          </li>
+        }
+      </ol>
+    }
+
+    <!-- Assignment form -->
+    @if (a.type === 'Assignment' && !readOnly()) {
+      <fieldset class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <legend class="text-xs font-semibold uppercase tracking-wider text-amber-600">Your response</legend>
+        <p class="mt-1 text-sm text-slate-600">
+          Take a few sentences to reflect on what you learned and how you'll apply it.
+        </p>
+        <textarea rows="8"
+                  class="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  placeholder="Type your response here…"
+                  (input)="setAssignmentAnswer($any($event.target).value)"></textarea>
+        <p class="mt-2 text-xs text-slate-400">
+          Your teacher will review this and post a grade — there's no automatic score for assignments.
+        </p>
+      </fieldset>
+    }
+
+    <!-- Submit bar -->
+    @if (!readOnly() && (a.type === 'Quiz' ? a.questions.length > 0 : true)) {
+      <div class="sticky bottom-4 mt-6 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg ring-1 ring-slate-900/5 backdrop-blur sm:flex sm:items-center sm:justify-between">
+        <div class="text-sm text-slate-600">
+          @if (a.type === 'Quiz') {
+            {{ answerCount() }} of {{ a.questions.length }} answered
+          } @else {
+            Ready to submit your reflection?
+          }
+        </div>
+        <button type="button" (click)="submit()" [disabled]="!canSubmit()"
+                class="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0 sm:w-auto">
+          @if (submitting()) {
+            <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"></circle>
+              <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+            </svg>
+            Submitting…
+          } @else {
+            {{ a.type === 'Quiz' ? 'Submit quiz' : 'Submit assignment' }}
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m5 12 5 5L20 7"></path>
+            </svg>
+          }
+        </button>
+      </div>
+    }
+  }
+</section>

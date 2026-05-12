@@ -6,6 +6,12 @@ import { environment } from '../../environments/environment';
 import { CourseFilter, CourseListItem, PagedResult } from './models/course.models';
 import { Dashboard } from './models/dashboard.models';
 import { CourseDetail, LessonDetail, LessonProgressUpdate } from './models/lesson.models';
+import {
+  AssessmentDetail,
+  AssessmentListItem,
+  SubmissionResult,
+  SubmitAssessmentBody,
+} from './models/assessment.models';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
@@ -49,6 +55,26 @@ export class StudentService {
     return this.http.put<LessonDetail>(
       `${this.baseUrl}/lessons/${lessonId}/progress`,
       update,
+    );
+  }
+
+  getCourseAssessments(courseId: string): Observable<AssessmentListItem[]> {
+    return this.http.get<AssessmentListItem[]>(
+      `${this.baseUrl}/courses/${courseId}/assessments`,
+    );
+  }
+
+  getAssessment(assessmentId: string): Observable<AssessmentDetail> {
+    return this.http.get<AssessmentDetail>(`${this.baseUrl}/assessments/${assessmentId}`);
+  }
+
+  submitAssessment(
+    assessmentId: string,
+    body: SubmitAssessmentBody,
+  ): Observable<SubmissionResult> {
+    return this.http.post<SubmissionResult>(
+      `${this.baseUrl}/assessments/${assessmentId}/submit`,
+      body,
     );
   }
 }

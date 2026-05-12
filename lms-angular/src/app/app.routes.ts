@@ -44,6 +44,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./student/lesson-player/lesson-player').then((m) => m.StudentLessonPlayer),
       },
+      {
+        path: 'assessments/:assessmentId',
+        loadComponent: () =>
+          import('./student/assessment/assessment-taker').then((m) => m.StudentAssessmentTaker),
+      },
     ],
   },
   { path: '**', redirectTo: 'home' },

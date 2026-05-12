@@ -4,6 +4,7 @@ import { Component, OnInit, computed, inject, input, signal } from '@angular/cor
 import { Router, RouterLink } from '@angular/router';
 
 import { CourseDetail } from '../models/lesson.models';
+import { AssessmentListItem } from '../models/assessment.models';
 import { StudentService } from '../student.service';
 
 @Component({
@@ -22,6 +23,7 @@ export class StudentCourseDetail implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly course = signal<CourseDetail | null>(null);
+  readonly assessments = signal<AssessmentListItem[]>([]);
 
   readonly progressLabel = computed(() => {
     const c = this.course();
@@ -48,6 +50,13 @@ export class StudentCourseDetail implements OnInit {
         this.loading.set(false);
         this.error.set(this.formatError(err));
       },
+    });
+
+    // Assessments load in parallel — they're a separate panel and shouldn't
+    // block the syllabus view.
+    this.studentService.getCourseAssessments(this.courseId()).subscribe({
+      next: (a) => this.assessments.set(a),
+      error: () => this.assessments.set([]),
     });
   }
 
@@ -80,6 +89,19 @@ export class StudentCourseDetail implements OnInit {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  }
+
+  /** Friendly relative-due label (e.g. "Due in 3 days", "Due today", "Past due"). */
+  dueLabel(dueDate?: string | null): string {
+    if (!dueDate) return '';
+    const due = new Date(dueDate);
+    const diffMs = due.getTime() - Date.now();
+    const days = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (days < 0) return `Past due (${due.toLocaleDateString()})`;
+    if (days === 0) return 'Due today';
+    if (days === 1) return 'Due tomorrow';
+    if (days < 14) return `Due in ${days} days`;
+    return `Due ${due.toLocaleDateString()}`;
   }
 
   totalDuration(course: CourseDetail): string {

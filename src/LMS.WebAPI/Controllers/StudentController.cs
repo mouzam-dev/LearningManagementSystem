@@ -118,6 +118,12 @@ public class StudentController : ControllerBase
         public bool MarkComplete { get; set; }
     }
 
+    public class SubmitAssessmentRequest
+    {
+        /// <summary>Map of QuestionId (string Guid) → student's answer.</summary>
+        public Dictionary<string, string> Answers { get; set; } = new();
+    }
+
     [HttpPut("lessons/{lessonId:guid}/progress")]
     [ProducesResponseType(typeof(LessonDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -140,6 +146,75 @@ public class StudentController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("courses/{courseId:guid}/assessments")]
+    [ProducesResponseType(typeof(IReadOnlyList<AssessmentListItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<AssessmentListItemDto>>> GetCourseAssessments(
+        Guid courseId,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseAssessmentsQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("assessments/{assessmentId:guid}")]
+    [ProducesResponseType(typeof(AssessmentDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<AssessmentDetailDto>> GetAssessment(Guid assessmentId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetAssessmentQuery(assessmentId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("assessments/{assessmentId:guid}/submit")]
+    [ProducesResponseType(typeof(SubmissionResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<SubmissionResultDto>> SubmitAssessment(
+        Guid assessmentId,
+        [FromBody] SubmitAssessmentRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new SubmitAssessmentCommand(assessmentId, request.Answers), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
     }
 }

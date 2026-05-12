@@ -207,10 +207,104 @@ public class DevController : ControllerBase
             }
         }
 
+        // Plant assessments (1 quiz + 1 assignment per course) for any course
+        // that doesn't have any yet. Same idempotent pattern.
+        var assessmentsAdded = 0;
+        var questionsAdded = 0;
+
+        foreach (var course in teacherCourses)
+        {
+            var hasAssessments = await _db.Assessments.AnyAsync(a => a.CourseId == course.Id, ct);
+            if (hasAssessments) continue;
+
+            var quiz = new Assessment
+            {
+                Id = Guid.NewGuid(),
+                CourseId = course.Id,
+                Title = "Knowledge check",
+                Type = "Quiz",
+                TimeLimit = 10,
+                PassingScore = 75,
+                MaxAttempts = 3,
+                CreatedAt = now,
+            };
+            _db.Assessments.Add(quiz);
+            assessmentsAdded++;
+
+            var quizQuestions = new[]
+            {
+                new
+                {
+                    Text = "How is the course content structured in this LMS?",
+                    Type = "MCQ",
+                    Options = new[] { "One long video", "Modules with multiple lessons", "PDF handouts only", "Live sessions" },
+                    Correct = "Modules with multiple lessons",
+                    Points = 1,
+                },
+                new
+                {
+                    Text = "Watching a lesson video to the end automatically marks it as complete.",
+                    Type = "TrueFalse",
+                    Options = new[] { "True", "False" },
+                    Correct = "True",
+                    Points = 1,
+                },
+                new
+                {
+                    Text = "Where can you see your overall progress across enrolled courses?",
+                    Type = "MCQ",
+                    Options = new[] { "Catalog", "Dashboard", "Settings", "Inbox" },
+                    Correct = "Dashboard",
+                    Points = 1,
+                },
+                new
+                {
+                    Text = "Which page lets you discover and enrol in new courses?",
+                    Type = "MCQ",
+                    Options = new[] { "Catalog", "Dashboard", "Profile", "Help" },
+                    Correct = "Catalog",
+                    Points = 1,
+                },
+            };
+
+            for (var qIdx = 0; qIdx < quizQuestions.Length; qIdx++)
+            {
+                var q = quizQuestions[qIdx];
+                _db.Questions.Add(new Question
+                {
+                    Id = Guid.NewGuid(),
+                    AssessmentId = quiz.Id,
+                    QuestionText = q.Text,
+                    Type = q.Type,
+                    Options = JsonSerializer.Serialize(q.Options),
+                    CorrectAnswer = q.Correct,
+                    Points = q.Points,
+                    Order = qIdx + 1,
+                });
+                questionsAdded++;
+            }
+
+            // Assignment with a due date a week out so the dashboard's
+            // upcoming-deadlines panel has something to show.
+            _db.Assessments.Add(new Assessment
+            {
+                Id = Guid.NewGuid(),
+                CourseId = course.Id,
+                Title = "Course reflection",
+                Type = "Assignment",
+                PassingScore = 70,
+                DueDate = now.AddDays(7),
+                MaxAttempts = 1,
+                CreatedAt = now,
+            });
+            assessmentsAdded++;
+        }
+
         await _db.SaveChangesAsync(ct);
 
         var totalCourses = await _db.Courses.CountAsync(ct);
         var totalLessons = await _db.Lessons.CountAsync(ct);
+        var totalAssessments = await _db.Assessments.CountAsync(ct);
         return Ok(new
         {
             teacherId = teacher.Id,
@@ -218,8 +312,11 @@ public class DevController : ControllerBase
             coursesAdded,
             modulesAdded,
             lessonsAdded,
+            assessmentsAdded,
+            questionsAdded,
             totalPublishedCourses = totalCourses,
             totalLessons,
+            totalAssessments,
         });
     }
 }

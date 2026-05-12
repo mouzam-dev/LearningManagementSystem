@@ -75,6 +75,89 @@
       </div>
     </div>
 
+    <!-- Assessments -->
+    @if (assessments().length > 0) {
+      <div class="mb-8 space-y-3">
+        <h2 class="text-lg font-semibold text-slate-900">Assessments</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          @for (a of assessments(); track a.assessmentId) {
+            <a [routerLink]="['/student/assessments', a.assessmentId]"
+               class="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary-300 hover:shadow-md">
+              <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                    [class.bg-primary-100]="a.type === 'Quiz'"
+                    [class.text-primary-600]="a.type === 'Quiz'"
+                    [class.bg-amber-100]="a.type !== 'Quiz'"
+                    [class.text-amber-600]="a.type !== 'Quiz'"
+                    aria-hidden="true">
+                @if (a.type === 'Quiz') {
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.5 14.5 4 20"></path>
+                    <path d="m20 4-9 9"></path>
+                    <path d="M20 4v5h-5"></path>
+                    <path d="M4 20v-5h5"></path>
+                  </svg>
+                } @else {
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                    <path d="M9 13h6"></path>
+                    <path d="M9 17h6"></path>
+                  </svg>
+                }
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-semibold uppercase tracking-wider"
+                        [class.text-primary-600]="a.type === 'Quiz'"
+                        [class.text-amber-600]="a.type !== 'Quiz'">{{ a.type }}</span>
+                  @if (a.isPassed) {
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                      ✓ Passed
+                    </span>
+                  } @else if (a.attemptCount > 0) {
+                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                      {{ a.attemptCount }}/{{ a.maxAttempts ?? '∞' }} attempts
+                    </span>
+                  }
+                </div>
+                <p class="mt-0.5 truncate text-sm font-semibold text-slate-900 group-hover:text-primary-700">
+                  {{ a.title }}
+                </p>
+                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+                  @if (a.questionCount > 0) {
+                    <span>{{ a.questionCount }} questions</span>
+                    <span aria-hidden="true">·</span>
+                  }
+                  @if (a.timeLimit) {
+                    <span>{{ a.timeLimit }} min</span>
+                    <span aria-hidden="true">·</span>
+                  }
+                  <span>Pass {{ a.passingScore }}%</span>
+                  @if (a.bestScore !== null && a.bestScore !== undefined) {
+                    <span aria-hidden="true">·</span>
+                    <span class="font-medium" [class.text-emerald-600]="a.isPassed">
+                      Best {{ a.bestScore }}%
+                    </span>
+                  }
+                  @if (a.dueDate) {
+                    <span aria-hidden="true">·</span>
+                    <span class="font-medium text-slate-700">{{ dueLabel(a.dueDate) }}</span>
+                  }
+                </p>
+              </div>
+              <svg class="mt-2 h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-primary-600"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </a>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Module / lesson list -->
     @if (c.modules.length === 0) {
       <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white py-16 text-center text-slate-500">

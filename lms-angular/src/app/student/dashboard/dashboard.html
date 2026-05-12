@@ -87,7 +87,11 @@
           <tbody>
             @for (item of d.upcomingDeadlines; track item.assessmentId) {
               <tr>
-                <td>{{ item.title }}</td>
+                <td>
+                  <a [routerLink]="['/student/assessments', item.assessmentId]" class="deadline-link">
+                    {{ item.title }}
+                  </a>
+                </td>
                 <td>{{ item.courseTitle }}</td>
                 <td><span class="pill" [class.quiz]="item.type === 'Quiz'">{{ item.type }}</span></td>
                 <td>{{ item.dueDate | date: 'mediumDate' }}</td>

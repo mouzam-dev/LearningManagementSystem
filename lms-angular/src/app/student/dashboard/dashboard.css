@@ -229,6 +229,16 @@ button.link:hover {
   color: #475569;
 }
 
+.deadline-link {
+  color: #4f46e5;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.deadline-link:hover {
+  text-decoration: underline;
+}
+
 .pill {
   display: inline-block;
   padding: 0.125rem 0.5rem;
