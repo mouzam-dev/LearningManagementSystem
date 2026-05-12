@@ -1,0 +1,499 @@
+<section class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div class="space-y-6">
+      <div class="h-40 animate-pulse rounded-3xl bg-slate-200"></div>
+      <div class="h-32 animate-pulse rounded-2xl bg-slate-200"></div>
+    </div>
+  }
+
+  @if (error() && !course()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+      <a routerLink="/teacher/courses"
+         class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-rose-700 underline hover:text-rose-900">
+        Back to my courses →
+      </a>
+    </div>
+  }
+
+  @if (course(); as c) {
+    <!-- Breadcrumb -->
+    <a routerLink="/teacher/courses"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      My courses
+    </a>
+
+    <!-- Header card -->
+    <header class="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-start">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-primary-600">{{ c.category }}</span>
+            <span aria-hidden="true" class="text-slate-300">·</span>
+            @if (c.isPublished) {
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                Published
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true"></span>
+                Draft
+              </span>
+            }
+          </div>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{{ c.title }}</h1>
+          <p class="mt-3 text-sm text-slate-600">{{ c.description }}</p>
+
+          <dl class="mt-4 grid max-w-md grid-cols-3 gap-3">
+            <div class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Students</dt>
+              <dd class="mt-0.5 text-base font-bold text-slate-900">{{ c.studentCount }}</dd>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Modules</dt>
+              <dd class="mt-0.5 text-base font-bold text-slate-900">{{ c.modules.length }}</dd>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Lessons</dt>
+              <dd class="mt-0.5 text-base font-bold text-slate-900">{{ totalLessons(c) }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Action column -->
+        <div class="flex shrink-0 flex-wrap items-stretch gap-2 lg:flex-col">
+          <button type="button" (click)="openMetaEdit()"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit details
+          </button>
+          <button type="button" (click)="togglePublished()" [disabled]="busy() === 'publish'"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                  [class.bg-amber-100]="c.isPublished"
+                  [class.text-amber-700]="c.isPublished"
+                  [class.hover:bg-amber-200]="c.isPublished"
+                  [class.bg-emerald-600]="!c.isPublished"
+                  [class.text-white]="!c.isPublished"
+                  [class.hover:bg-emerald-700]="!c.isPublished">
+            @if (busy() === 'publish') {
+              <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"></circle>
+                <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+              </svg>
+              Saving…
+            } @else if (c.isPublished) {
+              Unpublish
+            } @else {
+              Publish course
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (publishError()) {
+        <div class="border-t border-amber-200 bg-amber-50 px-6 py-3 text-sm text-amber-800">
+          {{ publishError() }}
+        </div>
+      }
+      @if (publishableHint() && !c.isPublished && !publishError()) {
+        <div class="border-t border-slate-100 bg-slate-50 px-6 py-3 text-xs text-slate-500">
+          💡 {{ publishableHint() }}
+        </div>
+      }
+    </header>
+
+    <!-- Inline error banner (for non-publish errors) -->
+    @if (error()) {
+      <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Modules section -->
+    <section class="mt-8">
+      <div class="flex flex-wrap items-end justify-between gap-2">
+        <h2 class="text-xl font-semibold text-slate-900">Syllabus</h2>
+        @if (!addingModule()) {
+          <button type="button" (click)="openAddModule()"
+                  class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14"></path><path d="M5 12h14"></path>
+            </svg>
+            Add module
+          </button>
+        }
+      </div>
+
+      <!-- New module inline form -->
+      @if (addingModule()) {
+        <form (submit)="$event.preventDefault(); saveNewModule()"
+              class="mt-4 space-y-3 rounded-2xl border border-primary-200 bg-primary-50/30 p-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700">Module title</label>
+            <input type="text" [ngModel]="moduleDraft().title" name="newModuleTitle"
+                   (ngModelChange)="updateDraft(moduleDraft, 'title', $event)"
+                   class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                   placeholder="e.g. Getting started" maxlength="200" required />
+            @if (fieldError(moduleErrors(), 'Title'); as e) {
+              <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+            }
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700">Description <span class="font-normal text-slate-400">(optional)</span></label>
+            <textarea [ngModel]="moduleDraft().description" name="newModuleDescription"
+                      (ngModelChange)="updateDraft(moduleDraft, 'description', $event)"
+                      rows="2"
+                      class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                      placeholder="What students will learn in this module."
+                      maxlength="2000"></textarea>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button type="button" (click)="cancelAddModule()"
+                    class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="busy() === 'module-create'"
+                    class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+              {{ busy() === 'module-create' ? 'Adding…' : 'Add module' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- Modules + lessons accordion -->
+      @if (c.modules.length === 0 && !addingModule()) {
+        <div class="mt-4 rounded-3xl border-2 border-dashed border-slate-200 bg-white px-6 py-16 text-center">
+          <p class="text-base font-semibold text-slate-900">No modules yet</p>
+          <p class="mt-1 text-sm text-slate-500">
+            Add a module — that's a chapter of related lessons — to get started.
+          </p>
+          <button type="button" (click)="openAddModule()"
+                  class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+            Add first module
+          </button>
+        </div>
+      } @else {
+        <ol class="mt-4 space-y-4">
+          @for (m of c.modules; track m.moduleId; let mIdx = $index) {
+            <li class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <!-- Module header -->
+              <div class="flex items-start gap-3 px-5 pt-5">
+                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700"
+                      aria-hidden="true">{{ mIdx + 1 }}</span>
+
+                @if (editingModuleId() === m.moduleId) {
+                  <div class="min-w-0 flex-1 space-y-2">
+                    <input type="text" [ngModel]="moduleEditDraft().title"
+                           (ngModelChange)="updateDraft(moduleEditDraft, 'title', $event)"
+                           class="w-full rounded-xl border border-primary-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                           maxlength="200" />
+                    <textarea [ngModel]="moduleEditDraft().description"
+                              (ngModelChange)="updateDraft(moduleEditDraft, 'description', $event)"
+                              rows="2"
+                              class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                              placeholder="Description"
+                              maxlength="2000"></textarea>
+                  </div>
+                  <div class="flex shrink-0 gap-1">
+                    <button type="button" (click)="saveModuleEdit()"
+                            [disabled]="busy() === 'module-' + m.moduleId"
+                            class="rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary-700">
+                      Save
+                    </button>
+                    <button type="button" (click)="cancelEditModule()"
+                            class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:border-slate-300">
+                      Cancel
+                    </button>
+                  </div>
+                } @else {
+                  <div class="min-w-0 flex-1">
+                    <h3 class="truncate text-base font-bold text-slate-900">{{ m.title }}</h3>
+                    @if (m.description) {
+                      <p class="mt-0.5 text-sm text-slate-500">{{ m.description }}</p>
+                    }
+                    <p class="mt-1 text-xs text-slate-400">
+                      {{ m.lessons.length }} lesson{{ m.lessons.length === 1 ? '' : 's' }}
+                    </p>
+                  </div>
+                  <div class="flex shrink-0 gap-1">
+                    <button type="button" (click)="startEditModule(m)" title="Edit module"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-primary-700">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                    <button type="button" (click)="deleteModule(m)" title="Delete module"
+                            [disabled]="busy() === 'module-' + m.moduleId"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h18"></path><path d="m19 6-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Lessons list -->
+              <ul class="mt-3 divide-y divide-slate-100 border-t border-slate-100">
+                @for (l of m.lessons; track l.lessonId; let lIdx = $index) {
+                  <li class="px-5 py-3">
+                    @if (editingLessonId() === l.lessonId) {
+                      <!-- Lesson edit form -->
+                      <form (submit)="$event.preventDefault(); saveLessonEdit()"
+                            class="space-y-3 rounded-xl bg-primary-50/40 p-3 ring-1 ring-primary-200">
+                        <input type="text" [ngModel]="lessonEditDraft().title" name="editLessonTitle"
+                               (ngModelChange)="updateDraft(lessonEditDraft, 'title', $event)"
+                               class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                               placeholder="Lesson title" maxlength="200" required />
+                        <div class="grid gap-2 sm:grid-cols-[110px_1fr_90px]">
+                          <select [ngModel]="lessonEditDraft().type" name="editLessonType"
+                                  (ngModelChange)="updateDraft(lessonEditDraft, 'type', $event)"
+                                  class="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                            @for (t of lessonTypes; track t) {
+                              <option [value]="t">{{ t }}</option>
+                            }
+                          </select>
+                          @if (lessonEditDraft().type === 'Video') {
+                            <input type="url" [ngModel]="lessonEditDraft().videoUrl" name="editLessonVideoUrl"
+                                   (ngModelChange)="updateDraft(lessonEditDraft, 'videoUrl', $event)"
+                                   class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                                   placeholder="https://… (video URL)" />
+                          } @else {
+                            <span class="px-2 py-1.5 text-xs text-slate-400">Content editor coming soon</span>
+                          }
+                          <input type="number" min="1" [ngModel]="lessonEditDraft().duration" name="editLessonDuration"
+                                 (ngModelChange)="updateDraft(lessonEditDraft, 'duration', $event)"
+                                 class="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                                 placeholder="min" />
+                        </div>
+                        <label class="flex items-center gap-2 text-xs text-slate-600">
+                          <input type="checkbox" [ngModel]="lessonEditDraft().isPublished" name="editLessonPublished"
+                                 (ngModelChange)="updateDraft(lessonEditDraft, 'isPublished', $event)"
+                                 class="h-3.5 w-3.5 accent-primary-600" />
+                          Published (visible to enrolled students)
+                        </label>
+                        <div class="flex justify-end gap-2">
+                          <button type="button" (click)="cancelEditLesson()"
+                                  class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300">
+                            Cancel
+                          </button>
+                          <button type="submit" [disabled]="busy() === 'lesson-' + l.lessonId"
+                                  class="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50">
+                            {{ busy() === 'lesson-' + l.lessonId ? 'Saving…' : 'Save lesson' }}
+                          </button>
+                        </div>
+                      </form>
+                    } @else {
+                      <div class="flex items-center gap-3">
+                        <span class="text-xs font-semibold text-slate-400" aria-hidden="true">{{ mIdx + 1 }}.{{ lIdx + 1 }}</span>
+                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500"
+                              aria-hidden="true">
+                          @if (l.type === 'Video') {
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="m5 3 14 9-14 9V3z"></path>
+                            </svg>
+                          } @else {
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                              <path d="M14 2v6h6"></path>
+                            </svg>
+                          }
+                        </span>
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm font-semibold text-slate-900">{{ l.title }}</p>
+                          <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                            <span>{{ l.type }}</span>
+                            @if (l.duration) {
+                              <span aria-hidden="true">·</span>
+                              <span>{{ formatDuration(l.duration) }}</span>
+                            }
+                            @if (!l.isPublished) {
+                              <span aria-hidden="true">·</span>
+                              <span class="font-semibold text-amber-600">Hidden</span>
+                            }
+                          </p>
+                        </div>
+                        <div class="flex shrink-0 gap-1">
+                          <button type="button" (click)="startEditLesson(l)" title="Edit lesson"
+                                  class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-primary-700">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                              <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                          </button>
+                          <button type="button" (click)="deleteLesson(l)" title="Delete lesson"
+                                  [disabled]="busy() === 'lesson-' + l.lessonId"
+                                  class="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M3 6h18"></path><path d="m19 6-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path>
+                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </li>
+                }
+
+                <!-- New lesson inline form -->
+                @if (addingLessonForModule() === m.moduleId) {
+                  <li class="px-5 py-4">
+                    <form (submit)="$event.preventDefault(); saveNewLesson()"
+                          class="space-y-3 rounded-xl bg-primary-50/40 p-3 ring-1 ring-primary-200">
+                      <input type="text" [ngModel]="lessonDraft().title" name="newLessonTitle"
+                             (ngModelChange)="updateDraft(lessonDraft, 'title', $event)"
+                             class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                             placeholder="Lesson title" maxlength="200" required />
+                      @if (fieldError(lessonErrors(), 'Title'); as e) {
+                        <p class="text-xs text-rose-600">{{ e }}</p>
+                      }
+                      <div class="grid gap-2 sm:grid-cols-[110px_1fr_90px]">
+                        <select [ngModel]="lessonDraft().type" name="newLessonType"
+                                (ngModelChange)="updateDraft(lessonDraft, 'type', $event)"
+                                class="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                          @for (t of lessonTypes; track t) {
+                            <option [value]="t">{{ t }}</option>
+                          }
+                        </select>
+                        @if (lessonDraft().type === 'Video') {
+                          <input type="url" [ngModel]="lessonDraft().videoUrl" name="newLessonVideoUrl"
+                                 (ngModelChange)="updateDraft(lessonDraft, 'videoUrl', $event)"
+                                 class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                                 placeholder="https://… (video URL)" />
+                        } @else {
+                          <span class="px-2 py-1.5 text-xs text-slate-400">Content editor coming soon</span>
+                        }
+                        <input type="number" min="1" [ngModel]="lessonDraft().duration" name="newLessonDuration"
+                               (ngModelChange)="updateDraft(lessonDraft, 'duration', $event)"
+                               class="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                               placeholder="min" />
+                      </div>
+                      <label class="flex items-center gap-2 text-xs text-slate-600">
+                        <input type="checkbox" [ngModel]="lessonDraft().isPublished" name="newLessonPublished"
+                               (ngModelChange)="updateDraft(lessonDraft, 'isPublished', $event)"
+                               class="h-3.5 w-3.5 accent-primary-600" />
+                        Published (visible to enrolled students)
+                      </label>
+                      <div class="flex justify-end gap-2">
+                        <button type="button" (click)="cancelAddLesson()"
+                                class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300">
+                          Cancel
+                        </button>
+                        <button type="submit" [disabled]="busy() === 'lesson-create-' + m.moduleId"
+                                class="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50">
+                          {{ busy() === 'lesson-create-' + m.moduleId ? 'Adding…' : 'Add lesson' }}
+                        </button>
+                      </div>
+                    </form>
+                  </li>
+                } @else {
+                  <li class="px-5 py-2">
+                    <button type="button" (click)="openAddLesson(m.moduleId)"
+                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14"></path><path d="M5 12h14"></path>
+                      </svg>
+                      Add lesson
+                    </button>
+                  </li>
+                }
+              </ul>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+
+    <!-- Metadata edit modal -->
+    @if (editingMeta()) {
+      <div class="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+           role="dialog" aria-modal="true">
+        <form (submit)="$event.preventDefault(); saveMeta()"
+              class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <header class="border-b border-slate-100 px-6 py-4">
+            <h2 class="text-lg font-bold text-slate-900">Edit course details</h2>
+          </header>
+          <div class="space-y-4 px-6 py-5">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700">Title</label>
+              <input type="text" [ngModel]="metaDraft().title" name="metaTitle"
+                     (ngModelChange)="updateDraft(metaDraft, 'title', $event)"
+                     class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                     required maxlength="200" />
+              @if (fieldError(metaErrors(), 'Title'); as e) {
+                <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+              }
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700">Description</label>
+              <textarea [ngModel]="metaDraft().description" name="metaDescription"
+                        (ngModelChange)="updateDraft(metaDraft, 'description', $event)"
+                        rows="4" required maxlength="4000"
+                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"></textarea>
+              @if (fieldError(metaErrors(), 'Description'); as e) {
+                <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+              }
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700">Category</label>
+                <input type="text" [ngModel]="metaDraft().category" name="metaCategory"
+                       (ngModelChange)="updateDraft(metaDraft, 'category', $event)"
+                       class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                       required maxlength="80" />
+                @if (fieldError(metaErrors(), 'Category'); as e) {
+                  <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+                }
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700">Max students</label>
+                <input type="number" min="1" [ngModel]="metaDraft().maxStudents" name="metaMaxStudents"
+                       (ngModelChange)="updateDraft(metaDraft, 'maxStudents', $event)"
+                       class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                       placeholder="Leave blank for unlimited" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700">Thumbnail URL</label>
+              <input type="url" [ngModel]="metaDraft().thumbnailUrl" name="metaThumbnailUrl"
+                     (ngModelChange)="updateDraft(metaDraft, 'thumbnailUrl', $event)"
+                     class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                     placeholder="https://example.com/thumbnail.jpg" />
+              @if (fieldError(metaErrors(), 'ThumbnailUrl'); as e) {
+                <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+              }
+            </div>
+          </div>
+          <footer class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-3">
+            <button type="button" (click)="cancelMetaEdit()"
+                    class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="busy() === 'meta'"
+                    class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+              {{ busy() === 'meta' ? 'Saving…' : 'Save changes' }}
+            </button>
+          </footer>
+        </form>
+      </div>
+    }
+  }
+</section>

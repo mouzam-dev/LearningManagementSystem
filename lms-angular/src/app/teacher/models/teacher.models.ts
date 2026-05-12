@@ -78,3 +78,77 @@ export interface CreatedCourse {
   isPublished: boolean;
   createdAt: string;
 }
+
+// ---------------- Course detail / builder --------------------------------
+
+export interface TeacherLesson {
+  lessonId: string;
+  title: string;
+  /** "Video" | "Document" | "Text" | "Quiz" | "Assignment". */
+  type: string;
+  /** Raw JSON content payload. For "Video" lessons it's `{"videoUrl":"…"}`. */
+  content?: string | null;
+  duration?: number | null;
+  order: number;
+  isPublished: boolean;
+}
+
+export interface TeacherModule {
+  moduleId: string;
+  title: string;
+  description?: string | null;
+  order: number;
+  lessons: TeacherLesson[];
+}
+
+export interface TeacherCourseDetail {
+  courseId: string;
+  title: string;
+  description: string;
+  category: string;
+  thumbnailUrl?: string | null;
+  maxStudents?: number | null;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  studentCount: number;
+  assessmentCount: number;
+  averageProgress: number;
+  modules: TeacherModule[];
+}
+
+export interface UpdateCourseBody {
+  title: string;
+  description: string;
+  category: string;
+  thumbnailUrl?: string | null;
+  maxStudents?: number | null;
+}
+
+export interface CreateModuleBody {
+  title: string;
+  description?: string | null;
+}
+
+export interface UpdateModuleBody {
+  title: string;
+  description?: string | null;
+  order?: number | null;
+}
+
+export interface CreateLessonBody {
+  title: string;
+  type: string;
+  content?: string | null;
+  duration?: number | null;
+  isPublished: boolean;
+}
+
+export interface UpdateLessonBody {
+  title: string;
+  type: string;
+  content?: string | null;
+  duration?: number | null;
+  order?: number | null;
+  isPublished: boolean;
+}

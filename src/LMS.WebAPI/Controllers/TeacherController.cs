@@ -62,20 +62,283 @@ public class TeacherController : ControllerBase
                 request.MaxStudents);
 
             var result = await _mediator.Send(command, ct);
-            return CreatedAtAction(
-                nameof(GetCourses),
-                new { },
-                result);
+            return CreatedAtAction(nameof(GetCourses), new { }, result);
         }
         catch (ValidationException ex)
         {
-            // Surface field-level errors so the Angular form can highlight the
-            // offending control. Keys are property names from the command;
-            // values are arrays of human-readable messages.
-            var errors = ex.Errors
-                .GroupBy(e => e.PropertyName)
-                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
-            return ValidationProblem(new ValidationProblemDetails(errors));
+            return ValidationProblem(BuildModelState(ex));
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Course detail / edit / publish / delete
+    // -----------------------------------------------------------------------
+
+    [HttpGet("courses/{courseId:guid}")]
+    [ProducesResponseType(typeof(TeacherCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TeacherCourseDetailDto>> GetCourseDetail(Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetTeacherCourseDetailQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    public class UpdateCourseRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string? ThumbnailUrl { get; set; }
+        public int? MaxStudents { get; set; }
+    }
+
+    [HttpPut("courses/{courseId:guid}")]
+    [ProducesResponseType(typeof(TeacherCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherCourseDetailDto>> UpdateCourse(
+        Guid courseId,
+        [FromBody] UpdateCourseRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new UpdateCourseCommand(
+                courseId, request.Title, request.Description, request.Category,
+                request.ThumbnailUrl, request.MaxStudents), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    public class SetPublishedRequest
+    {
+        public bool IsPublished { get; set; }
+    }
+
+    [HttpPatch("courses/{courseId:guid}/published")]
+    [ProducesResponseType(typeof(TeacherCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<TeacherCourseDetailDto>> SetPublished(
+        Guid courseId,
+        [FromBody] SetPublishedRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new SetCoursePublishedCommand(courseId, request.IsPublished), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Modules
+    // -----------------------------------------------------------------------
+
+    public class CreateModuleRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    [HttpPost("courses/{courseId:guid}/modules")]
+    [ProducesResponseType(typeof(TeacherModuleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherModuleDto>> CreateModule(
+        Guid courseId,
+        [FromBody] CreateModuleRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new CreateModuleCommand(courseId, request.Title, request.Description), ct);
+            return Created(string.Empty, result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    public class UpdateModuleRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int? Order { get; set; }
+    }
+
+    [HttpPut("modules/{moduleId:guid}")]
+    [ProducesResponseType(typeof(TeacherModuleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherModuleDto>> UpdateModule(
+        Guid moduleId,
+        [FromBody] UpdateModuleRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new UpdateModuleCommand(moduleId, request.Title, request.Description, request.Order), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    [HttpDelete("modules/{moduleId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteModule(Guid moduleId, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteModuleCommand(moduleId), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Lessons
+    // -----------------------------------------------------------------------
+
+    public class CreateLessonRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Type { get; set; } = "Video";
+        public string? Content { get; set; }
+        public int? Duration { get; set; }
+        public bool IsPublished { get; set; } = true;
+    }
+
+    [HttpPost("modules/{moduleId:guid}/lessons")]
+    [ProducesResponseType(typeof(TeacherLessonDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherLessonDto>> CreateLesson(
+        Guid moduleId,
+        [FromBody] CreateLessonRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new CreateLessonCommand(
+                moduleId, request.Title, request.Type, request.Content,
+                request.Duration, request.IsPublished), ct);
+            return Created(string.Empty, result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    public class UpdateLessonRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Type { get; set; } = "Video";
+        public string? Content { get; set; }
+        public int? Duration { get; set; }
+        public int? Order { get; set; }
+        public bool IsPublished { get; set; } = true;
+    }
+
+    [HttpPut("lessons/{lessonId:guid}")]
+    [ProducesResponseType(typeof(TeacherLessonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherLessonDto>> UpdateLesson(
+        Guid lessonId,
+        [FromBody] UpdateLessonRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new UpdateLessonCommand(
+                lessonId, request.Title, request.Type, request.Content,
+                request.Duration, request.Order, request.IsPublished), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    [HttpDelete("lessons/{lessonId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteLesson(Guid lessonId, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteLessonCommand(lessonId), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Helper: turn a FluentValidation ValidationException into a
+    // ValidationProblemDetails-friendly dictionary keyed by property name.
+    // -----------------------------------------------------------------------
+
+    private static ValidationProblemDetails BuildModelState(ValidationException ex)
+    {
+        var errors = ex.Errors
+            .GroupBy(e => e.PropertyName)
+            .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+        return new ValidationProblemDetails(errors);
     }
 }

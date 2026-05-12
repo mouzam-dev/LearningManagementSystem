@@ -81,6 +81,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./teacher/courses/create-course').then((m) => m.TeacherCreateCoursePage),
       },
+      {
+        path: 'courses/:courseId',
+        loadComponent: () =>
+          import('./teacher/courses/course-builder').then((m) => m.TeacherCourseBuilderPage),
+      },
     ],
   },
   // Public certificate verification — no authGuard, anyone with the code can hit this.
