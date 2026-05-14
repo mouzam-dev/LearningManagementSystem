@@ -48,6 +48,18 @@ export class AuthService {
     this._user.set(null);
   }
 
+  /**
+   * Merges updated fields into the stored user — used after a profile edit so
+   * the header chip + role-aware nav reflect the change without a re-login.
+   */
+  patchStoredUser(patch: Partial<User>): void {
+    const current = this._user();
+    if (!current) return;
+    const next = { ...current, ...patch };
+    localStorage.setItem(USER_KEY, JSON.stringify(next));
+    this._user.set(next);
+  }
+
   getAccessToken(): string | null {
     return this._accessToken();
   }

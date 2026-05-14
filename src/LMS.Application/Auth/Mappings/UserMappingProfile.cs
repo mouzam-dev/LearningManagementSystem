@@ -4,7 +4,9 @@ using LMS.Domain.Entities;
 
 namespace LMS.Application.Auth.Mappings;
 
-public class UserMappingProfile : Profile
+// Fully-qualified: the LMS.Application.Profile feature namespace would
+// otherwise shadow AutoMapper's Profile base type here.
+public class UserMappingProfile : AutoMapper.Profile
 {
     public UserMappingProfile()
     {

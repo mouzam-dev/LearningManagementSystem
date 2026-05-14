@@ -46,6 +46,7 @@ builder.Services.AddTransient(
 
 // Application services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 
 // Expose the EF Core ApplicationDbContext to MediatR handlers via the Application
 // abstraction, so Application code never references the concrete type.

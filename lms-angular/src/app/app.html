@@ -55,16 +55,22 @@
       </button>
 
       @if (isAuthed()) {
-        <!-- User chip -->
-        <div class="hidden items-center gap-2.5 rounded-xl border border-line bg-surface py-1 pl-1 pr-3 sm:flex">
-          <span
-            class="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-primary-400 to-primary-600 text-[11px] font-bold text-white"
-            aria-hidden="true">{{ user()?.firstName?.charAt(0) }}</span>
+        <!-- User chip — links to the profile page -->
+        <a routerLink="/profile"
+           class="hidden items-center gap-2.5 rounded-xl border border-line bg-surface py-1 pl-1 pr-3 transition hover:border-primary-300 sm:flex">
+          @if (user()?.profilePictureUrl) {
+            <img [src]="user()?.profilePictureUrl" alt=""
+                 class="h-7 w-7 rounded-lg object-cover" />
+          } @else {
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-primary-400 to-primary-600 text-[11px] font-bold text-white"
+              aria-hidden="true">{{ user()?.firstName?.charAt(0) }}</span>
+          }
           <span class="text-sm font-semibold text-ink">{{ user()?.firstName }}</span>
           <span class="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
             {{ user()?.role }}
           </span>
-        </div>
+        </a>
         <button type="button" (click)="logout()"
           class="hidden rounded-xl border border-line bg-surface px-3 py-2 text-sm font-semibold text-muted transition hover:border-line-strong hover:text-ink sm:block">
           Sign out
@@ -116,6 +122,7 @@
           <a routerLink="/admin/reports" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Reports</a>
           <a routerLink="/admin/audit" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Audit log</a>
         }
+        <a routerLink="/profile" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Profile</a>
       </div>
       <div class="mt-3 flex items-center justify-between border-t border-line pt-3">
         <span class="text-sm text-muted">

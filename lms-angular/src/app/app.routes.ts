@@ -165,6 +165,12 @@ export const routes: Routes = [
       },
     ],
   },
+  // Profile — any authenticated role manages their own account here.
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./profile/profile-page').then((m) => m.ProfilePage),
+  },
   // Public certificate verification — no authGuard, anyone with the code can hit this.
   {
     path: 'verify/:code',

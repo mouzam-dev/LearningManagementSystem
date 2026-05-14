@@ -1,0 +1,196 @@
+<section class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Account</p>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Your profile</h1>
+    <p class="mt-2 max-w-xl text-sm text-muted">
+      Update how you show up across the platform, and manage your password.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="h-28 animate-pulse rounded-3xl bg-surface-3"></div>
+      <div class="h-64 animate-pulse rounded-3xl bg-surface-3"></div>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (profile(); as p) {
+    <!-- Identity strip -->
+    <div class="flex flex-wrap items-center gap-4 rounded-3xl border border-line bg-surface p-6 shadow-sm">
+      @if (p.profilePictureUrl) {
+        <img [src]="p.profilePictureUrl" [alt]="p.firstName + ' ' + p.lastName"
+             class="h-16 w-16 shrink-0 rounded-2xl object-cover ring-1 ring-line" />
+      } @else {
+        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary-400 to-primary-600 text-2xl font-bold text-white"
+              aria-hidden="true">{{ initials() }}</span>
+      }
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="truncate text-xl font-bold text-ink">{{ p.firstName }} {{ p.lastName }}</h2>
+          <span class="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-700">{{ p.role }}</span>
+          @if (p.isVerified) {
+            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+              ✓ Verified
+            </span>
+          }
+        </div>
+        <p class="mt-0.5 truncate text-sm text-muted">{{ p.email }}</p>
+        <p class="mt-0.5 text-xs text-subtle">Member since {{ p.createdAt | date: 'mediumDate' }}</p>
+      </div>
+    </div>
+
+    <!-- Details card -->
+    <form [formGroup]="detailsForm" (ngSubmit)="saveDetails()"
+          class="mt-6 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8" novalidate>
+      <h2 class="text-lg font-semibold text-ink">Your details</h2>
+      <p class="mt-0.5 text-sm text-muted">Name, bio, and avatar — visible to teachers and other learners.</p>
+
+      @if (detailsServerError(); as msg) {
+        <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ msg }}</div>
+      }
+      @if (detailsSaved()) {
+        <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+          ✓ Profile updated.
+        </div>
+      }
+
+      <div class="mt-5 grid gap-5 sm:grid-cols-2">
+        <div>
+          <label for="firstName" class="block text-sm font-semibold text-ink-soft">First name</label>
+          <input id="firstName" type="text" formControlName="firstName" maxlength="100"
+                 class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                 [class.border-line]="!(detailsForm.controls.firstName.touched && detailsForm.controls.firstName.invalid)"
+                 [class.border-rose-300]="detailsForm.controls.firstName.touched && detailsForm.controls.firstName.invalid" />
+          @if (detailsForm.controls.firstName.touched && detailsForm.controls.firstName.errors?.['required']) {
+            <p class="mt-1 text-xs text-rose-600">First name is required.</p>
+          }
+          @if (serverFieldError(detailsFieldErrors(), 'FirstName'); as e) {
+            <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+          }
+        </div>
+        <div>
+          <label for="lastName" class="block text-sm font-semibold text-ink-soft">Last name</label>
+          <input id="lastName" type="text" formControlName="lastName" maxlength="100"
+                 class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                 [class.border-line]="!(detailsForm.controls.lastName.touched && detailsForm.controls.lastName.invalid)"
+                 [class.border-rose-300]="detailsForm.controls.lastName.touched && detailsForm.controls.lastName.invalid" />
+          @if (detailsForm.controls.lastName.touched && detailsForm.controls.lastName.errors?.['required']) {
+            <p class="mt-1 text-xs text-rose-600">Last name is required.</p>
+          }
+          @if (serverFieldError(detailsFieldErrors(), 'LastName'); as e) {
+            <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <label for="bio" class="block text-sm font-semibold text-ink-soft">
+          Bio <span class="font-normal text-subtle">(optional)</span>
+        </label>
+        <textarea id="bio" formControlName="bio" rows="3" maxlength="1000"
+                  class="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  placeholder="A sentence or two about you."></textarea>
+        @if (serverFieldError(detailsFieldErrors(), 'Bio'); as e) {
+          <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+        }
+      </div>
+
+      <div class="mt-5">
+        <label for="avatar" class="block text-sm font-semibold text-ink-soft">
+          Avatar URL <span class="font-normal text-subtle">(optional)</span>
+        </label>
+        <input id="avatar" type="url" formControlName="profilePictureUrl"
+               class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+               [class.border-line]="!(detailsForm.controls.profilePictureUrl.touched && detailsForm.controls.profilePictureUrl.invalid)"
+               [class.border-rose-300]="detailsForm.controls.profilePictureUrl.touched && detailsForm.controls.profilePictureUrl.invalid"
+               placeholder="https://example.com/me.jpg" />
+        @if (detailsForm.controls.profilePictureUrl.touched && detailsForm.controls.profilePictureUrl.errors?.['url']) {
+          <p class="mt-1 text-xs text-rose-600">Must be a valid http(s) URL.</p>
+        }
+        @if (serverFieldError(detailsFieldErrors(), 'ProfilePictureUrl'); as e) {
+          <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+        }
+      </div>
+
+      <div class="mt-6 flex justify-end border-t border-line pt-5">
+        <button type="submit" [disabled]="savingDetails()"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+          {{ savingDetails() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Password card -->
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()"
+          class="mt-6 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8" novalidate>
+      <h2 class="text-lg font-semibold text-ink">Password</h2>
+      <p class="mt-0.5 text-sm text-muted">Use at least 8 characters with an uppercase letter, a lowercase letter, and a digit.</p>
+
+      @if (passwordServerError(); as msg) {
+        <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ msg }}</div>
+      }
+      @if (passwordSaved()) {
+        <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+          ✓ Password changed.
+        </div>
+      }
+
+      <div class="mt-5 space-y-5">
+        <div>
+          <label for="currentPassword" class="block text-sm font-semibold text-ink-soft">Current password</label>
+          <input id="currentPassword" type="password" formControlName="currentPassword" autocomplete="current-password"
+                 class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                 [class.border-line]="!(passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid)"
+                 [class.border-rose-300]="passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid" />
+          @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.errors?.['required']) {
+            <p class="mt-1 text-xs text-rose-600">Your current password is required.</p>
+          }
+          @if (serverFieldError(passwordFieldErrors(), 'CurrentPassword'); as e) {
+            <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+          }
+        </div>
+
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label for="newPassword" class="block text-sm font-semibold text-ink-soft">New password</label>
+            <input id="newPassword" type="password" formControlName="newPassword" autocomplete="new-password"
+                   class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                   [class.border-line]="!(passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid)"
+                   [class.border-rose-300]="passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid" />
+            @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.errors?.['required']) {
+              <p class="mt-1 text-xs text-rose-600">A new password is required.</p>
+            } @else if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.errors?.['minlength']) {
+              <p class="mt-1 text-xs text-rose-600">At least 8 characters.</p>
+            } @else if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.errors?.['pattern']) {
+              <p class="mt-1 text-xs text-rose-600">Needs an uppercase letter, a lowercase letter, and a digit.</p>
+            }
+            @if (serverFieldError(passwordFieldErrors(), 'NewPassword'); as e) {
+              <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+            }
+          </div>
+          <div>
+            <label for="confirmPassword" class="block text-sm font-semibold text-ink-soft">Confirm new password</label>
+            <input id="confirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password"
+                   class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                   [class.border-line]="!(passwordForm.controls.confirmPassword.touched && (passwordForm.controls.confirmPassword.invalid || passwordForm.errors?.['mismatch']))"
+                   [class.border-rose-300]="passwordForm.controls.confirmPassword.touched && (passwordForm.controls.confirmPassword.invalid || passwordForm.errors?.['mismatch'])" />
+            @if (passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.errors?.['required']) {
+              <p class="mt-1 text-xs text-rose-600">Please confirm your new password.</p>
+            } @else if (passwordForm.controls.confirmPassword.touched && passwordForm.errors?.['mismatch']) {
+              <p class="mt-1 text-xs text-rose-600">The passwords don't match.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end border-t border-line pt-5">
+        <button type="submit" [disabled]="savingPassword()"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+          {{ savingPassword() ? 'Updating…' : 'Change password' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>
