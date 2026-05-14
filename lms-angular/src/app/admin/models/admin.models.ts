@@ -89,3 +89,87 @@ export interface AdminUserFilter {
   page?: number;
   pageSize?: number;
 }
+
+// ---------------- Course moderation -------------------------------------
+
+export interface AdminCourseListItem {
+  courseId: string;
+  title: string;
+  category: string;
+  isPublished: boolean;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
+  moduleCount: number;
+  lessonCount: number;
+  studentCount: number;
+  assessmentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminCoursesPage {
+  items: AdminCourseListItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface AdminCourseModule {
+  moduleId: string;
+  title: string;
+  order: number;
+  lessonCount: number;
+}
+
+export interface AdminCourseDetail {
+  courseId: string;
+  title: string;
+  description: string;
+  category: string;
+  thumbnailUrl?: string | null;
+  maxStudents?: number | null;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
+  moduleCount: number;
+  lessonCount: number;
+  assessmentCount: number;
+  studentCount: number;
+  completedCount: number;
+  certificatesIssued: number;
+  averageProgress: number;
+  modules: AdminCourseModule[];
+}
+
+export interface AdminCourseFilter {
+  search?: string;
+  category?: string;
+  isPublished?: boolean | null;
+  page?: number;
+  pageSize?: number;
+}
+
+// ---------------- Audit log ---------------------------------------------
+
+export interface AdminAuditLog {
+  id: string;
+  actorId?: string | null;
+  actorName: string;
+  actorEmail: string;
+  action: string;
+  entity: string;
+  entityId?: string | null;
+  changes?: string | null;
+  createdAt: string;
+}
+
+export interface AdminAuditLogPage {
+  items: AdminAuditLog[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}

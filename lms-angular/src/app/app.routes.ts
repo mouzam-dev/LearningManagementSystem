@@ -143,6 +143,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/users/admin-user-detail').then((m) => m.AdminUserDetailPage),
       },
+      {
+        path: 'courses',
+        loadComponent: () =>
+          import('./admin/courses/admin-courses').then((m) => m.AdminCoursesPage),
+      },
+      {
+        path: 'courses/:courseId',
+        loadComponent: () =>
+          import('./admin/courses/admin-course-detail').then((m) => m.AdminCourseDetailPage),
+      },
+      {
+        path: 'audit',
+        loadComponent: () =>
+          import('./admin/audit/admin-audit').then((m) => m.AdminAuditPage),
+      },
     ],
   },
   // Public certificate verification — no authGuard, anyone with the code can hit this.

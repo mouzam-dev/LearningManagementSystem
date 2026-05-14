@@ -21,6 +21,7 @@ public interface IApplicationDbContext
     DbSet<Submission> Submissions { get; }
     DbSet<Certificate> Certificates { get; }
     DbSet<Notification> Notifications { get; }
+    DbSet<AuditLog> AuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

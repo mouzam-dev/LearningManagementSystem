@@ -4,6 +4,10 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
+  AdminAuditLogPage,
+  AdminCourseDetail,
+  AdminCourseFilter,
+  AdminCoursesPage,
   AdminDashboard,
   AdminUserDetail,
   AdminUserFilter,
@@ -18,6 +22,8 @@ export class AdminService {
   getDashboard(): Observable<AdminDashboard> {
     return this.http.get<AdminDashboard>(`${this.baseUrl}/dashboard`);
   }
+
+  // ---- Users ------------------------------------------------------------
 
   getUsers(filter: AdminUserFilter = {}): Observable<AdminUsersPage> {
     let params = new HttpParams();
@@ -44,5 +50,41 @@ export class AdminService {
   changeUserRole(userId: string, role: string): Observable<AdminUserDetail> {
     return this.http.patch<AdminUserDetail>(
       `${this.baseUrl}/users/${userId}/role`, { role });
+  }
+
+  // ---- Course moderation -----------------------------------------------
+
+  getCourses(filter: AdminCourseFilter = {}): Observable<AdminCoursesPage> {
+    let params = new HttpParams();
+    if (filter.search?.trim()) params = params.set('search', filter.search.trim());
+    if (filter.category?.trim()) params = params.set('category', filter.category.trim());
+    if (filter.isPublished !== null && filter.isPublished !== undefined) {
+      params = params.set('isPublished', filter.isPublished);
+    }
+    if (filter.page) params = params.set('page', filter.page);
+    if (filter.pageSize) params = params.set('pageSize', filter.pageSize);
+
+    return this.http.get<AdminCoursesPage>(`${this.baseUrl}/courses`, { params });
+  }
+
+  getCourse(courseId: string): Observable<AdminCourseDetail> {
+    return this.http.get<AdminCourseDetail>(`${this.baseUrl}/courses/${courseId}`);
+  }
+
+  setCoursePublished(courseId: string, isPublished: boolean): Observable<AdminCourseDetail> {
+    return this.http.patch<AdminCourseDetail>(
+      `${this.baseUrl}/courses/${courseId}/published`, { isPublished });
+  }
+
+  deleteCourse(courseId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/courses/${courseId}`);
+  }
+
+  // ---- Audit log --------------------------------------------------------
+
+  getAuditLog(entity?: string, page = 1, pageSize = 30): Observable<AdminAuditLogPage> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (entity?.trim()) params = params.set('entity', entity.trim());
+    return this.http.get<AdminAuditLogPage>(`${this.baseUrl}/audit`, { params });
   }
 }

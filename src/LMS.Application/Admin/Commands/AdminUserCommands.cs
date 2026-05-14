@@ -49,9 +49,21 @@ public class SetUserActiveCommandHandler
             throw new InvalidOperationException("You can't suspend your own account.");
         }
 
-        user.IsActive = request.IsActive;
-        user.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(cancellationToken);
+        var was = user.IsActive;
+        if (was != request.IsActive)
+        {
+            user.IsActive = request.IsActive;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            _db.AuditLogs.Add(AdminAudit.Entry(
+                _currentUser.GetUserId(),
+                request.IsActive ? "user.reactivated" : "user.suspended",
+                "User",
+                user.Id,
+                new { user.Email, name = (user.FirstName + " " + user.LastName).Trim() }));
+
+            await _db.SaveChangesAsync(cancellationToken);
+        }
 
         return await _mediator.Send(new GetAdminUserDetailQuery(user.Id), cancellationToken);
     }
@@ -110,9 +122,21 @@ public class ChangeUserRoleCommandHandler
             }
         }
 
-        user.Role = newRole;
-        user.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync(cancellationToken);
+        var previousRole = user.Role;
+        if (!string.Equals(previousRole, newRole, StringComparison.Ordinal))
+        {
+            user.Role = newRole;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            _db.AuditLogs.Add(AdminAudit.Entry(
+                _currentUser.GetUserId(),
+                "user.role_changed",
+                "User",
+                user.Id,
+                new { user.Email, from = previousRole, to = newRole }));
+
+            await _db.SaveChangesAsync(cancellationToken);
+        }
 
         return await _mediator.Send(new GetAdminUserDetailQuery(user.Id), cancellationToken);
     }

@@ -124,4 +124,96 @@ public class AdminController : ControllerBase
             return ValidationProblem(new ValidationProblemDetails(errors));
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Course moderation
+    // -----------------------------------------------------------------------
+
+    [HttpGet("courses")]
+    [ProducesResponseType(typeof(AdminCoursesPage), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AdminCoursesPage>> GetCourses(
+        [FromQuery] string? search = null,
+        [FromQuery] string? category = null,
+        [FromQuery] bool? isPublished = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(
+            new GetAdminCoursesQuery(search, category, isPublished, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("courses/{courseId:guid}")]
+    [ProducesResponseType(typeof(AdminCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AdminCourseDetailDto>> GetCourseDetail(Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetAdminCourseDetailQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    public class SetCoursePublishedRequest
+    {
+        public bool IsPublished { get; set; }
+    }
+
+    [HttpPatch("courses/{courseId:guid}/published")]
+    [ProducesResponseType(typeof(AdminCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AdminCourseDetailDto>> SetCoursePublished(
+        Guid courseId,
+        [FromBody] SetCoursePublishedRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new SetCourseModeratedCommand(courseId, request.IsPublished), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("courses/{courseId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteCourse(Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteCourseCommand(courseId), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Audit log
+    // -----------------------------------------------------------------------
+
+    [HttpGet("audit")]
+    [ProducesResponseType(typeof(AdminAuditLogPage), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AdminAuditLogPage>> GetAuditLog(
+        [FromQuery] string? entity = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetAuditLogQuery(entity, page, pageSize), ct);
+        return Ok(result);
+    }
 }
