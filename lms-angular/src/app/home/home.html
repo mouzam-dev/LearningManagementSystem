@@ -17,6 +17,9 @@
     @if (user()?.role === 'Teacher') {
       <a class="primary-link" routerLink="/teacher/dashboard">Open teacher dashboard →</a>
     }
+    @if (user()?.role === 'Admin') {
+      <a class="primary-link" routerLink="/admin/dashboard">Open admin dashboard →</a>
+    }
     <button type="button" (click)="callMe()" [disabled]="meLoading()">
       {{ meLoading() ? 'Calling…' : 'Call /api/auth/me (with JWT)' }}
     </button>

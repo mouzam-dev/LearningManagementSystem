@@ -18,6 +18,8 @@ public class DevController : ControllerBase
 {
     private const string DemoTeacherEmail = "demo.teacher@lms.dev";
     private const string DemoTeacherPassword = "Password1!";
+    private const string DemoAdminEmail = "demo.admin@lms.dev";
+    private const string DemoAdminPassword = "Password1!";
 
     // Public-domain Blender Foundation films, hosted on Google's CDN. Cycled
     // across lessons so every course has a working playable video.
@@ -75,6 +77,27 @@ public class DevController : ControllerBase
                 UpdatedAt = now,
             };
             _db.Users.Add(teacher);
+        }
+
+        // Idempotent — admin demo account so the Admin module is reachable without
+        // having to register through the public form (which only allows Student/Teacher).
+        var adminExists = await _db.Users.AnyAsync(u => u.Email == DemoAdminEmail, ct);
+        if (!adminExists)
+        {
+            _db.Users.Add(new User
+            {
+                Id = Guid.NewGuid(),
+                Email = DemoAdminEmail,
+                FirstName = "Admin",
+                LastName = "Root",
+                Role = "Admin",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(DemoAdminPassword, workFactor: 12),
+                Bio = "Demo admin for the Admin module.",
+                IsVerified = true,
+                IsActive = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            });
         }
 
         var demoCourses = new[]

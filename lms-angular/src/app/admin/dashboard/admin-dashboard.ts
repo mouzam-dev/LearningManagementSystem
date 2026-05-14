@@ -1,0 +1,63 @@
+import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { AdminDashboard } from '../models/admin.models';
+import { AdminService } from '../admin.service';
+
+@Component({
+  selector: 'app-admin-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  templateUrl: './admin-dashboard.html',
+})
+export class AdminDashboardPage {
+  private readonly admin = inject(AdminService);
+
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
+  readonly data = signal<AdminDashboard | null>(null);
+
+  readonly summary = computed(() => this.data()?.summary ?? null);
+
+  constructor() {
+    this.fetch();
+  }
+
+  private fetch(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.admin.getDashboard().subscribe({
+      next: (d) => {
+        this.data.set(d);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+        this.error.set(err.status === 0
+          ? 'Cannot reach the API. Is it running on http://localhost:5116?'
+          : (err.error?.message ?? err.statusText ?? 'Something went wrong.'));
+      },
+    });
+  }
+
+  relativeTime(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const min = Math.round(diff / 60_000);
+    if (min < 1) return 'just now';
+    if (min < 60) return `${min} min ago`;
+    const h = Math.round(min / 60);
+    if (h < 24) return `${h} hr ago`;
+    const d = Math.round(h / 24);
+    if (d < 14) return `${d} day${d === 1 ? '' : 's'} ago`;
+    return new Date(iso).toLocaleDateString();
+  }
+
+  /** Percentage of one count against a total, clamped 0-100. */
+  pct(part: number, total: number): number {
+    if (total <= 0) return 0;
+    return Math.min(100, Math.round((part / total) * 100));
+  }
+}

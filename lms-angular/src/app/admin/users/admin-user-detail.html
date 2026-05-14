@@ -1,0 +1,186 @@
+<section class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="h-36 animate-pulse rounded-3xl bg-surface-3"></div>
+      <div class="h-28 animate-pulse rounded-2xl bg-surface-3"></div>
+    </div>
+  }
+
+  @if (error() && !user()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+      <a routerLink="/admin/users"
+         class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-rose-700 underline hover:text-rose-900">
+        Back to users →
+      </a>
+    </div>
+  }
+
+  @if (user(); as u) {
+    <a routerLink="/admin/users"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      All users
+    </a>
+
+    <!-- Identity header -->
+    <header class="mt-4 overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
+      <div class="flex flex-wrap items-start gap-4 p-6 sm:p-8">
+        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-bold"
+              [class.bg-primary-100]="u.role === 'Student'"
+              [class.text-primary-700]="u.role === 'Student'"
+              [class.bg-violet-100]="u.role === 'Teacher'"
+              [class.text-violet-700]="u.role === 'Teacher'"
+              [class.bg-amber-100]="u.role === 'Admin'"
+              [class.text-amber-700]="u.role === 'Admin'"
+              aria-hidden="true">{{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}</span>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="truncate text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              {{ u.firstName }} {{ u.lastName }}
+            </h1>
+            <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                  [class.bg-primary-100]="u.role === 'Student'"
+                  [class.text-primary-700]="u.role === 'Student'"
+                  [class.bg-violet-100]="u.role === 'Teacher'"
+                  [class.text-violet-700]="u.role === 'Teacher'"
+                  [class.bg-amber-100]="u.role === 'Admin'"
+                  [class.text-amber-700]="u.role === 'Admin'">{{ u.role }}</span>
+            @if (u.isActive) {
+              <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Active</span>
+            } @else {
+              <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">Suspended</span>
+            }
+            @if (isSelf()) {
+              <span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold text-muted">You</span>
+            }
+          </div>
+          <p class="mt-1 text-sm text-muted">{{ u.email }}</p>
+          <p class="mt-1 text-xs text-subtle">
+            Joined {{ u.createdAt | date: 'mediumDate' }} · Updated {{ u.updatedAt | date: 'mediumDate' }}
+          </p>
+          @if (u.bio) {
+            <p class="mt-3 max-w-xl text-sm text-muted">{{ u.bio }}</p>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Role-specific stats -->
+    <section class="mt-6">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">
+        {{ u.role === 'Teacher' ? 'Teaching activity' : u.role === 'Student' ? 'Learning activity' : 'Account' }}
+      </h2>
+      @if (u.role === 'Teacher') {
+        <dl class="mt-3 grid grid-cols-3 gap-3">
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Courses</dt>
+            <dd class="mt-1 text-2xl font-bold text-ink">{{ u.coursesTaught }}</dd>
+          </div>
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Published</dt>
+            <dd class="mt-1 text-2xl font-bold text-emerald-600">{{ u.publishedCourses }}</dd>
+          </div>
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Students</dt>
+            <dd class="mt-1 text-2xl font-bold text-ink">{{ u.totalStudentsAcrossCourses }}</dd>
+          </div>
+        </dl>
+      } @else if (u.role === 'Student') {
+        <dl class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Enrollments</dt>
+            <dd class="mt-1 text-2xl font-bold text-ink">{{ u.enrollments }}</dd>
+          </div>
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Completed</dt>
+            <dd class="mt-1 text-2xl font-bold text-emerald-600">{{ u.completedCourses }}</dd>
+          </div>
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Certificates</dt>
+            <dd class="mt-1 text-2xl font-bold text-amber-600">{{ u.certificatesEarned }}</dd>
+          </div>
+          <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+            <dt class="text-[10px] font-semibold uppercase tracking-wider text-muted">Submissions</dt>
+            <dd class="mt-1 text-2xl font-bold text-ink">{{ u.submissions }}</dd>
+          </div>
+        </dl>
+      } @else {
+        <div class="mt-3 rounded-2xl border border-line bg-surface p-4 text-sm text-muted shadow-sm">
+          Platform administrator. Has full access to user management and the admin dashboard.
+        </div>
+      }
+    </section>
+
+    <!-- Admin actions -->
+    <section class="mt-6 rounded-2xl border border-primary-200 bg-primary-50/30 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-ink">Manage account</h2>
+
+      @if (actionError(); as msg) {
+        <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          {{ msg }}
+        </div>
+      }
+
+      @if (isSelf()) {
+        <p class="mt-3 rounded-xl bg-surface-2 px-3 py-2 text-sm text-muted">
+          This is your own account — role changes and suspension are disabled to prevent locking yourself out.
+        </p>
+      }
+
+      <div class="mt-4 grid gap-5 sm:grid-cols-2">
+        <!-- Role -->
+        <div>
+          <p class="text-sm font-semibold text-ink-soft">Role</p>
+          <p class="mt-0.5 text-xs text-muted">Changes what the user can access on sign-in.</p>
+          <div class="mt-2 inline-flex rounded-xl border border-line bg-surface p-0.5 shadow-sm">
+            @for (r of roles; track r) {
+              <button type="button" (click)="changeRole(r)"
+                      [disabled]="isSelf() || busy() === 'role' || u.role === r"
+                      class="rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed"
+                      [class.bg-primary-600]="u.role === r"
+                      [class.text-white]="u.role === r"
+                      [class.text-muted]="u.role !== r"
+                      [class.hover:bg-surface-2]="u.role !== r && !isSelf()"
+                      [class.opacity-40]="isSelf() && u.role !== r">
+                {{ r }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Active state -->
+        <div>
+          <p class="text-sm font-semibold text-ink-soft">Account status</p>
+          <p class="mt-0.5 text-xs text-muted">
+            Suspended users can't sign in until reactivated.
+          </p>
+          <button type="button" (click)="toggleActive()"
+                  [disabled]="isSelf() || busy() === 'active'"
+                  class="mt-2 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                  [class.bg-rose-600]="u.isActive"
+                  [class.text-white]="u.isActive"
+                  [class.hover:bg-rose-700]="u.isActive && !isSelf()"
+                  [class.bg-emerald-600]="!u.isActive"
+                  [class.hover:bg-emerald-700]="!u.isActive">
+            @if (busy() === 'active') {
+              <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"></circle>
+                <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+              </svg>
+              Saving…
+            } @else if (u.isActive) {
+              Suspend account
+            } @else {
+              Reactivate account
+            }
+          </button>
+        </div>
+      </div>
+    </section>
+  }
+</section>

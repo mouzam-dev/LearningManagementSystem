@@ -123,6 +123,28 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'admin',
+    canActivate: [authGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./admin/dashboard/admin-dashboard').then((m) => m.AdminDashboardPage),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./admin/users/admin-users').then((m) => m.AdminUsersPage),
+      },
+      {
+        path: 'users/:userId',
+        loadComponent: () =>
+          import('./admin/users/admin-user-detail').then((m) => m.AdminUserDetailPage),
+      },
+    ],
+  },
   // Public certificate verification — no authGuard, anyone with the code can hit this.
   {
     path: 'verify/:code',
