@@ -20,6 +20,8 @@ public class DevController : ControllerBase
     private const string DemoTeacherPassword = "Password1!";
     private const string DemoAdminEmail = "demo.admin@lms.dev";
     private const string DemoAdminPassword = "Password1!";
+    private const string DemoStudentEmail = "demo.student@lms.dev";
+    private const string DemoStudentPassword = "Password1!";
 
     // Public-domain Blender Foundation films, hosted on Google's CDN. Cycled
     // across lessons so every course has a working playable video.
@@ -325,6 +327,55 @@ public class DevController : ControllerBase
 
         await _db.SaveChangesAsync(ct);
 
+        // Idempotent — demo student account so all three roles have a consistent
+        // sign-in. Auto-enrolled in the first two demo courses so the student
+        // experience (dashboard, continue-learning) has data out of the box.
+        var enrollmentsAdded = 0;
+        var student = await _db.Users.FirstOrDefaultAsync(u => u.Email == DemoStudentEmail, ct);
+        if (student is null)
+        {
+            student = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = DemoStudentEmail,
+                FirstName = "Sam",
+                LastName = "Learner",
+                Role = "Student",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(DemoStudentPassword, workFactor: 12),
+                Bio = "Demo student for exploring the learner experience.",
+                IsVerified = true,
+                IsActive = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            };
+            _db.Users.Add(student);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        var demoEnrolCourses = await _db.Courses
+            .Where(c => c.TeacherId == teacher.Id && c.IsPublished)
+            .OrderBy(c => c.CreatedAt)
+            .Take(2)
+            .ToListAsync(ct);
+        foreach (var course in demoEnrolCourses)
+        {
+            var alreadyEnrolled = await _db.Enrollments
+                .AnyAsync(e => e.StudentId == student.Id && e.CourseId == course.Id, ct);
+            if (alreadyEnrolled) continue;
+
+            _db.Enrollments.Add(new Enrollment
+            {
+                Id = Guid.NewGuid(),
+                StudentId = student.Id,
+                CourseId = course.Id,
+                EnrolledAt = now,
+                ProgressPercentage = 0m,
+                IsCompleted = false,
+            });
+            enrollmentsAdded++;
+        }
+        await _db.SaveChangesAsync(ct);
+
         var totalCourses = await _db.Courses.CountAsync(ct);
         var totalLessons = await _db.Lessons.CountAsync(ct);
         var totalAssessments = await _db.Assessments.CountAsync(ct);
@@ -332,11 +383,13 @@ public class DevController : ControllerBase
         {
             teacherId = teacher.Id,
             teacherEmail = teacher.Email,
+            studentEmail = student.Email,
             coursesAdded,
             modulesAdded,
             lessonsAdded,
             assessmentsAdded,
             questionsAdded,
+            enrollmentsAdded,
             totalPublishedCourses = totalCourses,
             totalLessons,
             totalAssessments,

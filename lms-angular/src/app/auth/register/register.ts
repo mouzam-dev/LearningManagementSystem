@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../auth.service';
 import { ValidationProblem } from '../models/auth.models';
+import { landingPathForRole } from '../../core/guards/auth.guard';
 
 @Component({
   selector: 'app-register',
@@ -54,7 +55,7 @@ export class Register {
           this.errorMessage.set(res.message || 'Registration failed.');
           return;
         }
-        this.router.navigateByUrl(res.user?.role === 'Student' ? '/student/dashboard' : '/home');
+        this.router.navigateByUrl(landingPathForRole(res.user?.role));
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);

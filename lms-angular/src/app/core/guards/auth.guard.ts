@@ -3,6 +3,20 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
 
+/** Role-aware landing page — where a signed-in user belongs by default. */
+export function landingPathForRole(role: string | undefined): string {
+  switch (role) {
+    case 'Student':
+      return '/student/dashboard';
+    case 'Teacher':
+      return '/teacher/dashboard';
+    case 'Admin':
+      return '/admin/dashboard';
+    default:
+      return '/home';
+  }
+}
+
 export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -18,5 +32,9 @@ export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return auth.isAuthenticated() ? router.createUrlTree(['/home']) : true;
+  // An already-signed-in user hitting /login or /register goes straight to
+  // their role's dashboard rather than the generic landing card.
+  return auth.isAuthenticated()
+    ? router.createUrlTree([landingPathForRole(auth.user()?.role)])
+    : true;
 };
