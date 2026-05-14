@@ -1,0 +1,204 @@
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-8 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Admin</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Reports</h1>
+      <p class="mt-2 max-w-2xl text-sm text-muted">
+        Growth trends, category mix, and the completion funnel across the whole platform.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" (click)="exportCsv('users')" [disabled]="downloading() === 'users'"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-primary-300 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        {{ downloading() === 'users' ? 'Exporting…' : 'Users CSV' }}
+      </button>
+      <button type="button" (click)="exportCsv('courses')" [disabled]="downloading() === 'courses'"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-primary-300 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        {{ downloading() === 'courses' ? 'Exporting…' : 'Courses CSV' }}
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="space-y-5">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <div class="h-24 animate-pulse rounded-2xl bg-surface-3"></div>
+        }
+      </div>
+      <div class="h-64 animate-pulse rounded-3xl bg-surface-3"></div>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (report(); as r) {
+    <!-- Headline totals -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <article class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted">Total users</p>
+        <p class="mt-2 text-3xl font-bold text-ink">{{ r.totalUsers }}</p>
+      </article>
+      <article class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted">Total courses</p>
+        <p class="mt-2 text-3xl font-bold text-ink">{{ r.totalCourses }}</p>
+      </article>
+      <article class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted">Enrollments</p>
+        <p class="mt-2 text-3xl font-bold text-ink">{{ r.totalEnrollments }}</p>
+      </article>
+      <article class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted">Certificates</p>
+        <p class="mt-2 text-3xl font-bold text-amber-600">{{ r.totalCertificates }}</p>
+      </article>
+    </div>
+
+    <!-- Trend charts -->
+    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+      <!-- Registration trend (stacked: students + teachers) -->
+      <article class="rounded-3xl border border-line bg-surface p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Registrations · last 6 months</h2>
+          <div class="flex items-center gap-3 text-[10px] font-semibold text-muted">
+            <span class="inline-flex items-center gap-1">
+              <span class="h-2 w-2 rounded-full bg-primary-500" aria-hidden="true"></span>Students
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-2 w-2 rounded-full bg-violet-500" aria-hidden="true"></span>Teachers
+            </span>
+          </div>
+        </div>
+        <div class="mt-5 flex h-44 items-end justify-between gap-2">
+          @for (m of r.registrationTrend; track m.year * 100 + m.month) {
+            <div class="flex flex-1 flex-col items-center gap-1.5">
+              <div class="flex w-full max-w-[3rem] flex-col-reverse overflow-hidden rounded-lg"
+                   [style.height.%]="barPct(m.total, maxRegistration())"
+                   [title]="m.label + ': ' + m.total + ' new (' + m.students + ' students, ' + m.teachers + ' teachers)'">
+                <div class="bg-primary-500" [style.flex]="m.students"></div>
+                <div class="bg-violet-500" [style.flex]="m.teachers"></div>
+                @if (m.total === 0) {
+                  <div class="h-1 w-full bg-surface-3"></div>
+                }
+              </div>
+              <span class="text-[10px] font-bold text-ink-soft">{{ m.total }}</span>
+              <span class="text-[10px] text-subtle">{{ m.label }}</span>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- Enrollment trend -->
+      <article class="rounded-3xl border border-line bg-surface p-6 shadow-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Enrollments · last 6 months</h2>
+        <div class="mt-5 flex h-44 items-end justify-between gap-2">
+          @for (m of r.enrollmentTrend; track m.year * 100 + m.month) {
+            <div class="flex flex-1 flex-col items-center gap-1.5">
+              <div class="w-full max-w-[3rem] rounded-lg bg-linear-to-t from-emerald-500 to-emerald-400"
+                   [class.bg-surface-3]="m.count === 0"
+                   [style.height.%]="m.count === 0 ? 2 : barPct(m.count, maxEnrollment())"
+                   [title]="m.label + ': ' + m.count + ' enrollments'"></div>
+              <span class="text-[10px] font-bold text-ink-soft">{{ m.count }}</span>
+              <span class="text-[10px] text-subtle">{{ m.label }}</span>
+            </div>
+          }
+        </div>
+      </article>
+    </div>
+
+    <!-- Completion funnel -->
+    <article class="mt-6 rounded-3xl border border-line bg-surface p-6 shadow-sm">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Completion funnel</h2>
+      <p class="mt-1 text-xs text-subtle">Every enrollment's journey from sign-up to certificate.</p>
+      <ul class="mt-4 space-y-2.5">
+        @for (step of [
+          { label: 'Enrolled',  value: r.funnel.enrolled,  cls: 'from-primary-500 to-primary-400' },
+          { label: 'Started',   value: r.funnel.started,   cls: 'from-sky-500 to-sky-400' },
+          { label: 'Completed', value: r.funnel.completed, cls: 'from-emerald-500 to-emerald-400' },
+          { label: 'Certified', value: r.funnel.certified, cls: 'from-amber-500 to-amber-400' }
+        ]; track step.label) {
+          <li class="flex items-center gap-3">
+            <span class="w-20 shrink-0 text-xs font-semibold text-ink-soft">{{ step.label }}</span>
+            <div class="h-8 flex-1 overflow-hidden rounded-lg bg-surface-2">
+              <div class="flex h-full items-center justify-end rounded-lg bg-linear-to-r px-2.5 transition-all"
+                   [class]="step.cls"
+                   [style.width.%]="funnelPct(step.value, r.funnel.enrolled)">
+                <span class="text-xs font-bold text-white">{{ step.value }}</span>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    </article>
+
+    <!-- Category breakdown + top teachers -->
+    <div class="mt-6 grid gap-6 lg:grid-cols-[3fr_2fr]">
+      <!-- Categories -->
+      <article class="rounded-3xl border border-line bg-surface p-6 shadow-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">By category</h2>
+        @if (r.categories.length === 0) {
+          <p class="mt-3 text-sm text-muted">No courses yet.</p>
+        } @else {
+          <ul class="mt-4 space-y-3">
+            @for (c of r.categories; track c.category) {
+              <li>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="font-semibold text-ink">{{ c.category }}</span>
+                  <span class="text-xs text-muted">
+                    {{ c.courseCount }} course{{ c.courseCount === 1 ? '' : 's' }}
+                    · {{ c.enrollmentCount }} enrolled
+                    · {{ c.completionRate }}% complete
+                  </span>
+                </div>
+                <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-2">
+                  <div class="h-full rounded-full bg-linear-to-r from-primary-500 to-primary-400"
+                       [style.width.%]="c.completionRate"></div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+
+      <!-- Top teachers -->
+      <article class="rounded-3xl border border-line bg-surface p-6 shadow-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Top teachers by reach</h2>
+        @if (r.topTeachers.length === 0) {
+          <p class="mt-3 text-sm text-muted">No teachers yet.</p>
+        } @else {
+          <ul class="mt-4 space-y-2">
+            @for (t of r.topTeachers; track t.teacherId; let i = $index) {
+              <li class="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700"
+                      aria-hidden="true">{{ i + 1 }}</span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-ink">{{ t.name }}</p>
+                  <p class="truncate text-xs text-muted">
+                    {{ t.publishedCount }}/{{ t.courseCount }} published
+                  </p>
+                </div>
+                <span class="shrink-0 text-right">
+                  <span class="block text-sm font-bold text-ink">{{ t.totalStudents }}</span>
+                  <span class="block text-[10px] uppercase tracking-wider text-subtle">students</span>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-subtle">
+      Generated {{ r.generatedAt | date: 'medium' }}
+    </p>
+  }
+</section>

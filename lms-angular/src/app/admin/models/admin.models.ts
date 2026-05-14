@@ -173,3 +173,58 @@ export interface AdminAuditLogPage {
   page: number;
   pageSize: number;
 }
+
+// ---------------- Reporting ---------------------------------------------
+
+export interface MonthlyRegistration {
+  year: number;
+  month: number;
+  label: string;
+  students: number;
+  teachers: number;
+  total: number;
+}
+
+export interface MonthlyCount {
+  year: number;
+  month: number;
+  label: string;
+  count: number;
+}
+
+export interface CategoryReport {
+  category: string;
+  courseCount: number;
+  publishedCount: number;
+  enrollmentCount: number;
+  completionRate: number;
+}
+
+export interface TopTeacherReport {
+  teacherId: string;
+  name: string;
+  email: string;
+  courseCount: number;
+  publishedCount: number;
+  totalStudents: number;
+}
+
+export interface CompletionFunnel {
+  enrolled: number;
+  started: number;
+  completed: number;
+  certified: number;
+}
+
+export interface AdminReport {
+  generatedAt: string;
+  totalUsers: number;
+  totalCourses: number;
+  totalEnrollments: number;
+  totalCertificates: number;
+  registrationTrend: MonthlyRegistration[];
+  enrollmentTrend: MonthlyCount[];
+  categories: CategoryReport[];
+  topTeachers: TopTeacherReport[];
+  funnel: CompletionFunnel;
+}

@@ -1,3 +1,4 @@
+using System.Text;
 using FluentValidation;
 using LMS.Application.Admin.Commands;
 using LMS.Application.Admin.Dtos;
@@ -215,5 +216,75 @@ public class AdminController : ControllerBase
     {
         var result = await _mediator.Send(new GetAuditLogQuery(entity, page, pageSize), ct);
         return Ok(result);
+    }
+
+    // -----------------------------------------------------------------------
+    // Reporting + CSV exports
+    // -----------------------------------------------------------------------
+
+    [HttpGet("reports")]
+    [ProducesResponseType(typeof(AdminReportDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AdminReportDto>> GetReport(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetAdminReportQuery(), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("reports/users.csv")]
+    public async Task<IActionResult> ExportUsersCsv(CancellationToken ct)
+    {
+        var rows = await _mediator.Send(new GetUsersExportQuery(), ct);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("First name,Last name,Email,Role,Active,Verified,Joined");
+        foreach (var r in rows)
+        {
+            sb.AppendLine(string.Join(',',
+                Csv(r.FirstName), Csv(r.LastName), Csv(r.Email), Csv(r.Role),
+                r.IsActive ? "Yes" : "No", r.IsVerified ? "Yes" : "No",
+                r.CreatedAt.ToString("yyyy-MM-dd")));
+        }
+
+        return CsvFile(sb, "lms-users");
+    }
+
+    [HttpGet("reports/courses.csv")]
+    public async Task<IActionResult> ExportCoursesCsv(CancellationToken ct)
+    {
+        var rows = await _mediator.Send(new GetCoursesExportQuery(), ct);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("Title,Category,Teacher,Teacher email,Published,Modules,Lessons,Students,Created");
+        foreach (var r in rows)
+        {
+            sb.AppendLine(string.Join(',',
+                Csv(r.Title), Csv(r.Category), Csv(r.TeacherName), Csv(r.TeacherEmail),
+                r.IsPublished ? "Yes" : "No",
+                r.ModuleCount, r.LessonCount, r.StudentCount,
+                r.CreatedAt.ToString("yyyy-MM-dd")));
+        }
+
+        return CsvFile(sb, "lms-courses");
+    }
+
+    /// <summary>RFC-4180 field escaping: quote when the value holds a comma, quote, or newline.</summary>
+    private static string Csv(string? value)
+    {
+        var v = value ?? string.Empty;
+        if (v.Contains(',') || v.Contains('"') || v.Contains('\n') || v.Contains('\r'))
+        {
+            return $"\"{v.Replace("\"", "\"\"")}\"";
+        }
+        return v;
+    }
+
+    private FileContentResult CsvFile(StringBuilder sb, string baseName)
+    {
+        var fileName = $"{baseName}-{DateTime.UtcNow:yyyy-MM-dd}.csv";
+        // UTF-8 BOM so Excel opens accented characters correctly.
+        var bytes = new byte[] { 0xEF, 0xBB, 0xBF }
+            .Concat(Encoding.UTF8.GetBytes(sb.ToString()))
+            .ToArray();
+        return File(bytes, "text/csv", fileName);
     }
 }

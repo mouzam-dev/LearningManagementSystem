@@ -158,6 +158,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/audit/admin-audit').then((m) => m.AdminAuditPage),
       },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('./admin/reports/admin-reports').then((m) => m.AdminReportsPage),
+      },
     ],
   },
   // Public certificate verification — no authGuard, anyone with the code can hit this.

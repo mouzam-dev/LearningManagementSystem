@@ -9,6 +9,7 @@ import {
   AdminCourseFilter,
   AdminCoursesPage,
   AdminDashboard,
+  AdminReport,
   AdminUserDetail,
   AdminUserFilter,
   AdminUsersPage,
@@ -86,5 +87,25 @@ export class AdminService {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (entity?.trim()) params = params.set('entity', entity.trim());
     return this.http.get<AdminAuditLogPage>(`${this.baseUrl}/audit`, { params });
+  }
+
+  // ---- Reporting + CSV exports -----------------------------------------
+
+  getReport(): Observable<AdminReport> {
+    return this.http.get<AdminReport>(`${this.baseUrl}/reports`);
+  }
+
+  /** Triggers a browser download of the given CSV export. */
+  downloadCsv(kind: 'users' | 'courses'): void {
+    this.http
+      .get(`${this.baseUrl}/reports/${kind}.csv`, { responseType: 'blob' })
+      .subscribe((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lms-${kind}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
   }
 }
