@@ -4,6 +4,9 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
+  CourseAnalytics,
+  CourseStudentDetail,
+  CourseStudentListItem,
   CreateAssessmentBody,
   CreateCourseBody,
   CreateLessonBody,
@@ -137,5 +140,20 @@ export class TeacherService {
   gradeSubmission(submissionId: string, body: GradeSubmissionBody): Observable<TeacherSubmissionDetail> {
     return this.http.put<TeacherSubmissionDetail>(
       `${this.baseUrl}/submissions/${submissionId}/grade`, body);
+  }
+
+  // ---- Per-course students + analytics ---------------------------------
+
+  getCourseStudents(courseId: string): Observable<CourseStudentListItem[]> {
+    return this.http.get<CourseStudentListItem[]>(`${this.baseUrl}/courses/${courseId}/students`);
+  }
+
+  getCourseStudent(courseId: string, studentId: string): Observable<CourseStudentDetail> {
+    return this.http.get<CourseStudentDetail>(
+      `${this.baseUrl}/courses/${courseId}/students/${studentId}`);
+  }
+
+  getCourseAnalytics(courseId: string): Observable<CourseAnalytics> {
+    return this.http.get<CourseAnalytics>(`${this.baseUrl}/courses/${courseId}/analytics`);
   }
 }

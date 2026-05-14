@@ -1,0 +1,171 @@
+<section class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+  <a [routerLink]="['/teacher/courses', courseId()]"
+     class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    {{ course()?.title ?? 'Back to course' }}
+  </a>
+
+  <header class="mt-4 mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Students</h1>
+      <p class="mt-2 max-w-xl text-sm text-slate-600">
+        Everyone enrolled in this course, sorted by activity. Click anyone to drill in.
+      </p>
+    </div>
+    <a [routerLink]="['/teacher/courses', courseId(), 'analytics']"
+       class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 3v18h18"></path><path d="m18 9-6 6-4-4-3 3"></path>
+      </svg>
+      View analytics
+    </a>
+  </header>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+        <div class="h-14 animate-pulse rounded-xl bg-slate-200"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (totalStudents() === 0) {
+    <div class="rounded-3xl border-2 border-dashed border-slate-200 bg-white px-6 py-16 text-center">
+      <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
+        <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <h2 class="mt-4 text-lg font-semibold text-slate-900">No students yet</h2>
+      <p class="mt-1 text-sm text-slate-500">
+        Once you publish the course, students who enrol will appear here.
+      </p>
+    </div>
+  } @else {
+    <!-- Quick stats -->
+    <div class="mb-5 grid gap-3 sm:grid-cols-3">
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Enrolled</p>
+        <p class="mt-1 text-2xl font-bold text-slate-900">{{ totalStudents() }}</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Completed</p>
+        <p class="mt-1 text-2xl font-bold text-emerald-600">{{ completedCount() }}</p>
+      </div>
+      <div class="rounded-2xl border bg-white p-4 shadow-sm"
+           [class.border-amber-200]="atRiskCount() > 0"
+           [class.ring-2]="atRiskCount() > 0"
+           [class.ring-amber-100]="atRiskCount() > 0"
+           [class.border-slate-200]="atRiskCount() === 0">
+        <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">At risk</p>
+        <p class="mt-1 text-2xl font-bold"
+           [class.text-amber-600]="atRiskCount() > 0"
+           [class.text-slate-900]="atRiskCount() === 0">
+          {{ atRiskCount() }}
+        </p>
+        <p class="mt-0.5 text-[10px] text-slate-400">
+          @if (atRiskCount() === 0) {
+            Everyone's on track 🎉
+          } @else {
+            Below 50% + idle for 14+ days
+          }
+        </p>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mb-4 relative">
+      <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+      </svg>
+      <input type="search" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)"
+             placeholder="Search by name or email…"
+             class="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+    </div>
+
+    <!-- Roster -->
+    <ul class="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
+      @for (s of filtered(); track s.studentId) {
+        <li>
+          <a [routerLink]="['/teacher/courses', courseId(), 'students', s.studentId]"
+             class="group flex flex-col gap-2 px-5 py-4 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:gap-4">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-700"
+                  aria-hidden="true">{{ s.studentName.charAt(0) }}</span>
+
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="truncate text-sm font-semibold text-slate-900 group-hover:text-primary-700">
+                  {{ s.studentName }}
+                </p>
+                @if (s.isCompleted) {
+                  <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    ✓ Completed
+                  </span>
+                }
+                @if (s.hasCertificate) {
+                  <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                    Certificate
+                  </span>
+                }
+                @if (isAtRisk(s)) {
+                  <span class="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+                    At risk
+                  </span>
+                }
+              </div>
+              <p class="mt-0.5 truncate text-xs text-slate-500">{{ s.studentEmail }}</p>
+            </div>
+
+            <!-- Progress bar (sm+) -->
+            <div class="w-full sm:w-44 shrink-0">
+              <div class="flex items-center justify-between text-[10px] font-semibold text-slate-500">
+                <span>{{ s.lessonsCompleted }} / {{ s.totalLessons }} lessons</span>
+                <span>{{ s.progressPercentage | number: '1.0-0' }}%</span>
+              </div>
+              <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                <div class="h-full rounded-full transition-all"
+                     [class.bg-emerald-500]="s.progressPercentage >= 100"
+                     [class.bg-primary-500]="s.progressPercentage > 0 && s.progressPercentage < 100"
+                     [class.bg-slate-300]="s.progressPercentage === 0"
+                     [style.width.%]="s.progressPercentage"></div>
+              </div>
+              <p class="mt-1 text-[10px] text-slate-400 text-right">{{ relativeTime(s.lastActivityAt) }}</p>
+            </div>
+
+            <!-- Average score badge -->
+            <div class="hidden text-right sm:block sm:w-16 shrink-0">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Avg</p>
+              <p class="text-base font-bold"
+                 [class.text-emerald-600]="(s.averageScore ?? 0) >= 70"
+                 [class.text-rose-600]="(s.averageScore ?? -1) >= 0 && (s.averageScore ?? 0) < 70"
+                 [class.text-slate-300]="s.averageScore === null || s.averageScore === undefined">
+                {{ s.averageScore !== null && s.averageScore !== undefined ? s.averageScore + '%' : '—' }}
+              </p>
+            </div>
+
+            <svg class="hidden h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-primary-600 sm:block"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+          </a>
+        </li>
+      } @empty {
+        <li class="px-5 py-8 text-center text-sm text-slate-500">
+          No students match "{{ searchTerm() }}".
+        </li>
+      }
+    </ul>
+  }
+</section>

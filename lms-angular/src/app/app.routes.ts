@@ -106,6 +106,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./teacher/grading/submission-grader').then((m) => m.TeacherSubmissionGraderPage),
       },
+      {
+        path: 'courses/:courseId/students',
+        loadComponent: () =>
+          import('./teacher/students/course-students').then((m) => m.TeacherCourseStudentsPage),
+      },
+      {
+        path: 'courses/:courseId/students/:studentId',
+        loadComponent: () =>
+          import('./teacher/students/student-detail').then((m) => m.TeacherStudentDetailPage),
+      },
+      {
+        path: 'courses/:courseId/analytics',
+        loadComponent: () =>
+          import('./teacher/students/course-analytics').then((m) => m.TeacherCourseAnalyticsPage),
+      },
     ],
   },
   // Public certificate verification — no authGuard, anyone with the code can hit this.

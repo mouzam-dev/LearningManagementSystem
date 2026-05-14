@@ -591,6 +591,65 @@ public class TeacherController : ControllerBase
     }
 
     // -----------------------------------------------------------------------
+    // Per-course students + analytics
+    // -----------------------------------------------------------------------
+
+    [HttpGet("courses/{courseId:guid}/students")]
+    [ProducesResponseType(typeof(IReadOnlyList<CourseStudentListItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<CourseStudentListItemDto>>> GetCourseStudents(
+        Guid courseId,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseStudentsQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("courses/{courseId:guid}/students/{studentId:guid}")]
+    [ProducesResponseType(typeof(CourseStudentDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CourseStudentDetailDto>> GetCourseStudentDetail(
+        Guid courseId,
+        Guid studentId,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseStudentDetailQuery(courseId, studentId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("courses/{courseId:guid}/analytics")]
+    [ProducesResponseType(typeof(CourseAnalyticsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CourseAnalyticsDto>> GetCourseAnalytics(
+        Guid courseId,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseAnalyticsQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // Helper: turn a FluentValidation ValidationException into a
     // ValidationProblemDetails-friendly dictionary keyed by property name.
     // -----------------------------------------------------------------------

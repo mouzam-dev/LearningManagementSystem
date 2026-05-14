@@ -287,3 +287,109 @@ export interface GradeSubmissionBody {
   score: number;
   feedback?: string | null;
 }
+
+// ---------------- Per-course students + analytics -----------------------
+
+export interface CourseStudentListItem {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  enrolledAt: string;
+  progressPercentage: number;
+  isCompleted: boolean;
+  completedAt?: string | null;
+  lessonsCompleted: number;
+  totalLessons: number;
+  submissionsCount: number;
+  averageScore?: number | null;
+  lastActivityAt?: string | null;
+  hasCertificate: boolean;
+}
+
+export interface StudentLessonProgress {
+  lessonId: string;
+  lessonTitle: string;
+  moduleTitle: string;
+  moduleOrder: number;
+  lessonOrder: number;
+  isCompleted: boolean;
+  watchTimeSeconds: number;
+  completedAt?: string | null;
+}
+
+export interface StudentSubmission {
+  submissionId: string;
+  assessmentId: string;
+  assessmentTitle: string;
+  assessmentType: string;
+  passingScore: number;
+  submittedAt: string;
+  gradedAt?: string | null;
+  score?: number | null;
+  isPassed: boolean;
+}
+
+export interface CourseStudentDetail {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  enrolledAt: string;
+  progressPercentage: number;
+  isCompleted: boolean;
+  completedAt?: string | null;
+  lastActivityAt?: string | null;
+  courseId: string;
+  courseTitle: string;
+  certificateId?: string | null;
+  certificateVerifyCode?: string | null;
+  lessons: StudentLessonProgress[];
+  submissions: StudentSubmission[];
+}
+
+export interface LessonAnalytics {
+  lessonId: string;
+  lessonTitle: string;
+  moduleTitle: string;
+  moduleOrder: number;
+  lessonOrder: number;
+  completedCount: number;
+  completionRate: number;
+}
+
+export interface AssessmentAnalytics {
+  assessmentId: string;
+  assessmentTitle: string;
+  assessmentType: string;
+  passingScore: number;
+  submissionCount: number;
+  averageScore?: number | null;
+  passRate: number;
+  ungradedCount: number;
+}
+
+export interface StudentMini {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  progressPercentage: number;
+  lastActivityAt?: string | null;
+}
+
+export interface CourseAnalytics {
+  courseId: string;
+  courseTitle: string;
+  totalStudents: number;
+  activeStudents: number;
+  completedStudents: number;
+  averageProgress: number;
+  completionRate: number;
+  certificatesIssued: number;
+  totalLessons: number;
+  totalAssessments: number;
+  totalSubmissions: number;
+  ungradedSubmissions: number;
+  lessonStats: LessonAnalytics[];
+  assessmentStats: AssessmentAnalytics[];
+  topStudents: StudentMini[];
+  atRiskStudents: StudentMini[];
+}

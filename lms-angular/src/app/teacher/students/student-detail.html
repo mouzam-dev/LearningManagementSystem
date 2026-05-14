@@ -1,0 +1,204 @@
+<section class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="h-32 animate-pulse rounded-3xl bg-slate-200"></div>
+      <div class="h-48 animate-pulse rounded-2xl bg-slate-200"></div>
+    </div>
+  }
+
+  @if (error() && !data()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+      <a [routerLink]="['/teacher/courses', courseId(), 'students']"
+         class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-rose-700 underline hover:text-rose-900">
+        Back to roster →
+      </a>
+    </div>
+  }
+
+  @if (data(); as d) {
+    <a [routerLink]="['/teacher/courses', d.courseId, 'students']"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      Roster
+    </a>
+
+    <!-- Header -->
+    <header class="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex flex-wrap items-start gap-4 p-6 sm:p-8">
+        <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-bold"
+              [class.bg-emerald-100]="d.isCompleted"
+              [class.text-emerald-700]="d.isCompleted"
+              [class.bg-primary-100]="!d.isCompleted"
+              [class.text-primary-700]="!d.isCompleted"
+              aria-hidden="true">{{ d.studentName.charAt(0) }}</span>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              {{ d.studentName }}
+            </h1>
+            @if (d.isCompleted) {
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                ✓ Completed
+              </span>
+            }
+            @if (d.certificateId) {
+              <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                Certificate · {{ d.certificateVerifyCode }}
+              </span>
+            }
+          </div>
+          <p class="mt-1 text-sm text-slate-500">{{ d.studentEmail }}</p>
+          <p class="mt-1 text-xs text-slate-400">
+            Enrolled {{ d.enrolledAt | date: 'mediumDate' }} · Last active {{ relativeTime(d.lastActivityAt) }}
+          </p>
+        </div>
+
+        <!-- Progress meter -->
+        <div class="w-full sm:w-48">
+          <div class="flex items-center justify-between text-xs text-slate-500">
+            <span>Progress</span>
+            <span class="text-base font-bold"
+                  [class.text-emerald-600]="d.progressPercentage >= 100"
+                  [class.text-slate-900]="d.progressPercentage < 100">
+              {{ d.progressPercentage | number: '1.0-0' }}%
+            </span>
+          </div>
+          <div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div class="h-full rounded-full transition-all"
+                 [class.bg-emerald-500]="d.progressPercentage >= 100"
+                 [class.bg-primary-500]="d.progressPercentage > 0 && d.progressPercentage < 100"
+                 [class.bg-slate-300]="d.progressPercentage === 0"
+                 [style.width.%]="d.progressPercentage"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Two-column: lessons + submissions -->
+    <div class="mt-8 grid gap-6 lg:grid-cols-[2fr_3fr]">
+      <!-- Submissions (narrower column on left) -->
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">Submissions</h2>
+        @if (d.submissions.length === 0) {
+          <div class="mt-3 rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500">
+            Hasn't submitted any quizzes or assignments yet.
+          </div>
+        } @else {
+          <ul class="mt-3 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            @for (s of d.submissions; track s.submissionId) {
+              <li>
+                <a [routerLink]="['/teacher/submissions', s.submissionId]"
+                   class="group flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50">
+                  <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                        [class.bg-emerald-100]="s.score !== null && s.score !== undefined && s.isPassed"
+                        [class.text-emerald-700]="s.score !== null && s.score !== undefined && s.isPassed"
+                        [class.bg-rose-100]="s.score !== null && s.score !== undefined && !s.isPassed"
+                        [class.text-rose-700]="s.score !== null && s.score !== undefined && !s.isPassed"
+                        [class.bg-amber-100]="s.score === null || s.score === undefined"
+                        [class.text-amber-700]="s.score === null || s.score === undefined"
+                        aria-hidden="true">
+                    @if (s.score !== null && s.score !== undefined) {
+                      {{ s.isPassed ? '✓' : '✗' }}
+                    } @else {
+                      ?
+                    }
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-semibold uppercase tracking-wider"
+                            [class.text-primary-600]="s.assessmentType === 'Quiz'"
+                            [class.text-amber-600]="s.assessmentType !== 'Quiz'">{{ s.assessmentType }}</span>
+                      @if (s.score === null || s.score === undefined) {
+                        <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                          Pending
+                        </span>
+                      }
+                    </div>
+                    <p class="mt-0.5 truncate text-sm font-semibold text-slate-900 group-hover:text-primary-700">
+                      {{ s.assessmentTitle }}
+                    </p>
+                    <p class="mt-0.5 text-xs text-slate-500">{{ relativeTime(s.submittedAt) }}</p>
+                  </div>
+                  <div class="shrink-0 text-right">
+                    @if (s.score !== null && s.score !== undefined) {
+                      <p class="text-sm font-bold"
+                         [class.text-emerald-600]="s.isPassed"
+                         [class.text-rose-600]="!s.isPassed">
+                        {{ s.score }}%
+                      </p>
+                    } @else {
+                      <p class="text-xs text-slate-400">—</p>
+                    }
+                  </div>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Lesson timeline (wider column on right) -->
+      <section>
+        <h2 class="text-lg font-semibold text-slate-900">Lesson progress</h2>
+        @if (modules().length === 0) {
+          <div class="mt-3 rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500">
+            No published lessons in this course yet.
+          </div>
+        } @else {
+          <ol class="mt-3 space-y-4">
+            @for (m of modules(); track m.order) {
+              <li class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <header class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2">
+                  <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700"
+                        aria-hidden="true">{{ m.order }}</span>
+                  <p class="text-sm font-semibold text-slate-800">{{ m.title }}</p>
+                </header>
+                <ul class="divide-y divide-slate-100">
+                  @for (l of m.lessons; track l.lessonId) {
+                    <li class="flex items-center gap-3 px-4 py-3">
+                      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                            [class.bg-emerald-100]="l.isCompleted"
+                            [class.text-emerald-700]="l.isCompleted"
+                            [class.bg-slate-100]="!l.isCompleted && l.watchTimeSeconds > 0"
+                            [class.text-slate-500]="!l.isCompleted && l.watchTimeSeconds > 0"
+                            [class.bg-slate-50]="!l.isCompleted && l.watchTimeSeconds === 0"
+                            [class.text-slate-300]="!l.isCompleted && l.watchTimeSeconds === 0"
+                            aria-hidden="true">
+                        @if (l.isCompleted) { ✓ } @else if (l.watchTimeSeconds > 0) { · } @else { ◯ }
+                      </span>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm"
+                           [class.font-semibold]="l.isCompleted"
+                           [class.text-slate-900]="l.isCompleted"
+                           [class.text-slate-700]="!l.isCompleted && l.watchTimeSeconds > 0"
+                           [class.text-slate-400]="!l.isCompleted && l.watchTimeSeconds === 0">
+                          {{ l.lessonOrder }}. {{ l.lessonTitle }}
+                        </p>
+                        @if (l.completedAt) {
+                          <p class="text-[10px] text-slate-500">
+                            Completed {{ relativeTime(l.completedAt) }}
+                          </p>
+                        } @else if (l.watchTimeSeconds > 0) {
+                          <p class="text-[10px] text-slate-500">
+                            Watched {{ formatDuration(l.watchTimeSeconds) }}, not yet complete
+                          </p>
+                        } @else {
+                          <p class="text-[10px] text-slate-400">Not started</p>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </li>
+            }
+          </ol>
+        }
+      </section>
+    </div>
+  }
+</section>
