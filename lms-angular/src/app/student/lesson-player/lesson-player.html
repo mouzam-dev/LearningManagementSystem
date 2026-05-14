@@ -3,11 +3,11 @@
   @if (loading() && !lesson()) {
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div class="space-y-4">
-        <div class="aspect-video w-full animate-pulse rounded-2xl bg-slate-200"></div>
-        <div class="h-6 w-2/3 animate-pulse rounded bg-slate-200"></div>
-        <div class="h-4 w-1/2 animate-pulse rounded bg-slate-200"></div>
+        <div class="aspect-video w-full animate-pulse rounded-2xl bg-surface-3"></div>
+        <div class="h-6 w-2/3 animate-pulse rounded bg-surface-3"></div>
+        <div class="h-4 w-1/2 animate-pulse rounded bg-surface-3"></div>
       </div>
-      <div class="hidden h-[420px] animate-pulse rounded-2xl bg-slate-200 lg:block"></div>
+      <div class="hidden h-[420px] animate-pulse rounded-2xl bg-surface-3 lg:block"></div>
     </div>
   }
 
@@ -26,7 +26,7 @@
   <!-- Loaded lesson -->
   @if (lesson(); as l) {
     <!-- Breadcrumb -->
-    <nav class="mb-4 flex items-center gap-1.5 text-sm text-slate-500" aria-label="Breadcrumb">
+    <nav class="mb-4 flex items-center gap-1.5 text-sm text-muted" aria-label="Breadcrumb">
       <a routerLink="/student/dashboard" class="hover:text-primary-600">Dashboard</a>
       <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -39,7 +39,7 @@
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m9 18 6-6-6-6"></path>
       </svg>
-      <span class="truncate text-slate-700">{{ l.moduleTitle }}</span>
+      <span class="truncate text-ink-soft">{{ l.moduleTitle }}</span>
     </nav>
 
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -47,15 +47,24 @@
       <div>
         <!-- Video -->
         <div class="overflow-hidden rounded-2xl bg-slate-900 shadow-lg ring-1 ring-slate-900/10">
-          @if (l.videoUrl) {
-            <video #videoEl controls preload="metadata" class="aspect-video w-full"
-                   [src]="l.videoUrl"></video>
+          @if (videoSource(); as v) {
+            @if (v.kind === 'embed') {
+              <!-- Hosted player (YouTube / Vimeo). Watch-time tracking isn't
+                   available for embeds — students use "Mark as complete". -->
+              <iframe [src]="v.src" class="aspect-video w-full" title="Lesson video"
+                      frameborder="0" referrerpolicy="strict-origin-when-cross-origin"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowfullscreen></iframe>
+            } @else {
+              <video #videoEl controls preload="metadata" class="aspect-video w-full"
+                     [src]="v.src"></video>
+            }
           } @else if (l.body) {
-            <div class="aspect-video w-full overflow-y-auto bg-white p-6 text-slate-800">
+            <div class="aspect-video w-full overflow-y-auto bg-surface p-6 text-ink">
               <p class="whitespace-pre-wrap leading-relaxed">{{ l.body }}</p>
             </div>
           } @else {
-            <div class="flex aspect-video w-full items-center justify-center bg-slate-100 text-slate-500">
+            <div class="flex aspect-video w-full items-center justify-center bg-surface-2 text-muted">
               No content for this lesson yet.
             </div>
           }
@@ -68,10 +77,10 @@
               <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">
                 {{ l.moduleTitle }}
               </p>
-              <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                 {{ l.title }}
               </h1>
-              <p class="mt-1 flex items-center gap-2 text-sm text-slate-500">
+              <p class="mt-1 flex items-center gap-2 text-sm text-muted">
                 <span>{{ l.type }}</span>
                 @if (l.duration) {
                   <span aria-hidden="true">·</span>
@@ -116,9 +125,9 @@
           </div>
 
           <!-- Prev / next -->
-          <div class="mt-6 flex items-center justify-between gap-3 border-t border-slate-200 pt-5">
+          <div class="mt-6 flex items-center justify-between gap-3 border-t border-line pt-5">
             <button type="button" (click)="goToLesson(l.previousLessonId)" [disabled]="!l.previousLessonId"
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-sm font-medium text-ink-soft shadow-sm transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m15 18-6-6 6-6"></path>
@@ -140,31 +149,31 @@
 
       <!-- Sidebar -->
       <aside class="space-y-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:sticky lg:top-4">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
           <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Course</p>
           <a [routerLink]="['/student/courses', l.courseId]"
-             class="mt-1 block text-sm font-semibold text-slate-900 hover:text-primary-700">
+             class="mt-1 block text-sm font-semibold text-ink hover:text-primary-700">
             {{ l.courseTitle }}
           </a>
           <div class="mt-3">
-            <div class="h-1.5 overflow-hidden rounded-full bg-slate-100">
+            <div class="h-1.5 overflow-hidden rounded-full bg-surface-2">
               <div class="h-full rounded-full bg-primary-600 transition-all duration-500"
                    [style.width.%]="progressPercentage()"></div>
             </div>
-            <p class="mt-1.5 text-xs text-slate-500">{{ progressPercentage() }}% complete</p>
+            <p class="mt-1.5 text-xs text-muted">{{ progressPercentage() }}% complete</p>
           </div>
         </div>
 
         <div class="space-y-3">
           @for (m of l.modules; track m.moduleId) {
-            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <header class="border-b border-slate-100 bg-slate-50/60 px-4 py-2.5">
+            <section class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+              <header class="border-b border-line bg-surface-2/60 px-4 py-2.5">
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-primary-600">
                   Module {{ m.order }}
                 </p>
-                <h3 class="text-sm font-semibold text-slate-900">{{ m.title }}</h3>
+                <h3 class="text-sm font-semibold text-ink">{{ m.title }}</h3>
               </header>
-              <ol class="divide-y divide-slate-100">
+              <ol class="divide-y divide-line">
                 @for (lesson of m.lessons; track lesson.lessonId) {
                   <li>
                     <a [routerLink]="['/student/lessons', lesson.lessonId]"
@@ -176,8 +185,8 @@
                             [class.text-emerald-600]="lesson.isCompleted"
                             [class.bg-primary-600]="!lesson.isCompleted && lesson.lessonId === l.lessonId"
                             [class.text-white]="!lesson.isCompleted && lesson.lessonId === l.lessonId"
-                            [class.bg-slate-100]="!lesson.isCompleted && lesson.lessonId !== l.lessonId"
-                            [class.text-slate-500]="!lesson.isCompleted && lesson.lessonId !== l.lessonId"
+                            [class.bg-surface-2]="!lesson.isCompleted && lesson.lessonId !== l.lessonId"
+                            [class.text-muted]="!lesson.isCompleted && lesson.lessonId !== l.lessonId"
                             aria-hidden="true">
                         @if (lesson.isCompleted) {
                           <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
@@ -190,9 +199,9 @@
                           </svg>
                         }
                       </span>
-                      <span class="min-w-0 flex-1 truncate text-slate-800">{{ lesson.title }}</span>
+                      <span class="min-w-0 flex-1 truncate text-ink">{{ lesson.title }}</span>
                       @if (lesson.duration) {
-                        <span class="shrink-0 text-xs text-slate-400">{{ formatDuration(lesson.duration) }}</span>
+                        <span class="shrink-0 text-xs text-subtle">{{ formatDuration(lesson.duration) }}</span>
                       }
                     </a>
                   </li>

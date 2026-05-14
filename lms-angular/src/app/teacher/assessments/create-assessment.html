@@ -1,6 +1,6 @@
 <section class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
   <a [routerLink]="['/teacher/courses', courseId()]"
-     class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+     class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary-600">
     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="m15 18-6-6 6-6"></path>
@@ -10,8 +10,8 @@
 
   <header class="mt-6">
     <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher</p>
-    <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">New assessment</h1>
-    <p class="mt-2 max-w-xl text-sm text-slate-600">
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">New assessment</h1>
+    <p class="mt-2 max-w-xl text-sm text-muted">
       Pick a type — quizzes auto-grade themselves, assignments need your feedback. You'll add questions next.
     </p>
   </header>
@@ -23,23 +23,23 @@
   }
 
   <form [formGroup]="form" (ngSubmit)="submit()"
-        class="mt-6 space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" novalidate>
+        class="mt-6 space-y-5 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8" novalidate>
     <!-- Type as segmented control -->
     <fieldset>
-      <legend class="block text-sm font-semibold text-slate-700">Type</legend>
+      <legend class="block text-sm font-semibold text-ink-soft">Type</legend>
       <div class="mt-2 grid grid-cols-2 gap-2">
         @for (t of ['Quiz', 'Assignment']; track t) {
-          <label class="flex cursor-pointer items-start gap-3 rounded-xl border bg-white p-4 transition"
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border bg-surface p-4 transition"
                  [class.border-primary-500]="form.controls.type.value === t"
                  [class.bg-primary-50]="form.controls.type.value === t"
                  [class.ring-2]="form.controls.type.value === t"
                  [class.ring-primary-200]="form.controls.type.value === t"
-                 [class.border-slate-200]="form.controls.type.value !== t"
-                 [class.hover:bg-slate-50]="form.controls.type.value !== t">
+                 [class.border-line]="form.controls.type.value !== t"
+                 [class.hover:bg-surface-2]="form.controls.type.value !== t">
             <input type="radio" formControlName="type" [value]="t" class="mt-0.5 h-4 w-4 accent-primary-600" />
             <div class="min-w-0">
-              <p class="text-sm font-semibold text-slate-900">{{ t }}</p>
-              <p class="mt-0.5 text-xs text-slate-500">
+              <p class="text-sm font-semibold text-ink">{{ t }}</p>
+              <p class="mt-0.5 text-xs text-muted">
                 @if (t === 'Quiz') {
                   Multiple choice / true-false. Auto-graded immediately.
                 } @else {
@@ -54,12 +54,12 @@
 
     <!-- Title -->
     <div>
-      <label for="title" class="block text-sm font-semibold text-slate-700">
+      <label for="title" class="block text-sm font-semibold text-ink-soft">
         Title <span class="text-rose-600">*</span>
       </label>
       <input id="title" type="text" formControlName="title"
-             class="mt-1.5 w-full rounded-xl border bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-             [class.border-slate-200]="!(form.controls.title.touched && form.controls.title.invalid)"
+             class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+             [class.border-line]="!(form.controls.title.touched && form.controls.title.invalid)"
              [class.border-rose-300]="form.controls.title.touched && form.controls.title.invalid"
              placeholder="e.g. Module 1 quiz" maxlength="200" />
       @if (form.controls.title.touched && form.controls.title.errors?.['required']) {
@@ -73,45 +73,45 @@
     <!-- Passing score / time limit / max attempts -->
     <div class="grid gap-5 sm:grid-cols-3">
       <div>
-        <label for="passingScore" class="block text-sm font-semibold text-slate-700">
+        <label for="passingScore" class="block text-sm font-semibold text-ink-soft">
           Passing score (%)
         </label>
         <input id="passingScore" type="number" min="0" max="100" formControlName="passingScore"
-               class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+               class="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
         @if (serverFieldError('PassingScore'); as e) {
           <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
         }
       </div>
       <div>
-        <label for="timeLimit" class="block text-sm font-semibold text-slate-700">
-          Time limit (min) <span class="font-normal text-slate-400">opt</span>
+        <label for="timeLimit" class="block text-sm font-semibold text-ink-soft">
+          Time limit (min) <span class="font-normal text-subtle">opt</span>
         </label>
         <input id="timeLimit" type="number" min="1" formControlName="timeLimit"
-               class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+               class="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                placeholder="Untimed" />
       </div>
       <div>
-        <label for="maxAttempts" class="block text-sm font-semibold text-slate-700">
-          Max attempts <span class="font-normal text-slate-400">opt</span>
+        <label for="maxAttempts" class="block text-sm font-semibold text-ink-soft">
+          Max attempts <span class="font-normal text-subtle">opt</span>
         </label>
         <input id="maxAttempts" type="number" min="1" formControlName="maxAttempts"
-               class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+               class="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                placeholder="Unlimited" />
       </div>
     </div>
 
     <!-- Due date -->
     <div>
-      <label for="dueDate" class="block text-sm font-semibold text-slate-700">
-        Due date <span class="font-normal text-slate-400">(optional)</span>
+      <label for="dueDate" class="block text-sm font-semibold text-ink-soft">
+        Due date <span class="font-normal text-subtle">(optional)</span>
       </label>
       <input id="dueDate" type="datetime-local" formControlName="dueDate"
-             class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+             class="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
     </div>
 
-    <div class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-5">
+    <div class="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-5">
       <a [routerLink]="['/teacher/courses', courseId()]"
-         class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300">
+         class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong">
         Cancel
       </a>
       <button type="submit" [disabled]="submitting()"

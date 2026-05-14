@@ -13,11 +13,21 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, fromEvent, throttleTime } from 'rxjs';
 
 import { LessonDetail } from '../models/lesson.models';
 import { StudentService } from '../student.service';
+
+/**
+ * How a lesson's video URL should be rendered:
+ *  - 'file'  → a direct media file (.mp4/.webm/…) playable in a <video> tag
+ *  - 'embed' → a hosted player (YouTube / Vimeo) that needs an <iframe>
+ */
+type VideoSource =
+  | { kind: 'file'; src: string }
+  | { kind: 'embed'; src: SafeResourceUrl };
 
 @Component({
   selector: 'app-student-lesson-player',
@@ -29,6 +39,7 @@ export class StudentLessonPlayer implements AfterViewInit {
   private readonly studentService = inject(StudentService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
   /** Bound from the route via withComponentInputBinding(). */
   readonly lessonId = input.required<string>();
@@ -50,6 +61,41 @@ export class StudentLessonPlayer implements AfterViewInit {
     );
     return Math.round((completed / total) * 100);
   });
+
+  /**
+   * Resolves the lesson's video URL into a renderable source. YouTube / Vimeo
+   * links can't play in a raw <video> element — they're rewritten to embed
+   * URLs and rendered through an <iframe>. Direct media files stay on <video>
+   * (which keeps the watch-time tracking + auto-complete-on-ended behaviour).
+   */
+  readonly videoSource = computed<VideoSource | null>(() => {
+    const url = this.lesson()?.videoUrl?.trim();
+    if (!url) return null;
+
+    const embed = StudentLessonPlayer.toEmbedUrl(url);
+    if (embed) {
+      return { kind: 'embed', src: this.sanitizer.bypassSecurityTrustResourceUrl(embed) };
+    }
+    return { kind: 'file', src: url };
+  });
+
+  /**
+   * Maps a YouTube or Vimeo watch URL to its embeddable player URL.
+   * Returns null for anything that looks like a plain media file.
+   */
+  private static toEmbedUrl(url: string): string | null {
+    // YouTube: watch?v=, youtu.be/, /embed/, /shorts/  — capture the 11-char id.
+    const yt = url.match(
+      /(?:youtube\.com\/(?:watch\?(?:[^&]*&)*v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i,
+    );
+    if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+
+    // Vimeo: vimeo.com/123456789 or player.vimeo.com/video/123456789
+    const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+    if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+    return null;
+  }
 
   @ViewChild('videoEl') videoEl?: ElementRef<HTMLVideoElement>;
 

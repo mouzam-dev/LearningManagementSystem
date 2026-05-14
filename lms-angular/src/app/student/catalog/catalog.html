@@ -1,33 +1,33 @@
 <section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
   <!-- Page header -->
   <header class="mb-8">
-    <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Course catalog</h1>
-    <p class="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+    <h1 class="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Course catalog</h1>
+    <p class="mt-2 max-w-2xl text-sm text-muted sm:text-base">
       Browse published courses, enroll in one click, and track your progress on the dashboard.
     </p>
   </header>
 
   <!-- Filters bar -->
-  <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+  <div class="mb-6 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
     <div class="flex flex-col gap-3 md:flex-row md:items-center">
       <!-- Search -->
       <label class="relative block flex-1">
         <span class="sr-only">Search courses</span>
-        <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-subtle"
              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"></circle>
           <path d="m20 20-3.5-3.5"></path>
         </svg>
         <input type="search" [formControl]="searchControl" placeholder="Search by title or description…"
-               class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+               class="w-full rounded-xl border border-line bg-surface py-2.5 pl-10 pr-3 text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
       </label>
 
       <!-- Category select -->
       <label class="block md:w-56">
         <span class="sr-only">Filter by category</span>
         <select [formControl]="categoryControl"
-                class="w-full rounded-xl border border-slate-200 bg-white py-2.5 px-3 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                class="w-full rounded-xl border border-line bg-surface py-2.5 px-3 text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
           <option value="">All categories</option>
           @for (cat of categories(); track cat) {
             <option [value]="cat">{{ cat }}</option>
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Result count + clear -->
-    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-sm text-slate-500">
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm text-muted">
       <span>{{ rangeLabel() }}</span>
       @if (hasFilters()) {
         <button type="button" (click)="clearFilters()"
@@ -60,14 +60,14 @@
   @if (loading() && !result()) {
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       @for (n of [0,1,2,3,4,5,6,7]; track n) {
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div class="aspect-[16/9] animate-pulse bg-slate-200"></div>
+        <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+          <div class="aspect-[16/9] animate-pulse bg-surface-3"></div>
           <div class="space-y-3 p-5">
-            <div class="h-4 w-20 animate-pulse rounded bg-slate-200"></div>
-            <div class="h-5 w-3/4 animate-pulse rounded bg-slate-200"></div>
-            <div class="h-3 w-full animate-pulse rounded bg-slate-200"></div>
-            <div class="h-3 w-5/6 animate-pulse rounded bg-slate-200"></div>
-            <div class="h-9 w-full animate-pulse rounded-xl bg-slate-200"></div>
+            <div class="h-4 w-20 animate-pulse rounded bg-surface-3"></div>
+            <div class="h-5 w-3/4 animate-pulse rounded bg-surface-3"></div>
+            <div class="h-3 w-full animate-pulse rounded bg-surface-3"></div>
+            <div class="h-3 w-5/6 animate-pulse rounded bg-surface-3"></div>
+            <div class="h-9 w-full animate-pulse rounded-xl bg-surface-3"></div>
           </div>
         </div>
       }
@@ -76,7 +76,7 @@
 
   <!-- Empty state -->
   @if (!loading() && result() && result()!.items.length === 0) {
-    <div class="rounded-2xl border-2 border-dashed border-slate-200 bg-white py-16 text-center">
+    <div class="rounded-2xl border-2 border-dashed border-line bg-surface py-16 text-center">
       <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
         <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -84,8 +84,8 @@
           <path d="m20 20-3.5-3.5"></path>
         </svg>
       </div>
-      <h3 class="mt-4 text-base font-semibold text-slate-900">No matching courses</h3>
-      <p class="mt-1 text-sm text-slate-500">
+      <h3 class="mt-4 text-base font-semibold text-ink">No matching courses</h3>
+      <p class="mt-1 text-sm text-muted">
         Try clearing your search or picking a different category.
       </p>
       @if (hasFilters()) {
@@ -102,7 +102,7 @@
     @if (r.items.length > 0) {
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         @for (course of r.items; track course.courseId) {
-          <article class="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-lg hover:ring-1 hover:ring-primary-200">
+          <article class="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition duration-200 hover:shadow-lg hover:ring-1 hover:ring-primary-200">
             <!-- Thumbnail / branded gradient fallback -->
             <div class="relative aspect-[16/9] overflow-hidden">
               @if (course.thumbnailUrl) {
@@ -114,7 +114,7 @@
                   {{ initial(course.title) }}
                 </div>
               }
-              <span class="absolute left-3 top-3 inline-flex items-center rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-900/10">
+              <span class="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-slate-900/10">
                 {{ course.category }}
               </span>
               @if (course.isEnrolled) {
@@ -129,13 +129,13 @@
             </div>
 
             <div class="flex flex-1 flex-col p-5">
-              <h3 class="line-clamp-2 text-base font-semibold text-slate-900" [title]="course.title">
+              <h3 class="line-clamp-2 text-base font-semibold text-ink" [title]="course.title">
                 {{ course.title }}
               </h3>
-              <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ course.description }}</p>
+              <p class="mt-2 line-clamp-3 text-sm text-muted">{{ course.description }}</p>
 
               <div class="mt-auto pt-4">
-                <div class="flex items-center gap-2 text-xs text-slate-500">
+                <div class="flex items-center gap-2 text-xs text-muted">
                   <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700"
                         aria-hidden="true">{{ initial(course.teacherName) }}</span>
                   <span class="truncate">{{ course.teacherName }}</span>
@@ -182,7 +182,7 @@
     @if (pageNumbers().length > 1) {
       <nav class="mt-10 flex items-center justify-between gap-3" aria-label="Pagination">
         <button type="button" (click)="goToPage(r.page - 1)" [disabled]="!r.hasPrevious"
-                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-sm font-medium text-ink-soft shadow-sm transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m15 18-6-6 6-6"></path>
@@ -197,8 +197,8 @@
                       [class.bg-primary-600]="n === r.page"
                       [class.text-white]="n === r.page"
                       [class.shadow-sm]="n === r.page"
-                      [class.text-slate-700]="n !== r.page"
-                      [class.hover:bg-slate-100]="n !== r.page"
+                      [class.text-ink-soft]="n !== r.page"
+                      [class.hover:bg-surface-2]="n !== r.page"
                       class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-semibold transition">
                 {{ n }}
               </button>
@@ -206,10 +206,10 @@
           }
         </ol>
 
-        <span class="text-sm text-slate-500 sm:hidden">Page {{ r.page }} of {{ r.totalPages }}</span>
+        <span class="text-sm text-muted sm:hidden">Page {{ r.page }} of {{ r.totalPages }}</span>
 
         <button type="button" (click)="goToPage(r.page + 1)" [disabled]="!r.hasNext"
-                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+                class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-sm font-medium text-ink-soft shadow-sm transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50">
           Next
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

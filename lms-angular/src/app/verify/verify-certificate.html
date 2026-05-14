@@ -1,17 +1,17 @@
-<section class="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+<section class="min-h-screen bg-surface-2 px-4 py-12 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-2xl">
     <!-- Brand row -->
     <a routerLink="/" class="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-primary-700 hover:text-primary-800">
       <span class="text-base">LMS</span>
-      <span class="text-slate-400">·</span>
-      <span class="text-slate-600">Certificate verification</span>
+      <span class="text-subtle">·</span>
+      <span class="text-muted">Certificate verification</span>
     </a>
 
     @if (loading()) {
-      <div class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div class="h-6 w-32 animate-pulse rounded bg-slate-200"></div>
-        <div class="mt-4 h-10 w-3/4 animate-pulse rounded bg-slate-200"></div>
-        <div class="mt-3 h-4 w-1/2 animate-pulse rounded bg-slate-200"></div>
+      <div class="rounded-3xl border border-line bg-surface p-8 shadow-sm">
+        <div class="h-6 w-32 animate-pulse rounded bg-surface-3"></div>
+        <div class="mt-4 h-10 w-3/4 animate-pulse rounded bg-surface-3"></div>
+        <div class="mt-3 h-4 w-1/2 animate-pulse rounded bg-surface-3"></div>
       </div>
     } @else if (error()) {
       <div class="rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-700" role="alert">
@@ -19,7 +19,7 @@
       </div>
     } @else if (result(); as r) {
       @if (r.isValid) {
-        <article class="overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-xl ring-1 ring-emerald-100">
+        <article class="overflow-hidden rounded-3xl border border-emerald-200 bg-surface shadow-xl ring-1 ring-emerald-100">
           <!-- Verified banner -->
           <div class="bg-linear-to-r from-emerald-500 to-teal-600 px-6 py-4 text-white">
             <div class="flex items-center gap-3">
@@ -39,35 +39,35 @@
 
           <!-- Body -->
           <div class="p-8">
-            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Issued to</p>
-            <p class="mt-1 font-serif text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <p class="text-xs font-semibold uppercase tracking-wider text-muted">Issued to</p>
+            <p class="mt-1 font-serif text-3xl font-bold tracking-tight text-ink sm:text-4xl">
               {{ r.studentName }}
             </p>
 
             <div class="mt-6 grid gap-4 sm:grid-cols-2">
               <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Course</p>
-                <p class="mt-1 text-base font-semibold text-slate-900">{{ r.courseTitle }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-muted">Course</p>
+                <p class="mt-1 text-base font-semibold text-ink">{{ r.courseTitle }}</p>
               </div>
               <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Instructor</p>
-                <p class="mt-1 text-base font-semibold text-slate-900">{{ r.instructorName }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-muted">Instructor</p>
+                <p class="mt-1 text-base font-semibold text-ink">{{ r.instructorName }}</p>
               </div>
               <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Completed</p>
-                <p class="mt-1 text-base font-semibold text-slate-900">
+                <p class="text-xs font-semibold uppercase tracking-wider text-muted">Completed</p>
+                <p class="mt-1 text-base font-semibold text-ink">
                   {{ (r.completedAt ?? r.issuedAt) | date: 'mediumDate' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Issued</p>
-                <p class="mt-1 text-base font-semibold text-slate-900">{{ r.issuedAt | date: 'mediumDate' }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-muted">Issued</p>
+                <p class="mt-1 text-base font-semibold text-ink">{{ r.issuedAt | date: 'mediumDate' }}</p>
               </div>
             </div>
 
-            <div class="mt-8 rounded-2xl bg-slate-50 px-4 py-3">
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Verify code</p>
-              <p class="mt-0.5 font-mono text-sm font-semibold tracking-[0.2em] text-slate-900">{{ r.verifyCode }}</p>
+            <div class="mt-8 rounded-2xl bg-surface-2 px-4 py-3">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-muted">Verify code</p>
+              <p class="mt-0.5 font-mono text-sm font-semibold tracking-[0.2em] text-ink">{{ r.verifyCode }}</p>
             </div>
           </div>
         </article>
@@ -95,7 +95,7 @@
       }
     }
 
-    <p class="mt-8 text-center text-xs text-slate-500">
+    <p class="mt-8 text-center text-xs text-muted">
       Verification is anonymous — no account required.
     </p>
   </div>

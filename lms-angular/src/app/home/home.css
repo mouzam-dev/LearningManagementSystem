@@ -1,21 +1,27 @@
 :host {
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(2rem, 8vh, 5rem) 1rem;
 }
 
 .kv {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 0.25rem 1rem;
-  margin: 1rem 0;
+  gap: 0.4rem 1rem;
+  margin: 1.25rem 0;
 }
 
 .kv dt {
-  color: #6b7280;
-  font-weight: 500;
+  color: var(--c-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .kv dd {
   margin: 0;
+  color: var(--c-ink);
+  font-size: 0.9rem;
 }
 
 .actions {
@@ -23,37 +29,41 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin: 1rem 0;
+  margin: 1.25rem 0;
 }
 
 .actions .primary-link {
   display: inline-block;
-  padding: 0.625rem 1rem;
-  background: #4f46e5;
+  padding: 0.7rem 1rem;
+  background: var(--color-primary-600);
   color: #ffffff;
-  border-radius: 8px;
+  border-radius: 0.75rem;
   font-weight: 600;
   text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: background 120ms ease;
 }
 
 .actions .primary-link:hover {
-  background: #4338ca;
+  background: var(--color-primary-700);
 }
 
 .actions .secondary {
-  background: #e5e7eb;
-  color: #111827;
+  background: var(--c-surface-2);
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
 }
 
 .actions .secondary:hover {
-  background: #d1d5db;
+  background: var(--c-surface-3);
 }
 
 .result {
-  background: #0f172a;
-  color: #e2e8f0;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  background: var(--c-surface-3);
+  color: var(--c-ink-soft);
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--c-line);
   overflow-x: auto;
   font-size: 0.85rem;
 }

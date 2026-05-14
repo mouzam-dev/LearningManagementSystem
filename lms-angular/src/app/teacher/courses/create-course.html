@@ -1,6 +1,6 @@
 <section class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
   <a routerLink="/teacher/courses"
-     class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+     class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary-600">
     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="m15 18-6-6 6-6"></path>
@@ -10,8 +10,8 @@
 
   <header class="mt-6">
     <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher</p>
-    <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Create a course</h1>
-    <p class="mt-2 max-w-2xl text-sm text-slate-600">
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Create a course</h1>
+    <p class="mt-2 max-w-2xl text-sm text-muted">
       Your course starts as a draft. You can add modules, lessons, and assessments before publishing it to students.
     </p>
   </header>
@@ -23,15 +23,15 @@
   }
 
   <form [formGroup]="form" (ngSubmit)="submit()"
-        class="mt-6 space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" novalidate>
+        class="mt-6 space-y-5 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8" novalidate>
     <!-- Title -->
     <div>
-      <label for="title" class="block text-sm font-semibold text-slate-700">
+      <label for="title" class="block text-sm font-semibold text-ink-soft">
         Title <span class="text-rose-600">*</span>
       </label>
       <input id="title" type="text" formControlName="title"
-             class="mt-1.5 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-             [class.border-slate-200]="!(form.controls.title.touched && form.controls.title.invalid)"
+             class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+             [class.border-line]="!(form.controls.title.touched && form.controls.title.invalid)"
              [class.border-rose-300]="form.controls.title.touched && form.controls.title.invalid"
              placeholder="e.g. Modern Angular: Signals, Standalone, and Beyond"
              autocomplete="off"
@@ -46,12 +46,12 @@
 
     <!-- Description -->
     <div>
-      <label for="description" class="block text-sm font-semibold text-slate-700">
+      <label for="description" class="block text-sm font-semibold text-ink-soft">
         Description <span class="text-rose-600">*</span>
       </label>
       <textarea id="description" formControlName="description" rows="5"
-                class="mt-1.5 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                [class.border-slate-200]="!(form.controls.description.touched && form.controls.description.invalid)"
+                class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                [class.border-line]="!(form.controls.description.touched && form.controls.description.invalid)"
                 [class.border-rose-300]="form.controls.description.touched && form.controls.description.invalid"
                 placeholder="Who this is for, what they'll learn, and why it matters."
                 maxlength="4000"></textarea>
@@ -66,12 +66,12 @@
     <!-- Category + Max Students side by side on desktop -->
     <div class="grid gap-5 sm:grid-cols-2">
       <div>
-        <label for="category" class="block text-sm font-semibold text-slate-700">
+        <label for="category" class="block text-sm font-semibold text-ink-soft">
           Category <span class="text-rose-600">*</span>
         </label>
         <input id="category" type="text" formControlName="category"
-               class="mt-1.5 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-               [class.border-slate-200]="!(form.controls.category.touched && form.controls.category.invalid)"
+               class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+               [class.border-line]="!(form.controls.category.touched && form.controls.category.invalid)"
                [class.border-rose-300]="form.controls.category.touched && form.controls.category.invalid"
                placeholder="e.g. Frontend, Design, AI"
                autocomplete="off"
@@ -85,12 +85,12 @@
       </div>
 
       <div>
-        <label for="maxStudents" class="block text-sm font-semibold text-slate-700">
-          Max students <span class="font-normal text-slate-400">(optional)</span>
+        <label for="maxStudents" class="block text-sm font-semibold text-ink-soft">
+          Max students <span class="font-normal text-subtle">(optional)</span>
         </label>
         <input id="maxStudents" type="number" formControlName="maxStudents" min="1"
-               class="mt-1.5 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-               [class.border-slate-200]="!(form.controls.maxStudents.touched && form.controls.maxStudents.invalid)"
+               class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+               [class.border-line]="!(form.controls.maxStudents.touched && form.controls.maxStudents.invalid)"
                [class.border-rose-300]="form.controls.maxStudents.touched && form.controls.maxStudents.invalid"
                placeholder="Leave blank for unlimited" />
         @if (form.controls.maxStudents.touched && form.controls.maxStudents.errors?.['min']) {
@@ -104,12 +104,12 @@
 
     <!-- Thumbnail URL -->
     <div>
-      <label for="thumbnailUrl" class="block text-sm font-semibold text-slate-700">
-        Thumbnail URL <span class="font-normal text-slate-400">(optional)</span>
+      <label for="thumbnailUrl" class="block text-sm font-semibold text-ink-soft">
+        Thumbnail URL <span class="font-normal text-subtle">(optional)</span>
       </label>
       <input id="thumbnailUrl" type="url" formControlName="thumbnailUrl"
-             class="mt-1.5 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-             [class.border-slate-200]="!(form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.invalid)"
+             class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+             [class.border-line]="!(form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.invalid)"
              [class.border-rose-300]="form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.invalid"
              placeholder="https://example.com/thumbnail.jpg" />
       @if (form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.errors?.['url']) {
@@ -121,9 +121,9 @@
     </div>
 
     <!-- Submit -->
-    <div class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 pt-5">
+    <div class="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-5">
       <a routerLink="/teacher/courses"
-         class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300">
+         class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong">
         Cancel
       </a>
       <button type="submit" [disabled]="submitting()"

@@ -1,7 +1,7 @@
 <section class="print-page mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
   <!-- Loading / error chrome -->
   @if (loading()) {
-    <div class="h-[28rem] animate-pulse rounded-3xl bg-slate-200"></div>
+    <div class="h-[28rem] animate-pulse rounded-3xl bg-surface-3"></div>
   }
 
   @if (error()) {
@@ -20,7 +20,7 @@
     <div class="print-hidden mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
         <a routerLink="/student/certificates"
-           class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+           class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary-600">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m15 18-6-6 6-6"></path>
@@ -30,7 +30,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <button type="button" (click)="copyVerifyLink()"
-                class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+                class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-primary-300 hover:text-primary-700">
           @if (copied()) {
             <svg class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -60,11 +60,11 @@
     </div>
 
     <!-- The certificate itself -->
-    <article class="print-certificate relative overflow-hidden rounded-3xl bg-white p-1 shadow-2xl ring-1 ring-slate-200">
+    <article class="print-certificate relative overflow-hidden rounded-3xl bg-surface p-1 shadow-2xl ring-1 ring-line">
       <!-- Outer gradient frame -->
       <div class="relative overflow-hidden rounded-[1.4rem] bg-linear-to-br from-indigo-500 via-violet-500 to-rose-500 p-1">
         <!-- Inner card -->
-        <div class="relative overflow-hidden rounded-[1.15rem] bg-white px-8 py-10 sm:px-14 sm:py-16">
+        <div class="relative overflow-hidden rounded-[1.15rem] bg-surface px-8 py-10 sm:px-14 sm:py-16">
           <!-- Decorative corner flourishes -->
           <div class="pointer-events-none absolute -left-12 -top-12 h-48 w-48 rounded-full bg-indigo-100/70 blur-2xl" aria-hidden="true"></div>
           <div class="pointer-events-none absolute -bottom-16 -right-12 h-56 w-56 rounded-full bg-rose-100/70 blur-2xl" aria-hidden="true"></div>
@@ -85,13 +85,13 @@
 
           <!-- Headline -->
           <div class="relative mt-8 text-center">
-            <p class="text-sm font-medium tracking-wide text-slate-500">This is to certify that</p>
-            <p class="mt-3 font-serif text-3xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            <p class="text-sm font-medium tracking-wide text-muted">This is to certify that</p>
+            <p class="mt-3 font-serif text-3xl font-bold tracking-tight text-ink sm:text-5xl">
               {{ c.studentName }}
             </p>
-            <div class="mx-auto mt-3 h-px w-32 bg-linear-to-r from-transparent via-slate-300 to-transparent" aria-hidden="true"></div>
-            <p class="mt-3 text-sm text-slate-500">has successfully completed the course</p>
-            <p class="mt-3 text-xl font-semibold text-slate-900 sm:text-2xl">{{ c.courseTitle }}</p>
+            <div class="mx-auto mt-3 h-px w-32 bg-linear-to-r from-transparent via-line-strong to-transparent" aria-hidden="true"></div>
+            <p class="mt-3 text-sm text-muted">has successfully completed the course</p>
+            <p class="mt-3 text-xl font-semibold text-ink sm:text-2xl">{{ c.courseTitle }}</p>
             @if (c.courseCategory) {
               <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-primary-600">{{ c.courseCategory }}</p>
             }
@@ -100,30 +100,30 @@
           <!-- Stats row -->
           <div class="relative mx-auto mt-8 grid max-w-2xl grid-cols-3 gap-4 text-center">
             <div>
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Completed</p>
-              <p class="mt-1 text-sm font-semibold text-slate-900">{{ (c.completedAt ?? c.issuedAt) | date: 'mediumDate' }}</p>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-muted">Completed</p>
+              <p class="mt-1 text-sm font-semibold text-ink">{{ (c.completedAt ?? c.issuedAt) | date: 'mediumDate' }}</p>
             </div>
             <div>
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Lessons</p>
-              <p class="mt-1 text-sm font-semibold text-slate-900">{{ c.totalLessons }}</p>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-muted">Lessons</p>
+              <p class="mt-1 text-sm font-semibold text-ink">{{ c.totalLessons }}</p>
             </div>
             <div>
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Instructor</p>
-              <p class="mt-1 text-sm font-semibold text-slate-900">{{ c.instructorName }}</p>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-muted">Instructor</p>
+              <p class="mt-1 text-sm font-semibold text-ink">{{ c.instructorName }}</p>
             </div>
           </div>
 
           <!-- Footer: signature + verify -->
           <div class="relative mt-12 flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p class="font-serif text-lg italic text-slate-800">{{ c.instructorName }}</p>
-              <div class="mt-1 h-px w-44 bg-slate-300" aria-hidden="true"></div>
-              <p class="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Instructor signature</p>
+              <p class="font-serif text-lg italic text-ink">{{ c.instructorName }}</p>
+              <div class="mt-1 h-px w-44 bg-surface-3" aria-hidden="true"></div>
+              <p class="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted">Instructor signature</p>
             </div>
             <div class="text-right">
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Verify code</p>
-              <p class="mt-1 font-mono text-base font-semibold tracking-[0.2em] text-slate-900">{{ c.verifyCode }}</p>
-              <p class="mt-1 text-[10px] text-slate-500 break-all">{{ verifyUrl() }}</p>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-muted">Verify code</p>
+              <p class="mt-1 font-mono text-base font-semibold tracking-[0.2em] text-ink">{{ c.verifyCode }}</p>
+              <p class="mt-1 text-[10px] text-muted break-all">{{ verifyUrl() }}</p>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@
     </article>
 
     <!-- Issued meta (hidden in print) -->
-    <p class="print-hidden mt-4 text-center text-xs text-slate-500">
+    <p class="print-hidden mt-4 text-center text-xs text-muted">
       Issued {{ c.issuedAt | date: 'medium' }} · Certificate ID {{ c.certificateId }}
     </p>
   }

@@ -1,10 +1,20 @@
-/* Global styles for the LMS Angular app. */
+/* ===========================================================================
+   LMS global styles — "warm & friendly" theme with light + dark support.
+
+   Strategy: semantic color tokens (canvas / surface / ink / line / ...) are
+   backed by CSS custom properties that flip under the `.dark` class. Feature
+   templates use the semantic utilities (bg-surface, text-ink, border-line, …)
+   so a single class on <html> retones the whole app. The `primary` scale is
+   the indigo action color; it stays saturated for buttons and gets a few
+   targeted `.dark` overrides so it also reads well as link text on charcoal.
+   =========================================================================== */
 @import 'tailwindcss';
 
-/* App-wide design tokens — matched to the existing indigo/slate palette so
-   utility classes (e.g. text-primary, bg-primary) and existing hand-rolled
-   styles stay in sync. */
+/* Enable class-based dark mode (Tailwind v4). `.dark` on <html> activates it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
+  /* -- Brand: indigo action color (static across themes) ------------------ */
   --color-primary-50:  #eef2ff;
   --color-primary-100: #e0e7ff;
   --color-primary-200: #c7d2fe;
@@ -16,27 +26,135 @@
   --color-primary-800: #3730a3;
   --color-primary-900: #312e81;
 
+  /* -- Accent: warm amber, for friendly highlights ----------------------- */
+  --color-accent-50:  #fefaf0;
+  --color-accent-100: #fdf0d5;
+  --color-accent-200: #f9dca6;
+  --color-accent-300: #f4c46d;
+  --color-accent-400: #eda53c;
+  --color-accent-500: #e08c1d;
+  --color-accent-600: #c26f12;
+  --color-accent-700: #9b5412;
+  --color-accent-800: #7e4316;
+  --color-accent-900: #683916;
+
+  /* -- Semantic surface + text tokens (var-backed, flip under .dark) ------ */
+  --color-canvas:        var(--c-canvas);
+  --color-surface:       var(--c-surface);
+  --color-surface-2:     var(--c-surface-2);
+  --color-surface-3:     var(--c-surface-3);
+  --color-line:          var(--c-line);
+  --color-line-strong:   var(--c-line-strong);
+  --color-ink:           var(--c-ink);
+  --color-ink-soft:      var(--c-ink-soft);
+  --color-muted:         var(--c-muted);
+  --color-subtle:        var(--c-subtle);
+
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+
+  /* Pillowy, slightly warm shadows. */
+  --shadow-sm: 0 1px 2px rgba(60, 45, 30, 0.06), 0 1px 3px rgba(60, 45, 30, 0.05);
+  --shadow-md: 0 4px 12px rgba(60, 45, 30, 0.07), 0 2px 4px rgba(60, 45, 30, 0.05);
+  --shadow-lg: 0 12px 28px rgba(60, 45, 30, 0.10), 0 4px 10px rgba(60, 45, 30, 0.06);
+  --shadow-xl: 0 24px 48px rgba(60, 45, 30, 0.14), 0 8px 18px rgba(60, 45, 30, 0.08);
+  --shadow-2xl: 0 36px 70px rgba(45, 35, 25, 0.20);
 }
 
-/* Tailwind preflight already applies box-sizing: border-box and resets margins,
-   so we only set page-level chrome here. */
+/* -- Light theme: warm cream + soft beige -------------------------------- */
+:root {
+  --c-canvas:      #f6f3ee;
+  --c-surface:     #fffdfa;
+  --c-surface-2:   #efeae0;
+  --c-surface-3:   #e4ddce;
+  --c-line:        #e7e0d2;
+  --c-line-strong: #d6cbb6;
+  --c-ink:         #2d2823;
+  --c-ink-soft:    #4f4639;
+  --c-muted:       #7d7261;
+  --c-subtle:      #a89c87;
+  color-scheme: light;
+}
+
+/* -- Dark theme: warm charcoal (not cold gray) --------------------------- */
+.dark {
+  --c-canvas:      #161310;
+  --c-surface:     #211d19;
+  --c-surface-2:   #2b2621;
+  --c-surface-3:   #39322b;
+  --c-line:        #38322b;
+  --c-line-strong: #4d453b;
+  --c-ink:         #f5f0e6;
+  --c-ink-soft:    #ddd5c6;
+  --c-muted:       #a99e8b;
+  --c-subtle:      #7c7361;
+  color-scheme: dark;
+}
+
+/* Primary used as link/icon text needs to lighten on dark charcoal; the
+   button background (bg-primary-600) is left saturated and untouched. The
+   soft tint backgrounds go deep so their dark-indigo text still reads. */
+.dark .text-primary-600,
+.dark .hover\:text-primary-600:hover,
+.dark .group:hover .group-hover\:text-primary-600 {
+  color: #aab4fc;
+}
+.dark .text-primary-700,
+.dark .hover\:text-primary-700:hover,
+.dark .group:hover .group-hover\:text-primary-700 {
+  color: #c7d2fe;
+}
+.dark .bg-primary-50  { background-color: #211f44; }
+.dark .bg-primary-100 { background-color: #2b2960; }
+.dark .hover\:bg-primary-50:hover { background-color: #211f44; }
+.dark .hover\:border-primary-300:hover { border-color: #6366f1; }
+
+/* Page chrome. */
+html, body {
+  min-height: 100%;
+}
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--c-canvas);
+  color: var(--c-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Shared auth-card layout used by Login, Register, and Home. */
+::selection {
+  background: color-mix(in srgb, var(--color-primary-500) 28%, transparent);
+}
+
+/* Soft, theme-aware scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-line-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--c-line-strong);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--c-muted);
+  background-clip: content-box;
+}
+
+/* ===========================================================================
+   Shared auth-card layout — Login, Register, Home. Token-driven so it follows
+   the active theme automatically.
+   =========================================================================== */
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: #ffffff;
+  background: var(--c-surface);
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  border-radius: 1.5rem;
+  border: 1px solid var(--c-line);
+  box-shadow: var(--shadow-lg);
 }
 
 .auth-card.wide {
@@ -45,11 +163,14 @@ body {
 
 .auth-card h1 {
   margin: 0 0 0.25rem;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
 }
 
 .auth-card .muted {
-  color: #6b7280;
+  color: var(--c-muted);
   margin: 0 0 1.25rem;
 }
 
@@ -64,8 +185,15 @@ body {
 }
 
 .auth-card a {
-  color: #4f46e5;
+  color: var(--color-primary-600);
+  text-decoration: none;
+  font-weight: 600;
+}
+.auth-card a:hover {
   text-decoration: underline;
+}
+.dark .auth-card a {
+  color: #aab4fc;
 }
 
 .field {
@@ -75,28 +203,31 @@ body {
 }
 
 .field span {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: #334155;
-  letter-spacing: 0.02em;
+  color: var(--c-ink-soft);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .field input,
 .field select {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  padding: 0.625rem 0.8rem;
+  border: 1px solid var(--c-line-strong);
+  border-radius: 0.75rem;
   font-size: 1rem;
-  background: #ffffff;
+  background: var(--c-surface);
+  color: var(--c-ink);
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
+
+.field input::placeholder { color: var(--c-subtle); }
 
 .field input:focus,
 .field select:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 22%, transparent);
 }
 
 .row {
@@ -106,40 +237,50 @@ body {
 }
 
 /* Buttons inside auth-card / actions areas — class-scoped so Tailwind
-   utility-styled buttons elsewhere (e.g. catalog) aren't clobbered. */
+   utility-styled buttons elsewhere aren't clobbered. */
 .auth-card button[type='submit'],
 .auth-card .actions button {
-  padding: 0.625rem 1rem;
-  background: #4f46e5;
+  padding: 0.7rem 1rem;
+  background: var(--color-primary-600);
   color: #ffffff;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 120ms ease;
+  box-shadow: var(--shadow-sm);
+  transition: background 120ms ease, transform 120ms ease;
 }
 
 .auth-card button[type='submit']:hover,
 .auth-card .actions button:hover {
-  background: #4338ca;
+  background: var(--color-primary-700);
+}
+.auth-card button[type='submit']:active,
+.auth-card .actions button:active {
+  transform: translateY(1px);
 }
 
 .auth-card button[disabled] {
-  background: #a5b4fc;
+  background: var(--color-primary-300);
   cursor: not-allowed;
+}
+.dark .auth-card button[disabled] {
+  background: #3a3568;
+  color: var(--c-subtle);
 }
 
 .auth-card .err {
-  color: #b91c1c;
+  color: #c0392f;
   font-size: 0.825rem;
 }
+.dark .auth-card .err { color: #f3a89f; }
 
 .auth-card .err.banner {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  background: color-mix(in srgb, #c0392f 10%, var(--c-surface));
+  border: 1px solid color-mix(in srgb, #c0392f 28%, transparent);
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.75rem;
 }
 
 code {

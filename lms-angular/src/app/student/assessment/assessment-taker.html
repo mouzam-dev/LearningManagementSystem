@@ -2,9 +2,9 @@
   <!-- Loading skeleton -->
   @if (loading() && !assessment()) {
     <div class="space-y-4">
-      <div class="h-32 animate-pulse rounded-3xl bg-slate-200"></div>
-      <div class="h-40 animate-pulse rounded-2xl bg-slate-200"></div>
-      <div class="h-40 animate-pulse rounded-2xl bg-slate-200"></div>
+      <div class="h-32 animate-pulse rounded-3xl bg-surface-3"></div>
+      <div class="h-40 animate-pulse rounded-2xl bg-surface-3"></div>
+      <div class="h-40 animate-pulse rounded-2xl bg-surface-3"></div>
     </div>
   }
 
@@ -21,7 +21,7 @@
 
   @if (assessment(); as a) {
     <!-- Breadcrumb -->
-    <nav class="mb-4 flex items-center gap-1.5 text-sm text-slate-500" aria-label="Breadcrumb">
+    <nav class="mb-4 flex items-center gap-1.5 text-sm text-muted" aria-label="Breadcrumb">
       <a routerLink="/student/dashboard" class="hover:text-primary-600">Dashboard</a>
       <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -34,18 +34,18 @@
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m9 18 6-6-6-6"></path>
       </svg>
-      <span class="truncate text-slate-700">{{ a.title }}</span>
+      <span class="truncate text-ink-soft">{{ a.title }}</span>
     </nav>
 
     <!-- Assessment header -->
-    <header class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <header class="mb-6 rounded-3xl border border-line bg-surface p-6 shadow-sm sm:p-8">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p class="text-xs font-semibold uppercase tracking-wider"
              [class.text-primary-600]="a.type === 'Quiz'"
              [class.text-amber-600]="a.type !== 'Quiz'">{{ a.type }}</p>
-          <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ a.title }}</h1>
-          <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+          <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ a.title }}</h1>
+          <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
             @if (a.questions.length > 0) {
               <span>{{ a.questions.length }} questions</span>
               <span aria-hidden="true">·</span>
@@ -61,17 +61,17 @@
             }
             @if (a.dueDate) {
               <span aria-hidden="true">·</span>
-              <span class="font-medium text-slate-700">{{ dueLabel(a.dueDate) }}</span>
+              <span class="font-medium text-ink-soft">{{ dueLabel(a.dueDate) }}</span>
             }
           </p>
         </div>
 
         <!-- Attempts pill -->
         @if (a.maxAttempts !== null && a.maxAttempts !== undefined) {
-          <div class="rounded-xl bg-slate-50 px-3 py-2 text-right text-xs">
-            <p class="font-semibold text-slate-700">{{ a.attemptCount }}/{{ a.maxAttempts }} attempts</p>
+          <div class="rounded-xl bg-surface-2 px-3 py-2 text-right text-xs">
+            <p class="font-semibold text-ink-soft">{{ a.attemptCount }}/{{ a.maxAttempts }} attempts</p>
             @if (a.attemptsRemaining !== null && a.attemptsRemaining !== undefined) {
-              <p class="text-slate-500">
+              <p class="text-muted">
                 {{ a.attemptsRemaining > 0 ? a.attemptsRemaining + ' remaining' : 'No attempts left' }}
               </p>
             }
@@ -125,7 +125,7 @@
             <div class="flex shrink-0 flex-wrap gap-2">
               @if (!r.isPassed && r.assessmentType === 'Quiz' && (a.attemptsRemaining === null || (a.attemptsRemaining ?? 0) > 0)) {
                 <button type="button" (click)="retry()"
-                        class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100">
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-sm transition hover:bg-surface-2">
                   Try again
                 </button>
               }
@@ -188,11 +188,11 @@
       <ol class="space-y-4">
         @for (q of a.questions; track q.questionId; let i = $index) {
           <li>
-            <fieldset class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <fieldset class="rounded-2xl border border-line bg-surface p-5 shadow-sm">
               <legend class="text-xs font-semibold uppercase tracking-wider text-primary-600">
                 Question {{ i + 1 }} of {{ a.questions.length }}
               </legend>
-              <p class="mt-1 text-base font-semibold text-slate-900">{{ q.questionText }}</p>
+              <p class="mt-1 text-base font-semibold text-ink">{{ q.questionText }}</p>
 
               @if (q.options && q.options.length > 0) {
                 <div class="mt-4 space-y-2">
@@ -202,21 +202,21 @@
                            [class.bg-primary-50]="isOptionSelected(q, opt)"
                            [class.ring-2]="isOptionSelected(q, opt)"
                            [class.ring-primary-200]="isOptionSelected(q, opt)"
-                           [class.border-slate-200]="!isOptionSelected(q, opt)"
-                           [class.hover:bg-slate-50]="!isOptionSelected(q, opt)">
+                           [class.border-line]="!isOptionSelected(q, opt)"
+                           [class.hover:bg-surface-2]="!isOptionSelected(q, opt)">
                       <input type="radio"
                              [name]="'q-' + q.questionId"
                              [value]="opt"
                              [checked]="isOptionSelected(q, opt)"
                              (change)="setAnswer(q.questionId, opt)"
                              class="h-4 w-4 accent-primary-600" />
-                      <span class="text-sm text-slate-800">{{ opt }}</span>
+                      <span class="text-sm text-ink">{{ opt }}</span>
                     </label>
                   }
                 </div>
               } @else {
                 <textarea rows="3"
-                          class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                          class="mt-3 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                           placeholder="Type your answer…"
                           (input)="setAnswer(q.questionId, $any($event.target).value)"></textarea>
               }
@@ -228,16 +228,16 @@
 
     <!-- Assignment form -->
     @if (a.type === 'Assignment' && !readOnly()) {
-      <fieldset class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <fieldset class="rounded-2xl border border-line bg-surface p-6 shadow-sm">
         <legend class="text-xs font-semibold uppercase tracking-wider text-amber-600">Your response</legend>
-        <p class="mt-1 text-sm text-slate-600">
+        <p class="mt-1 text-sm text-muted">
           Take a few sentences to reflect on what you learned and how you'll apply it.
         </p>
         <textarea rows="8"
-                  class="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  class="mt-4 w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                   placeholder="Type your response here…"
                   (input)="setAssignmentAnswer($any($event.target).value)"></textarea>
-        <p class="mt-2 text-xs text-slate-400">
+        <p class="mt-2 text-xs text-subtle">
           Your teacher will review this and post a grade — there's no automatic score for assignments.
         </p>
       </fieldset>
@@ -245,8 +245,8 @@
 
     <!-- Submit bar -->
     @if (!readOnly() && (a.type === 'Quiz' ? a.questions.length > 0 : true)) {
-      <div class="sticky bottom-4 mt-6 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-lg ring-1 ring-slate-900/5 backdrop-blur sm:flex sm:items-center sm:justify-between">
-        <div class="text-sm text-slate-600">
+      <div class="sticky bottom-4 mt-6 rounded-2xl border border-line bg-white/95 px-4 py-3 shadow-lg ring-1 ring-slate-900/5 backdrop-blur sm:flex sm:items-center sm:justify-between">
+        <div class="text-sm text-muted">
           @if (a.type === 'Quiz') {
             {{ answerCount() }} of {{ a.questions.length }} answered
           } @else {
