@@ -4,18 +4,27 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
+  CreateAssessmentBody,
   CreateCourseBody,
   CreateLessonBody,
   CreateModuleBody,
+  CreateQuestionBody,
   CreatedCourse,
+  GradeSubmissionBody,
+  GradingQueueItem,
+  TeacherAssessment,
   TeacherCourseDetail,
   TeacherCourseListItem,
   TeacherDashboard,
   TeacherLesson,
   TeacherModule,
+  TeacherQuestion,
+  TeacherSubmissionDetail,
+  UpdateAssessmentBody,
   UpdateCourseBody,
   UpdateLessonBody,
   UpdateModuleBody,
+  UpdateQuestionBody,
 } from './models/teacher.models';
 
 @Injectable({ providedIn: 'root' })
@@ -78,5 +87,55 @@ export class TeacherService {
 
   deleteLesson(lessonId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/lessons/${lessonId}`);
+  }
+
+  // ---- Assessments ------------------------------------------------------
+
+  getAssessment(assessmentId: string): Observable<TeacherAssessment> {
+    return this.http.get<TeacherAssessment>(`${this.baseUrl}/assessments/${assessmentId}`);
+  }
+
+  createAssessment(courseId: string, body: CreateAssessmentBody): Observable<TeacherAssessment> {
+    return this.http.post<TeacherAssessment>(
+      `${this.baseUrl}/courses/${courseId}/assessments`, body);
+  }
+
+  updateAssessment(assessmentId: string, body: UpdateAssessmentBody): Observable<TeacherAssessment> {
+    return this.http.put<TeacherAssessment>(`${this.baseUrl}/assessments/${assessmentId}`, body);
+  }
+
+  deleteAssessment(assessmentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/assessments/${assessmentId}`);
+  }
+
+  // ---- Questions --------------------------------------------------------
+
+  createQuestion(assessmentId: string, body: CreateQuestionBody): Observable<TeacherQuestion> {
+    return this.http.post<TeacherQuestion>(
+      `${this.baseUrl}/assessments/${assessmentId}/questions`, body);
+  }
+
+  updateQuestion(questionId: string, body: UpdateQuestionBody): Observable<TeacherQuestion> {
+    return this.http.put<TeacherQuestion>(`${this.baseUrl}/questions/${questionId}`, body);
+  }
+
+  deleteQuestion(questionId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/questions/${questionId}`);
+  }
+
+  // ---- Grading ----------------------------------------------------------
+
+  getGradingQueue(includeGraded = false): Observable<GradingQueueItem[]> {
+    const params = includeGraded ? '?includeGraded=true' : '';
+    return this.http.get<GradingQueueItem[]>(`${this.baseUrl}/grading/queue${params}`);
+  }
+
+  getSubmission(submissionId: string): Observable<TeacherSubmissionDetail> {
+    return this.http.get<TeacherSubmissionDetail>(`${this.baseUrl}/submissions/${submissionId}`);
+  }
+
+  gradeSubmission(submissionId: string, body: GradeSubmissionBody): Observable<TeacherSubmissionDetail> {
+    return this.http.put<TeacherSubmissionDetail>(
+      `${this.baseUrl}/submissions/${submissionId}/grade`, body);
   }
 }

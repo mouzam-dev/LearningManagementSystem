@@ -18,6 +18,7 @@ public class TeacherCourseDetailDto
     public decimal AverageProgress { get; set; }
 
     public IReadOnlyList<TeacherModuleDto> Modules { get; set; } = Array.Empty<TeacherModuleDto>();
+    public IReadOnlyList<TeacherAssessmentListItemDto> Assessments { get; set; } = Array.Empty<TeacherAssessmentListItemDto>();
 }
 
 public class TeacherModuleDto

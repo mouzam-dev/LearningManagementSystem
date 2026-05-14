@@ -1,0 +1,374 @@
+<section class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="h-32 animate-pulse rounded-3xl bg-slate-200"></div>
+      <div class="h-24 animate-pulse rounded-2xl bg-slate-200"></div>
+    </div>
+  }
+
+  @if (error() && !assessment()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  }
+
+  @if (assessment(); as a) {
+    <a [routerLink]="['/teacher/courses', a.courseId]"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      {{ a.courseTitle }}
+    </a>
+
+    <!-- Header card -->
+    <header class="mt-4 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-start">
+        <div class="min-w-0">
+          <span class="text-[10px] font-semibold uppercase tracking-wider"
+                [class.text-primary-600]="a.type === 'Quiz'"
+                [class.text-amber-600]="a.type !== 'Quiz'">{{ a.type }}</span>
+          <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ a.title }}</h1>
+          <dl class="mt-4 grid max-w-md grid-cols-3 gap-3">
+            <div class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Questions</dt>
+              <dd class="mt-0.5 text-base font-bold text-slate-900">{{ a.questions.length }}</dd>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Points</dt>
+              <dd class="mt-0.5 text-base font-bold text-slate-900">{{ a.totalPoints }}</dd>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2 text-center">
+              <dt class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pass</dt>
+              <dd class="mt-0.5 text-base font-bold text-slate-900">{{ a.passingScore }}%</dd>
+            </div>
+          </dl>
+          <p class="mt-3 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+            @if (a.timeLimit) {
+              <span>{{ a.timeLimit }} min</span>
+              <span aria-hidden="true">·</span>
+            }
+            @if (a.maxAttempts) {
+              <span>Max {{ a.maxAttempts }} attempt{{ a.maxAttempts === 1 ? '' : 's' }}</span>
+              <span aria-hidden="true">·</span>
+            }
+            @if (a.dueDate) {
+              <span>Due {{ a.dueDate | date: 'mediumDate' }}</span>
+              <span aria-hidden="true">·</span>
+            }
+            <span>{{ a.submissionCount }} submission{{ a.submissionCount === 1 ? '' : 's' }}</span>
+          </p>
+        </div>
+
+        <div class="flex shrink-0 flex-wrap items-stretch gap-2 lg:flex-col">
+          <button type="button" (click)="openMetaEdit()"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+            Edit details
+          </button>
+          <button type="button" (click)="deleteAssessment()" [disabled]="busy() === 'delete'"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50">
+            Delete
+          </button>
+        </div>
+      </div>
+    </header>
+
+    @if (error()) {
+      <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Questions section -->
+    <section class="mt-8">
+      <div class="flex flex-wrap items-end justify-between gap-2">
+        <h2 class="text-xl font-semibold text-slate-900">Questions</h2>
+        @if (!addingQuestion()) {
+          <button type="button" (click)="openAddQuestion()"
+                  class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14"></path><path d="M5 12h14"></path>
+            </svg>
+            Add question
+          </button>
+        }
+      </div>
+
+      <!-- New question inline form -->
+      @if (addingQuestion()) {
+        <form (submit)="$event.preventDefault(); saveNewQuestion()"
+              class="mt-4 space-y-4 rounded-2xl border border-primary-200 bg-primary-50/30 p-5">
+          <ng-container *ngTemplateOutlet="questionForm; context: { draft: questionDraft, errors: questionErrors() }"></ng-container>
+          <div class="flex justify-end gap-2">
+            <button type="button" (click)="cancelAddQuestion()"
+                    class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="busy() === 'question-create'"
+                    class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50">
+              {{ busy() === 'question-create' ? 'Adding…' : 'Add question' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (a.questions.length === 0 && !addingQuestion()) {
+        <div class="mt-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+          <p class="text-sm font-semibold text-slate-900">No questions yet</p>
+          <p class="mt-1 text-sm text-slate-500">Add at least one to make this assessment usable.</p>
+          <button type="button" (click)="openAddQuestion()"
+                  class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700">
+            Add first question
+          </button>
+        </div>
+      } @else {
+        <ol class="mt-4 space-y-3">
+          @for (q of a.questions; track q.questionId; let qIdx = $index) {
+            <li class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              @if (editingQuestionId() === q.questionId) {
+                <form (submit)="$event.preventDefault(); saveQuestionEdit()"
+                      class="space-y-4 bg-primary-50/40 p-5">
+                  <ng-container *ngTemplateOutlet="questionForm; context: { draft: questionEditDraft, errors: {} }"></ng-container>
+                  <div class="flex justify-end gap-2">
+                    <button type="button" (click)="cancelEditQuestion()"
+                            class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300">
+                      Cancel
+                    </button>
+                    <button type="submit" [disabled]="busy() === 'question-' + q.questionId"
+                            class="rounded-xl bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50">
+                      {{ busy() === 'question-' + q.questionId ? 'Saving…' : 'Save question' }}
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <div class="flex items-start gap-3 p-5">
+                  <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700"
+                        aria-hidden="true">{{ qIdx + 1 }}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-semibold uppercase tracking-wider text-primary-600">{{ q.type }}</span>
+                      <span class="text-[10px] font-semibold text-slate-500">{{ q.points }} pt{{ q.points === 1 ? '' : 's' }}</span>
+                    </div>
+                    <p class="mt-1 text-sm font-semibold text-slate-900">{{ q.questionText }}</p>
+                    @if (q.options && q.options.length > 0) {
+                      <ul class="mt-2 space-y-1">
+                        @for (opt of q.options; track opt) {
+                          <li class="flex items-center gap-2 text-xs text-slate-600">
+                            <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                                  [class.bg-emerald-100]="opt === q.correctAnswer"
+                                  [class.text-emerald-700]="opt === q.correctAnswer"
+                                  [class.bg-slate-100]="opt !== q.correctAnswer"
+                                  [class.text-slate-500]="opt !== q.correctAnswer"
+                                  aria-hidden="true">
+                              @if (opt === q.correctAnswer) { ✓ }
+                            </span>
+                            <span [class.font-semibold]="opt === q.correctAnswer"
+                                  [class.text-emerald-700]="opt === q.correctAnswer">{{ opt }}</span>
+                          </li>
+                        }
+                      </ul>
+                    } @else if (q.type === 'ShortAnswer' || q.type === 'Essay') {
+                      <p class="mt-2 text-xs italic text-slate-400">Free-text response — graded manually.</p>
+                    }
+                  </div>
+                  <div class="flex shrink-0 gap-1">
+                    <button type="button" (click)="startEditQuestion(q)" title="Edit question"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-primary-700">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                    <button type="button" (click)="deleteQuestion(q)" title="Delete question"
+                            [disabled]="busy() === 'question-' + q.questionId"
+                            class="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h18"></path><path d="m19 6-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+            </li>
+          }
+        </ol>
+      }
+    </section>
+
+    <!-- Shared question form template (used by both Add + Edit) -->
+    <ng-template #questionForm let-draft="draft" let-errors="errors">
+      <div>
+        <label class="block text-sm font-semibold text-slate-700">Question</label>
+        <textarea [ngModel]="draft().questionText" name="qText"
+                  (ngModelChange)="setQText(draft, $event)"
+                  rows="2" maxlength="2000"
+                  class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  placeholder="Type your question…" required></textarea>
+        @if (serverFieldError(errors, 'QuestionText'); as e) {
+          <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+        }
+      </div>
+      <div class="grid gap-3 sm:grid-cols-[160px_1fr]">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700">Type</label>
+          <select [ngModel]="draft().type" name="qType"
+                  (ngModelChange)="onTypeChange(draft, $event)"
+                  class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+            @for (t of questionTypes(); track t) {
+              <option [value]="t">{{ t === 'MCQ' ? 'Multiple choice' : t === 'TrueFalse' ? 'True / False' : t === 'ShortAnswer' ? 'Short answer' : 'Essay' }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700">Points</label>
+          <input type="number" min="1" [ngModel]="draft().points" name="qPoints"
+                 (ngModelChange)="setQPoints(draft, $event)"
+                 class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+        </div>
+      </div>
+
+      <!-- MCQ options -->
+      @if (draft().type === 'MCQ') {
+        <div>
+          <label class="block text-sm font-semibold text-slate-700">Options</label>
+          <p class="mt-1 text-xs text-slate-500">Click the radio to mark the correct one.</p>
+          <ul class="mt-2 space-y-2">
+            @for (opt of draft().options; track $index; let i = $index) {
+              <li class="flex items-center gap-2">
+                <input type="radio" name="qCorrect"
+                       [checked]="draft().correctAnswer === opt && opt !== ''"
+                       (change)="setQCorrect(draft, opt)"
+                       [disabled]="!opt"
+                       class="h-4 w-4 accent-primary-600" />
+                <input type="text" [ngModel]="opt" [name]="'qOpt-' + i"
+                       (ngModelChange)="updateOption(draft, i, $event)"
+                       class="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                       [placeholder]="'Option ' + (i + 1)" />
+                @if (draft().options.length > 2) {
+                  <button type="button" (click)="removeOption(draft, i)"
+                          class="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600" title="Remove option">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>
+                    </svg>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+          <button type="button" (click)="addOption(draft)"
+                  class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14"></path><path d="M5 12h14"></path>
+            </svg>
+            Add option
+          </button>
+          @if (serverFieldError(errors, 'Options'); as e) {
+            <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+          }
+          @if (serverFieldError(errors, 'CorrectAnswer'); as e) {
+            <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+          }
+        </div>
+      }
+
+      <!-- True/False -->
+      @if (draft().type === 'TrueFalse') {
+        <div>
+          <label class="block text-sm font-semibold text-slate-700">Correct answer</label>
+          <div class="mt-2 grid grid-cols-2 gap-2">
+            @for (opt of ['True', 'False']; track opt) {
+              <label class="flex cursor-pointer items-center gap-2 rounded-xl border bg-white p-3 transition"
+                     [class.border-primary-500]="draft().correctAnswer === opt"
+                     [class.bg-primary-50]="draft().correctAnswer === opt"
+                     [class.border-slate-200]="draft().correctAnswer !== opt">
+                <input type="radio" name="qTfCorrect" [value]="opt"
+                       [checked]="draft().correctAnswer === opt"
+                       (change)="setQCorrect(draft, opt)"
+                       class="h-4 w-4 accent-primary-600" />
+                <span class="text-sm font-semibold text-slate-800">{{ opt }}</span>
+              </label>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ShortAnswer / Essay -->
+      @if (draft().type === 'ShortAnswer' || draft().type === 'Essay') {
+        <div class="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+          Free-text questions are graded manually. Submissions land in the
+          <a routerLink="/teacher/grading" class="font-semibold text-primary-700 hover:text-primary-800">grading inbox</a>.
+        </div>
+      }
+    </ng-template>
+
+    <!-- Metadata edit modal -->
+    @if (editingMeta()) {
+      <div class="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/50 p-4 sm:items-center"
+           role="dialog" aria-modal="true">
+        <form (submit)="$event.preventDefault(); saveMeta()"
+              class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <header class="border-b border-slate-100 px-6 py-4">
+            <h2 class="text-lg font-bold text-slate-900">Edit assessment</h2>
+          </header>
+          <div class="space-y-4 px-6 py-5">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700">Title</label>
+              <input type="text" [ngModel]="metaDraft().title" name="metaTitle"
+                     (ngModelChange)="updateDraft(metaDraft, 'title', $event)"
+                     class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                     required maxlength="200" />
+              @if (serverFieldError(metaErrors(), 'Title'); as e) {
+                <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
+              }
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700">Pass %</label>
+                <input type="number" min="0" max="100" [ngModel]="metaDraft().passingScore" name="metaPass"
+                       (ngModelChange)="updateDraft(metaDraft, 'passingScore', $event)"
+                       class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700">Time limit</label>
+                <input type="number" min="1" [ngModel]="metaDraft().timeLimit" name="metaTime"
+                       (ngModelChange)="updateDraft(metaDraft, 'timeLimit', $event)"
+                       class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                       placeholder="min" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700">Max attempts</label>
+                <input type="number" min="1" [ngModel]="metaDraft().maxAttempts" name="metaMax"
+                       (ngModelChange)="updateDraft(metaDraft, 'maxAttempts', $event)"
+                       class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                       placeholder="∞" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700">Due date</label>
+              <input type="datetime-local" [ngModel]="metaDraft().dueDate" name="metaDue"
+                     (ngModelChange)="updateDraft(metaDraft, 'dueDate', $event)"
+                     class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+            </div>
+          </div>
+          <footer class="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 px-6 py-3">
+            <button type="button" (click)="cancelMetaEdit()"
+                    class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="busy() === 'meta'"
+                    class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+              {{ busy() === 'meta' ? 'Saving…' : 'Save changes' }}
+            </button>
+          </footer>
+        </form>
+      </div>
+    }
+  }
+</section>

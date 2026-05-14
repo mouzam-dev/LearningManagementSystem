@@ -115,6 +115,7 @@ export interface TeacherCourseDetail {
   assessmentCount: number;
   averageProgress: number;
   modules: TeacherModule[];
+  assessments: TeacherAssessmentListItem[];
 }
 
 export interface UpdateCourseBody {
@@ -151,4 +152,138 @@ export interface UpdateLessonBody {
   duration?: number | null;
   order?: number | null;
   isPublished: boolean;
+}
+
+// ---------------- Assessments + questions --------------------------------
+
+export interface TeacherAssessmentListItem {
+  assessmentId: string;
+  courseId: string;
+  title: string;
+  /** "Quiz" or "Assignment". */
+  type: string;
+  timeLimit?: number | null;
+  passingScore: number;
+  dueDate?: string | null;
+  maxAttempts?: number | null;
+  questionCount: number;
+  totalPoints: number;
+  submissionCount: number;
+  ungradedCount: number;
+}
+
+export interface TeacherQuestion {
+  questionId: string;
+  questionText: string;
+  /** "MCQ" | "TrueFalse" | "ShortAnswer" | "Essay". */
+  type: string;
+  options?: string[] | null;
+  /** Teacher view exposes the correct answer. Student-side DTO hides it. */
+  correctAnswer?: string | null;
+  points: number;
+  order: number;
+}
+
+export interface TeacherAssessment {
+  assessmentId: string;
+  courseId: string;
+  courseTitle: string;
+  title: string;
+  type: string;
+  timeLimit?: number | null;
+  passingScore: number;
+  dueDate?: string | null;
+  maxAttempts?: number | null;
+  totalPoints: number;
+  submissionCount: number;
+  questions: TeacherQuestion[];
+}
+
+export interface CreateAssessmentBody {
+  title: string;
+  type: string;
+  timeLimit?: number | null;
+  passingScore: number;
+  dueDate?: string | null;
+  maxAttempts?: number | null;
+}
+
+export interface UpdateAssessmentBody {
+  title: string;
+  timeLimit?: number | null;
+  passingScore: number;
+  dueDate?: string | null;
+  maxAttempts?: number | null;
+}
+
+export interface CreateQuestionBody {
+  questionText: string;
+  type: string;
+  options?: string[] | null;
+  correctAnswer?: string | null;
+  points: number;
+}
+
+export interface UpdateQuestionBody {
+  questionText: string;
+  type: string;
+  options?: string[] | null;
+  correctAnswer?: string | null;
+  points: number;
+  order?: number | null;
+}
+
+// ---------------- Grading ------------------------------------------------
+
+export interface GradingQueueItem {
+  submissionId: string;
+  assessmentId: string;
+  assessmentTitle: string;
+  assessmentType: string;
+  courseId: string;
+  courseTitle: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  submittedAt: string;
+  score?: number | null;
+  gradedAt?: string | null;
+  totalPoints: number;
+  passingScore: number;
+}
+
+export interface SubmissionAnswer {
+  questionId: string;
+  questionText: string;
+  type: string;
+  studentAnswer?: string | null;
+  correctAnswer?: string | null;
+  isCorrect: boolean;
+  points: number;
+  order: number;
+}
+
+export interface TeacherSubmissionDetail {
+  submissionId: string;
+  submittedAt: string;
+  gradedAt?: string | null;
+  score?: number | null;
+  feedback?: string | null;
+  assessmentId: string;
+  assessmentTitle: string;
+  assessmentType: string;
+  passingScore: number;
+  totalPoints: number;
+  courseId: string;
+  courseTitle: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  answers: SubmissionAnswer[];
+  assignmentResponse?: string | null;
+}
+
+export interface GradeSubmissionBody {
+  score: number;
+  feedback?: string | null;
 }

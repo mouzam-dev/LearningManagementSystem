@@ -40,9 +40,29 @@ public class GetTeacherCourseDetailQueryHandler
             .AsNoTracking()
             .CountAsync(e => e.CourseId == course.Id, cancellationToken);
 
-        var assessmentCount = await _db.Assessments
+        var assessments = await _db.Assessments
             .AsNoTracking()
-            .CountAsync(a => a.CourseId == course.Id, cancellationToken);
+            .Where(a => a.CourseId == course.Id)
+            .OrderBy(a => a.DueDate ?? DateTime.MaxValue)
+            .ThenBy(a => a.Title)
+            .Select(a => new TeacherAssessmentListItemDto
+            {
+                AssessmentId = a.Id,
+                CourseId = a.CourseId,
+                Title = a.Title,
+                Type = a.Type,
+                TimeLimit = a.TimeLimit,
+                PassingScore = a.PassingScore,
+                DueDate = a.DueDate,
+                MaxAttempts = a.MaxAttempts,
+                QuestionCount = a.Questions.Count,
+                TotalPoints = a.Questions.Sum(q => q.Points),
+                SubmissionCount = a.Submissions.Count,
+                UngradedCount = a.Submissions.Count(s => s.Score == null),
+            })
+            .ToListAsync(cancellationToken);
+
+        var assessmentCount = assessments.Count;
 
         // AverageAsync on a nullable projection returns null when the set is
         // empty — that translates cleanly to SQL AVG(...) which also returns
@@ -91,6 +111,7 @@ public class GetTeacherCourseDetailQueryHandler
                         .ToList(),
                 })
                 .ToList(),
+            Assessments = assessments,
         };
     }
 }

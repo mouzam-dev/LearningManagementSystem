@@ -10,6 +10,7 @@
       } @else if (user()?.role === 'Teacher') {
         <a routerLink="/teacher/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
         <a routerLink="/teacher/courses" routerLinkActive="active" class="nav-link">My courses</a>
+        <a routerLink="/teacher/grading" routerLinkActive="active" class="nav-link">Grading</a>
       }
       <span class="hello">{{ user()?.firstName }} ({{ user()?.role }})</span>
       <button type="button" (click)="logout()">Sign out</button>

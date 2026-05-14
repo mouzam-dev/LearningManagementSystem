@@ -163,7 +163,8 @@
         } @else {
           <ul class="mt-4 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
             @for (p of d.pendingGrading; track p.submissionId) {
-              <li class="flex items-start gap-3 px-4 py-3">
+              <li><a [routerLink]="['/teacher/submissions', p.submissionId]"
+                     class="group flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50">
                 <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600"
                       aria-hidden="true">
                   <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -180,7 +181,7 @@
                   </p>
                 </div>
                 <span class="shrink-0 text-xs text-slate-400">{{ relativeTime(p.submittedAt) }}</span>
-              </li>
+              </a></li>
             }
           </ul>
         }

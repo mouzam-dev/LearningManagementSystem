@@ -330,6 +330,267 @@ public class TeacherController : ControllerBase
     }
 
     // -----------------------------------------------------------------------
+    // Assessments
+    // -----------------------------------------------------------------------
+
+    [HttpGet("assessments/{assessmentId:guid}")]
+    [ProducesResponseType(typeof(TeacherAssessmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TeacherAssessmentDto>> GetAssessment(Guid assessmentId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetTeacherAssessmentQuery(assessmentId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    public class CreateAssessmentRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Type { get; set; } = "Quiz";
+        public int? TimeLimit { get; set; }
+        public int PassingScore { get; set; } = 70;
+        public DateTime? DueDate { get; set; }
+        public int? MaxAttempts { get; set; }
+    }
+
+    [HttpPost("courses/{courseId:guid}/assessments")]
+    [ProducesResponseType(typeof(TeacherAssessmentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherAssessmentDto>> CreateAssessment(
+        Guid courseId,
+        [FromBody] CreateAssessmentRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new CreateAssessmentCommand(
+                courseId, request.Title, request.Type, request.TimeLimit,
+                request.PassingScore, request.DueDate, request.MaxAttempts), ct);
+            return Created(string.Empty, result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    public class UpdateAssessmentRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public int? TimeLimit { get; set; }
+        public int PassingScore { get; set; }
+        public DateTime? DueDate { get; set; }
+        public int? MaxAttempts { get; set; }
+    }
+
+    [HttpPut("assessments/{assessmentId:guid}")]
+    [ProducesResponseType(typeof(TeacherAssessmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherAssessmentDto>> UpdateAssessment(
+        Guid assessmentId,
+        [FromBody] UpdateAssessmentRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new UpdateAssessmentCommand(
+                assessmentId, request.Title, request.TimeLimit, request.PassingScore,
+                request.DueDate, request.MaxAttempts), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    [HttpDelete("assessments/{assessmentId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteAssessment(Guid assessmentId, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteAssessmentCommand(assessmentId), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Questions
+    // -----------------------------------------------------------------------
+
+    public class CreateQuestionRequest
+    {
+        public string QuestionText { get; set; } = string.Empty;
+        public string Type { get; set; } = "MCQ";
+        public List<string>? Options { get; set; }
+        public string? CorrectAnswer { get; set; }
+        public int Points { get; set; } = 1;
+    }
+
+    [HttpPost("assessments/{assessmentId:guid}/questions")]
+    [ProducesResponseType(typeof(TeacherQuestionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherQuestionDto>> CreateQuestion(
+        Guid assessmentId,
+        [FromBody] CreateQuestionRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new CreateQuestionCommand(
+                assessmentId, request.QuestionText, request.Type,
+                request.Options, request.CorrectAnswer, request.Points), ct);
+            return Created(string.Empty, result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    public class UpdateQuestionRequest
+    {
+        public string QuestionText { get; set; } = string.Empty;
+        public string Type { get; set; } = "MCQ";
+        public List<string>? Options { get; set; }
+        public string? CorrectAnswer { get; set; }
+        public int Points { get; set; } = 1;
+        public int? Order { get; set; }
+    }
+
+    [HttpPut("questions/{questionId:guid}")]
+    [ProducesResponseType(typeof(TeacherQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherQuestionDto>> UpdateQuestion(
+        Guid questionId,
+        [FromBody] UpdateQuestionRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new UpdateQuestionCommand(
+                questionId, request.QuestionText, request.Type,
+                request.Options, request.CorrectAnswer, request.Points, request.Order), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    [HttpDelete("questions/{questionId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteQuestion(Guid questionId, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteQuestionCommand(questionId), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Grading
+    // -----------------------------------------------------------------------
+
+    [HttpGet("grading/queue")]
+    [ProducesResponseType(typeof(IReadOnlyList<GradingQueueItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<GradingQueueItemDto>>> GetGradingQueue(
+        [FromQuery] bool includeGraded = false,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetGradingQueueQuery(includeGraded), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("submissions/{submissionId:guid}")]
+    [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TeacherSubmissionDetailDto>> GetSubmission(
+        Guid submissionId,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetTeacherSubmissionQuery(submissionId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    public class GradeSubmissionRequest
+    {
+        public int Score { get; set; }
+        public string? Feedback { get; set; }
+    }
+
+    [HttpPut("submissions/{submissionId:guid}/grade")]
+    [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<TeacherSubmissionDetailDto>> GradeSubmission(
+        Guid submissionId,
+        [FromBody] GradeSubmissionRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new GradeSubmissionCommand(submissionId, request.Score, request.Feedback), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return ValidationProblem(BuildModelState(ex));
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // Helper: turn a FluentValidation ValidationException into a
     // ValidationProblemDetails-friendly dictionary keyed by property name.
     // -----------------------------------------------------------------------

@@ -1,0 +1,171 @@
+<section class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="h-32 animate-pulse rounded-3xl bg-slate-200"></div>
+      <div class="h-48 animate-pulse rounded-2xl bg-slate-200"></div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+      <a routerLink="/teacher/grading"
+         class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-rose-700 underline hover:text-rose-900">
+        Back to inbox →
+      </a>
+    </div>
+  }
+
+  @if (submission(); as s) {
+    <a routerLink="/teacher/grading"
+       class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      Grading inbox
+    </a>
+
+    <!-- Header -->
+    <header class="mt-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wider"
+             [class.text-primary-600]="s.assessmentType === 'Quiz'"
+             [class.text-amber-600]="s.assessmentType !== 'Quiz'">{{ s.assessmentType }}</p>
+          <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{{ s.assessmentTitle }}</h1>
+          <p class="mt-2 text-sm text-slate-600">
+            <span class="font-semibold text-slate-800">{{ s.studentName }}</span>
+            <span class="text-slate-400">·</span>
+            <span>{{ s.studentEmail }}</span>
+          </p>
+          <p class="mt-1 text-xs text-slate-500">{{ s.courseTitle }}</p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p>Submitted {{ s.submittedAt | date: 'medium' }}</p>
+          @if (s.gradedAt) {
+            <p class="mt-0.5">Graded {{ s.gradedAt | date: 'medium' }}</p>
+          }
+        </div>
+      </div>
+
+      @if (s.score !== null && s.score !== undefined) {
+        <div class="mt-4 inline-flex items-center gap-2 rounded-xl px-3 py-1.5"
+             [class.bg-emerald-100]="isPassed()"
+             [class.text-emerald-800]="isPassed()"
+             [class.bg-rose-100]="!isPassed()"
+             [class.text-rose-800]="!isPassed()">
+          <span class="text-sm font-bold">{{ s.score }}%</span>
+          <span class="text-xs font-semibold">{{ isPassed() ? 'Passed' : 'Below pass (' + s.passingScore + '%)' }}</span>
+        </div>
+      } @else {
+        <div class="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-100 px-3 py-1.5 text-amber-800">
+          <span class="text-xs font-semibold">Pending grade</span>
+        </div>
+      }
+    </header>
+
+    <!-- Body: differs for Quiz vs Assignment -->
+    @if (s.assessmentType === 'Quiz') {
+      <section class="mt-6">
+        <h2 class="text-lg font-semibold text-slate-900">Question breakdown</h2>
+        <ol class="mt-3 space-y-3">
+          @for (qa of s.answers; track qa.questionId; let i = $index) {
+            <li class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                      [class.bg-emerald-100]="qa.isCorrect"
+                      [class.text-emerald-700]="qa.isCorrect"
+                      [class.bg-rose-100]="!qa.isCorrect && (qa.type === 'MCQ' || qa.type === 'TrueFalse')"
+                      [class.text-rose-700]="!qa.isCorrect && (qa.type === 'MCQ' || qa.type === 'TrueFalse')"
+                      [class.bg-slate-100]="qa.type !== 'MCQ' && qa.type !== 'TrueFalse'"
+                      [class.text-slate-500]="qa.type !== 'MCQ' && qa.type !== 'TrueFalse'"
+                      aria-hidden="true">
+                  @if (qa.isCorrect) { ✓ } @else if (qa.type === 'MCQ' || qa.type === 'TrueFalse') { ✗ } @else { {{ i + 1 }} }
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{{ qa.type }}</span>
+                    <span class="text-[10px] font-semibold text-slate-500">{{ qa.points }} pt{{ qa.points === 1 ? '' : 's' }}</span>
+                  </div>
+                  <p class="mt-1 text-sm font-semibold text-slate-900">{{ qa.questionText }}</p>
+                  <p class="mt-2 text-xs text-slate-600">
+                    Student answer:
+                    <span class="font-semibold" [class.text-emerald-700]="qa.isCorrect"
+                          [class.text-rose-700]="!qa.isCorrect && (qa.type === 'MCQ' || qa.type === 'TrueFalse')">
+                      {{ qa.studentAnswer || '—' }}
+                    </span>
+                  </p>
+                  @if (qa.correctAnswer && !qa.isCorrect) {
+                    <p class="mt-0.5 text-xs text-slate-500">
+                      Correct: <span class="font-semibold text-emerald-700">{{ qa.correctAnswer }}</span>
+                    </p>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+        </ol>
+      </section>
+    } @else {
+      <!-- Assignment: free-text response -->
+      <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-900">Student's response</h2>
+        @if (s.assignmentResponse) {
+          <p class="mt-3 whitespace-pre-wrap text-sm text-slate-700">{{ s.assignmentResponse }}</p>
+        } @else {
+          <p class="mt-3 text-sm italic text-slate-400">No response submitted.</p>
+        }
+      </section>
+    }
+
+    <!-- Grading panel -->
+    <section class="mt-6 rounded-2xl border border-primary-200 bg-primary-50/30 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-slate-900">
+        {{ s.score !== null && s.score !== undefined ? 'Update grade' : 'Set grade' }}
+      </h2>
+      <p class="mt-1 text-sm text-slate-600">
+        Passing score is <span class="font-semibold">{{ s.passingScore }}%</span>.
+      </p>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-[160px_1fr]">
+        <div>
+          <label for="score" class="block text-sm font-semibold text-slate-700">Score (0-100)</label>
+          <input id="score" type="number" min="0" max="100"
+                 [ngModel]="draftScore()" (ngModelChange)="draftScore.set($event)"
+                 class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+        </div>
+        <div>
+          <label for="feedback" class="block text-sm font-semibold text-slate-700">
+            Feedback <span class="font-normal text-slate-400">(optional, visible to student)</span>
+          </label>
+          <textarea id="feedback" rows="4" maxlength="4000"
+                    [ngModel]="draftFeedback()" (ngModelChange)="draftFeedback.set($event)"
+                    class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                    placeholder="Strengths, areas to improve, next steps…"></textarea>
+        </div>
+      </div>
+
+      @if (saveError(); as msg) {
+        <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+          {{ msg }}
+        </div>
+      }
+
+      <div class="mt-4 flex justify-end">
+        <button type="button" (click)="save()" [disabled]="saving()"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (saving()) {
+            <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"></circle>
+              <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+            </svg>
+            Saving…
+          } @else {
+            {{ s.score !== null && s.score !== undefined ? 'Update grade' : 'Save grade' }}
+          }
+        </button>
+      </div>
+    </section>
+  }
+</section>
