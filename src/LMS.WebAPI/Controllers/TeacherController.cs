@@ -1,4 +1,5 @@
 using FluentValidation;
+using LMS.Application.Common;
 using LMS.Application.Teacher.Commands;
 using LMS.Application.Teacher.Dtos;
 using LMS.Application.Teacher.Queries;
@@ -14,10 +15,12 @@ namespace LMS.WebAPI.Controllers;
 public class TeacherController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IFileStorage _fileStorage;
 
-    public TeacherController(IMediator mediator)
+    public TeacherController(IMediator mediator, IFileStorage fileStorage)
     {
         _mediator = mediator;
+        _fileStorage = fileStorage;
     }
 
     [HttpGet("dashboard")]
@@ -647,6 +650,69 @@ public class TeacherController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Document upload (for Document-type lessons)
+    // -----------------------------------------------------------------------
+
+    public class DocumentUploadResult
+    {
+        /// <summary>Absolute URL the saved file is served from.</summary>
+        public string Url { get; set; } = string.Empty;
+        /// <summary>The original filename, shown to students in the player.</summary>
+        public string FileName { get; set; } = string.Empty;
+    }
+
+    private static readonly HashSet<string> AllowedDocExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".txt",
+    };
+    private const long MaxDocBytes = 20 * 1024 * 1024; // 20 MB
+
+    [HttpPost("uploads/document")]
+    [ProducesResponseType(typeof(DocumentUploadResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [RequestSizeLimit(MaxDocBytes + 1024 * 1024)] // a little headroom over the app check
+    public async Task<ActionResult<DocumentUploadResult>> UploadDocument(
+        [FromForm] IFormFile? file,
+        CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return ValidationProblem(new ValidationProblemDetails(
+                new Dictionary<string, string[]> { ["file"] = ["Choose a file to upload."] }));
+        }
+
+        var ext = Path.GetExtension(file.FileName);
+        if (string.IsNullOrWhiteSpace(ext) || !AllowedDocExtensions.Contains(ext))
+        {
+            return ValidationProblem(new ValidationProblemDetails(
+                new Dictionary<string, string[]>
+                {
+                    ["file"] = [$"Unsupported file type. Allowed: {string.Join(", ", AllowedDocExtensions)}"],
+                }));
+        }
+
+        if (file.Length > MaxDocBytes)
+        {
+            return ValidationProblem(new ValidationProblemDetails(
+                new Dictionary<string, string[]>
+                {
+                    ["file"] = ["File is too large — the limit is 20 MB."],
+                }));
+        }
+
+        await using var stream = file.OpenReadStream();
+        var relativePath = await _fileStorage.SaveAsync(stream, "uploads/documents", ext, ct);
+
+        // Hand back an absolute URL so the stored lesson Content works from any origin.
+        var absoluteUrl = $"{Request.Scheme}://{Request.Host}{relativePath}";
+        return Ok(new DocumentUploadResult
+        {
+            Url = absoluteUrl,
+            FileName = Path.GetFileName(file.FileName),
+        });
     }
 
     // -----------------------------------------------------------------------

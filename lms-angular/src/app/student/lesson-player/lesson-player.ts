@@ -79,6 +79,19 @@ export class StudentLessonPlayer implements AfterViewInit {
     return { kind: 'file', src: url };
   });
 
+  /** True when the lesson's document looks like a PDF (browser-previewable). */
+  readonly documentIsPdf = computed(() => {
+    const url = this.lesson()?.documentUrl?.trim().toLowerCase();
+    return !!url && url.split('?')[0].endsWith('.pdf');
+  });
+
+  /** Sanitized document URL for embedding a PDF in an <iframe>. */
+  readonly documentSafeUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this.lesson()?.documentUrl?.trim();
+    if (!url || !this.documentIsPdf()) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  });
+
   /**
    * Maps a YouTube or Vimeo watch URL to its embeddable player URL.
    * Returns null for anything that looks like a plain media file.

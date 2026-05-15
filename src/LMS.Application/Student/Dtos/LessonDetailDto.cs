@@ -9,10 +9,14 @@ public class LessonDetailDto
     public int? Duration { get; set; }
     public int Order { get; set; }
 
-    /// <summary>Parsed from Lesson.Content JSON (e.g. {"videoUrl": "..."}).</summary>
+    /// <summary>Parsed from Lesson.Content JSON. Set for "Video" lessons.</summary>
     public string? VideoUrl { get; set; }
-    /// <summary>Optional rich body for non-video lesson types. Currently null for Video.</summary>
+    /// <summary>Parsed from Lesson.Content JSON. Set for "Text" lessons (the written body).</summary>
     public string? Body { get; set; }
+    /// <summary>Parsed from Lesson.Content JSON. Set for "Document" lessons (an uploaded file URL).</summary>
+    public string? DocumentUrl { get; set; }
+    /// <summary>Original filename of an uploaded document, shown in the player.</summary>
+    public string? DocumentName { get; set; }
 
     public Guid CourseId { get; set; }
     public string CourseTitle { get; set; } = string.Empty;

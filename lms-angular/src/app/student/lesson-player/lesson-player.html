@@ -60,15 +60,57 @@
                      [src]="v.src"></video>
             }
           } @else if (l.body) {
-            <div class="aspect-video w-full overflow-y-auto bg-surface p-6 text-ink">
-              <p class="whitespace-pre-wrap leading-relaxed">{{ l.body }}</p>
+            <div class="min-h-[60vh] w-full overflow-y-auto bg-surface p-6 text-ink sm:p-8">
+              <p class="mx-auto max-w-2xl whitespace-pre-wrap leading-relaxed">{{ l.body }}</p>
             </div>
+          } @else if (l.documentUrl) {
+            @if (documentSafeUrl()) {
+              <!-- PDF — rendered inline by the browser's built-in viewer. -->
+              <iframe [src]="documentSafeUrl()" class="h-[78vh] w-full bg-white"
+                      title="Lesson document"></iframe>
+            } @else {
+              <!-- Non-PDF (DOC/PPT/…) — browsers can't preview these, so offer a download. -->
+              <div class="flex aspect-video w-full flex-col items-center justify-center gap-3 bg-surface-2 p-6 text-center">
+                <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100 text-primary-600"
+                      aria-hidden="true">
+                  <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <path d="M14 2v6h6"></path>
+                  </svg>
+                </span>
+                <p class="text-base font-semibold text-ink">{{ l.documentName || 'Lesson document' }}</p>
+                <p class="max-w-sm text-sm text-muted">
+                  This document type can't preview in the browser — open or download it to read along.
+                </p>
+                <a [href]="l.documentUrl" target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+                  Open document
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M7 17 17 7M7 7h10v10"></path>
+                  </svg>
+                </a>
+              </div>
+            }
           } @else {
             <div class="flex aspect-video w-full items-center justify-center bg-surface-2 text-muted">
               No content for this lesson yet.
             </div>
           }
         </div>
+
+        <!-- Document open-in-new-tab affordance, shown alongside the embedded PDF too -->
+        @if (l.documentUrl && documentSafeUrl()) {
+          <a [href]="l.documentUrl" target="_blank" rel="noopener"
+             class="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17 17 7M7 7h10v10"></path>
+            </svg>
+            {{ l.documentName || 'Open document' }} — open in a new tab
+          </a>
+        }
 
         <!-- Lesson header + actions -->
         <div class="mt-5">

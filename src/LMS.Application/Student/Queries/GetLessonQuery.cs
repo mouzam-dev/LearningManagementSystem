@@ -81,7 +81,7 @@ public class GetLessonQueryHandler : IRequestHandler<GetLessonQuery, LessonDetai
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lesson.Id, cancellationToken);
 
-        var (videoUrl, body) = ExtractContent(lesson.Type, lesson.Content);
+        var parsed = ExtractContent(lesson.Type, lesson.Content);
 
         return new LessonDetailDto
         {
@@ -90,8 +90,10 @@ public class GetLessonQueryHandler : IRequestHandler<GetLessonQuery, LessonDetai
             Type = lesson.Type,
             Duration = lesson.Duration,
             Order = lesson.Order,
-            VideoUrl = videoUrl,
-            Body = body,
+            VideoUrl = parsed.VideoUrl,
+            Body = parsed.Body,
+            DocumentUrl = parsed.DocumentUrl,
+            DocumentName = parsed.DocumentName,
             CourseId = course.Id,
             CourseTitle = course.Title,
             ModuleId = lesson.Module.Id,
@@ -105,26 +107,29 @@ public class GetLessonQueryHandler : IRequestHandler<GetLessonQuery, LessonDetai
         };
     }
 
-    private static (string? VideoUrl, string? Body) ExtractContent(string type, string? content)
+    private static (string? VideoUrl, string? Body, string? DocumentUrl, string? DocumentName)
+        ExtractContent(string type, string? content)
     {
-        if (string.IsNullOrWhiteSpace(content)) return (null, null);
+        if (string.IsNullOrWhiteSpace(content)) return (null, null, null, null);
         try
         {
             using var doc = JsonDocument.Parse(content);
             var root = doc.RootElement;
-            string? video = null;
-            string? body = null;
-            if (root.TryGetProperty("videoUrl", out var v) && v.ValueKind == JsonValueKind.String)
-                video = v.GetString();
-            if (root.TryGetProperty("body", out var b) && b.ValueKind == JsonValueKind.String)
-                body = b.GetString();
-            return (video, body);
+
+            string? Str(string prop) =>
+                root.TryGetProperty(prop, out var el) && el.ValueKind == JsonValueKind.String
+                    ? el.GetString()
+                    : null;
+
+            return (Str("videoUrl"), Str("body"), Str("documentUrl"), Str("documentName"));
         }
         catch (JsonException)
         {
             // Lesson.Content isn't required to be JSON for non-video types — fall
             // back to treating the raw string as the body.
-            return type == "Video" ? (null, null) : (null, content);
+            return type == "Video"
+                ? (null, null, null, null)
+                : (null, content, null, null);
         }
     }
 }

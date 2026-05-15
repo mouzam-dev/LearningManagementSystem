@@ -92,6 +92,19 @@ export class TeacherService {
     return this.http.delete<void>(`${this.baseUrl}/lessons/${lessonId}`);
   }
 
+  /**
+   * Uploads a document file for a Document-type lesson. Returns the absolute
+   * URL it's served from + the original filename.
+   */
+  uploadDocument(file: File): Observable<{ url: string; fileName: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ url: string; fileName: string }>(
+      `${this.baseUrl}/uploads/document`,
+      form,
+    );
+  }
+
   // ---- Assessments ------------------------------------------------------
 
   getAssessment(assessmentId: string): Observable<TeacherAssessment> {

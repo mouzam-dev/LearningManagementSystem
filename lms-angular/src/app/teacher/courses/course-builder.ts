@@ -15,6 +15,11 @@ type LessonDraft = {
   title: string;
   type: string;
   videoUrl: string;
+  /** Text lessons — the written body. */
+  body: string;
+  /** Document lessons — the uploaded file's absolute URL + original name. */
+  documentUrl: string;
+  documentName: string;
   duration: number | null;
   isPublished: boolean;
 };
@@ -36,6 +41,9 @@ const EMPTY_LESSON: LessonDraft = {
   title: '',
   type: 'Video',
   videoUrl: '',
+  body: '',
+  documentUrl: '',
+  documentName: '',
   duration: null,
   isPublished: true,
 };
@@ -354,15 +362,28 @@ export class TeacherCourseBuilderPage {
 
   startEditLesson(l: TeacherLesson): void {
     let videoUrl = '';
+    let body = '';
+    let documentUrl = '';
+    let documentName = '';
     try {
-      if (l.content) videoUrl = (JSON.parse(l.content)?.videoUrl as string) ?? '';
+      if (l.content) {
+        const parsed = JSON.parse(l.content) as Record<string, string>;
+        videoUrl = parsed['videoUrl'] ?? '';
+        body = parsed['body'] ?? '';
+        documentUrl = parsed['documentUrl'] ?? '';
+        documentName = parsed['documentName'] ?? '';
+      }
     } catch {
-      videoUrl = '';
+      // Non-JSON content (legacy) — treat the raw string as a text body.
+      body = l.content ?? '';
     }
     this.lessonEditDraft.set({
       title: l.title,
       type: l.type,
       videoUrl,
+      body,
+      documentUrl,
+      documentName,
       duration: l.duration ?? null,
       isPublished: l.isPublished,
     });
@@ -419,7 +440,56 @@ export class TeacherCourseBuilderPage {
       const url = draft.videoUrl.trim();
       return url ? JSON.stringify({ videoUrl: url }) : null;
     }
+    if (draft.type === 'Text') {
+      const body = draft.body.trim();
+      return body ? JSON.stringify({ body }) : null;
+    }
+    if (draft.type === 'Document') {
+      const url = draft.documentUrl.trim();
+      return url
+        ? JSON.stringify({ documentUrl: url, documentName: draft.documentName.trim() })
+        : null;
+    }
     return null;
+  }
+
+  /**
+   * Uploads a picked document file and writes the resulting URL + filename
+   * back into the given draft signal. `busyKey` drives a per-form spinner.
+   */
+  uploadLessonDocument(
+    draft: import('@angular/core').WritableSignal<LessonDraft>,
+    busyKey: string,
+    fileInput: HTMLInputElement,
+  ): void {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    this.busy.set(busyKey);
+    this.error.set(null);
+
+    this.teacher.uploadDocument(file).subscribe({
+      next: (res) => {
+        draft.update((curr) => ({
+          ...curr,
+          documentUrl: res.url,
+          documentName: res.fileName,
+        }));
+        this.busy.set(null);
+        fileInput.value = ''; // allow re-picking the same file later
+      },
+      error: (err: HttpErrorResponse) => {
+        this.busy.set(null);
+        fileInput.value = '';
+        const fieldErr = err.error?.errors?.['file']?.[0];
+        this.error.set(fieldErr ?? this.formatError(err));
+      },
+    });
+  }
+
+  /** Clears an uploaded document off the draft (lets the teacher pick another). */
+  clearLessonDocument(draft: import('@angular/core').WritableSignal<LessonDraft>): void {
+    draft.update((curr) => ({ ...curr, documentUrl: '', documentName: '' }));
   }
 
   fieldError(errors: Record<string, string[]>, name: string): string | null {

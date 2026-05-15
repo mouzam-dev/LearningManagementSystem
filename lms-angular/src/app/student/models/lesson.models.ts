@@ -48,6 +48,8 @@ export interface LessonDetail {
 
   videoUrl?: string | null;
   body?: string | null;
+  documentUrl?: string | null;
+  documentName?: string | null;
 
   courseId: string;
   courseTitle: string;

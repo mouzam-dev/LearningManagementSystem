@@ -47,6 +47,7 @@ builder.Services.AddTransient(
 // Application services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
 // Expose the EF Core ApplicationDbContext to MediatR handlers via the Application
 // abstraction, so Application code never references the concrete type.
@@ -127,6 +128,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+
+// Serve uploaded files (lesson documents) from wwwroot as static content.
+app.UseStaticFiles();
 
 // Skip HTTPS redirect in Development so the Angular dev server can call the HTTP
 // listener directly. A 307 from http→https on the API origin breaks browser CORS
