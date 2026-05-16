@@ -1,15 +1,13 @@
 /* ===========================================================================
-   LMS global styles — "Aurora Sharp" theme.
+   LMS global styles — "Multikart Clean" theme.
 
    Design language:
-   - Sharp 2px corners everywhere (override Tailwind's --radius-* scale so
-     every rounded-* utility collapses to sharp). Pills/avatars keep --radius-full.
-   - 1px hairline borders, no soft shadows. Cards float on the aurora gradient.
-   - Aurora background: fixed conic + radial blobs (cyan → indigo → fuchsia)
-     behind everything. Surfaces are semi-translucent with backdrop blur so the
-     gradient bleeds through.
-   - Font: Geist (sharp, modern UI sans). Space Grotesk for display headings.
-     JetBrains Mono for code/IDs.
+   - FLAT, clean white surfaces. No gradients, no aurora, no backdrop blur.
+   - Coral-orange primary action color (#FF6B35), dark navy ink (#2C3540).
+   - Active state: peach background (#FFF0E5) with orange icon + text.
+   - 4px corners — soft enough to feel polished, sharp enough to feel modern.
+   - Hairline 1px borders. Tight shadows.
+   - Font: Geist sans for UI, JetBrains Mono for code.
    =========================================================================== */
 @import 'tailwindcss';
 
@@ -17,29 +15,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* -- Brand: indigo action color, paired with aurora cyan + fuchsia -------- */
-  --color-primary-50:  #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* -- Brand: coral orange (primary action color) ------------------------- */
+  --color-primary-50:  #fff4ee;
+  --color-primary-100: #ffe1cf;
+  --color-primary-200: #ffbf99;
+  --color-primary-300: #ff9d63;
+  --color-primary-400: #ff7d3a;
+  --color-primary-500: #ff6b35;
+  --color-primary-600: #ee5a1f;
+  --color-primary-700: #c04417;
+  --color-primary-800: #983618;
+  --color-primary-900: #7a2f17;
 
-  /* -- Accent: aurora cyan (cool highlights, success-adjacent) -------------- */
-  --color-accent-50:  #ecfeff;
-  --color-accent-100: #cffafe;
-  --color-accent-200: #a5f3fc;
-  --color-accent-300: #67e8f9;
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
-  --color-accent-600: #0891b2;
-  --color-accent-700: #0e7490;
-  --color-accent-800: #155e75;
-  --color-accent-900: #164e63;
+  /* -- Accent: navy ink (paired with the coral primary) -------------------- */
+  --color-accent-50:  #f3f5f7;
+  --color-accent-100: #e2e6ea;
+  --color-accent-200: #c0c8d1;
+  --color-accent-300: #93a0af;
+  --color-accent-400: #67768a;
+  --color-accent-500: #475569;
+  --color-accent-600: #34404f;
+  --color-accent-700: #2c3540;
+  --color-accent-800: #1f2630;
+  --color-accent-900: #131820;
 
   /* -- Semantic surface + text tokens (var-backed, flip under .dark) ------ */
   --color-canvas:        var(--c-canvas);
@@ -55,95 +53,76 @@
 
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-serif: 'Space Grotesk', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* -- SHARP: collapse every Tailwind rounded-* utility to 2px --------------
-     The whole point of "sharp" is no rounding. We override the radius scale so
-     every existing template (rounded-md, rounded-xl, rounded-2xl, rounded-3xl)
-     collapses to a 2px hairline. Pills/avatars use rounded-full which stays at
-     9999px and is unaffected. */
-  --radius-xs:   2px;
-  --radius-sm:   2px;
-  --radius-md:   2px;
-  --radius-lg:   2px;
-  --radius-xl:   2px;
-  --radius-2xl:  2px;
-  --radius-3xl:  2px;
-  --radius-4xl:  2px;
+  /* -- 4px corners. Pills (rounded-full) stay round. ---------------------- */
+  --radius-xs:   3px;
+  --radius-sm:   4px;
+  --radius-md:   4px;
+  --radius-lg:   6px;
+  --radius-xl:   6px;
+  --radius-2xl:  8px;
+  --radius-3xl:  10px;
+  --radius-4xl:  12px;
   --radius-full: 9999px;
 
-  /* Sharp shadows: tight, no big blur. They read as a hairline edge, not as
-     a fluffy lift. */
-  --shadow-sm: 0 1px 0 rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 2px 0 rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 4px 0 rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.08);
-  --shadow-xl: 0 8px 16px rgba(79, 70, 229, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.08);
-  --shadow-2xl: 0 16px 32px rgba(79, 70, 229, 0.18);
+  /* Tight, no-color shadows. Subtle lift, not fluffy. */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 4px 8px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 10px 20px rgba(15, 23, 42, 0.08), 0 3px 6px rgba(15, 23, 42, 0.05);
+  --shadow-2xl: 0 20px 40px rgba(15, 23, 42, 0.10);
 }
 
-/* -- Light theme: near-white surfaces, translucent so the aurora shines --- */
+/* -- Light theme: clean white surfaces, navy ink, gray inputs ----------- */
 :root {
-  --c-canvas:      #fafaff;
-  --c-surface:     rgba(255, 255, 255, 0.72);
-  --c-surface-2:   rgba(248, 248, 252, 0.85);
-  --c-surface-3:   rgba(241, 241, 248, 0.90);
-  --c-line:        rgba(15, 23, 42, 0.10);
-  --c-line-strong: rgba(15, 23, 42, 0.18);
-  --c-ink:         #0a0a14;
-  --c-ink-soft:    #1f2030;
-  --c-muted:       #54566b;
-  --c-subtle:      #8b8da3;
-
-  /* Aurora blob colors (light: bright but soft) */
-  --aurora-1: rgba(34, 211, 238, 0.45);   /* cyan-400 */
-  --aurora-2: rgba(99, 102, 241, 0.45);   /* indigo-500 */
-  --aurora-3: rgba(217, 70, 239, 0.40);   /* fuchsia-500 */
-  --aurora-4: rgba(168, 85, 247, 0.30);   /* purple-500 */
-
+  --c-canvas:      #ffffff;
+  --c-surface:     #ffffff;
+  --c-surface-2:   #f6f7f8;
+  --c-surface-3:   #fff0e5;     /* peach for active states */
+  --c-line:        #e5e7eb;
+  --c-line-strong: #d1d5db;
+  --c-ink:         #2c3540;     /* dark navy */
+  --c-ink-soft:    #475569;
+  --c-muted:       #6b7280;
+  --c-subtle:      #9ca3af;
   color-scheme: light;
 }
 
-/* -- Dark theme: near-black with deeper, more saturated aurora ------------ */
+/* -- Dark theme: deep navy surfaces, off-white ink ---------------------- */
 .dark {
-  --c-canvas:      #07070d;
-  --c-surface:     rgba(18, 18, 28, 0.65);
-  --c-surface-2:   rgba(24, 24, 36, 0.78);
-  --c-surface-3:   rgba(32, 32, 48, 0.88);
-  --c-line:        rgba(255, 255, 255, 0.08);
-  --c-line-strong: rgba(255, 255, 255, 0.16);
-  --c-ink:         #f5f5fa;
+  --c-canvas:      #0f1419;
+  --c-surface:     #1a2028;
+  --c-surface-2:   #232b35;
+  --c-surface-3:   #3a2620;     /* deep peach for dark active */
+  --c-line:        #2a3340;
+  --c-line-strong: #3a4555;
+  --c-ink:         #f5f5f7;
   --c-ink-soft:    #d4d5e0;
   --c-muted:       #9095ad;
-  --c-subtle:      #5e6378;
-
-  --aurora-1: rgba(34, 211, 238, 0.30);
-  --aurora-2: rgba(99, 102, 241, 0.45);
-  --aurora-3: rgba(217, 70, 239, 0.35);
-  --aurora-4: rgba(168, 85, 247, 0.28);
-
+  --c-subtle:      #6c7383;
   color-scheme: dark;
 }
 
-/* Primary used as link/icon text needs to lighten on dark; the saturated
-   button background is left untouched. */
+/* Primary used as link/icon text on dark — keep coral readable. */
 .dark .text-primary-600,
 .dark .hover\:text-primary-600:hover,
 .dark .group:hover .group-hover\:text-primary-600 {
-  color: #a5b4fc;
+  color: #ff9d63;
 }
 .dark .text-primary-700,
 .dark .hover\:text-primary-700:hover,
 .dark .group:hover .group-hover\:text-primary-700 {
-  color: #c7d2fe;
+  color: #ffbf99;
 }
-.dark .bg-primary-50  { background-color: rgba(99, 102, 241, 0.12); }
-.dark .bg-primary-100 { background-color: rgba(99, 102, 241, 0.20); }
-.dark .hover\:bg-primary-50:hover { background-color: rgba(99, 102, 241, 0.14); }
-.dark .hover\:border-primary-300:hover { border-color: rgba(165, 180, 252, 0.5); }
+.dark .bg-primary-50  { background-color: rgba(255, 107, 53, 0.10); }
+.dark .bg-primary-100 { background-color: rgba(255, 107, 53, 0.18); }
+.dark .hover\:bg-primary-50:hover { background-color: rgba(255, 107, 53, 0.10); }
+.dark .hover\:border-primary-300:hover { border-color: #ff7d3a; }
 
 /* ===========================================================================
-   Page chrome — aurora gradient background fixed behind everything.
+   Page chrome — flat white background. No gradient, no blobs.
    =========================================================================== */
 html, body {
   min-height: 100%;
@@ -153,52 +132,24 @@ body {
   color: var(--c-ink);
   font-family: var(--font-sans);
   font-feature-settings: 'cv11', 'ss01', 'ss03';
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  position: relative;
-  overflow-x: hidden;
 }
 
-/* Aurora background — fixed mesh of radial blobs that sits behind every page.
-   z-index: -1 keeps it underneath app-root but on top of body's solid canvas.
-   No animation by default (it would be distracting during reading), but the
-   layers are positioned for movement if we ever want to add it. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: -10%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 60% 50% at 15% 10%, var(--aurora-1), transparent 60%),
-    radial-gradient(ellipse 50% 60% at 85% 20%, var(--aurora-3), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 90%, var(--aurora-2), transparent 60%),
-    radial-gradient(ellipse 70% 60% at 20% 85%, var(--aurora-4), transparent 60%);
-  filter: blur(40px) saturate(1.1);
-}
-
-/* Display headings use Space Grotesk so they read as architectural, not soft. */
 h1, h2, h3, .display {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   letter-spacing: -0.025em;
-  font-weight: 600;
-}
-
-/* All semi-translucent surfaces get a subtle blur so the aurora reads
-   through but text stays legible. */
-[class*="bg-surface"],
-.auth-card {
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-}
-
-::selection {
-  background: color-mix(in srgb, var(--color-primary-500) 38%, transparent);
+  font-weight: 700;
   color: var(--c-ink);
 }
 
-/* Theme-aware sharp scrollbars. */
+::selection {
+  background: color-mix(in srgb, var(--color-primary-500) 30%, transparent);
+  color: var(--c-ink);
+}
+
+/* Theme-aware scrollbars. */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--c-line-strong) transparent;
@@ -206,6 +157,7 @@ h1, h2, h3, .display {
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-thumb {
   background: var(--c-line-strong);
+  border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
@@ -215,16 +167,16 @@ h1, h2, h3, .display {
 }
 
 /* ===========================================================================
-   Shared auth-card layout — Login, Register, Home. Sharp + translucent.
+   Shared auth-card layout — Login, Register, Home. Clean white card.
    =========================================================================== */
 .auth-card {
   width: 100%;
   max-width: 420px;
   background: var(--c-surface);
   padding: 2.25rem;
-  border-radius: 2px;
+  border-radius: 8px;
   border: 1px solid var(--c-line);
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
 }
 
 .auth-card.wide {
@@ -233,9 +185,8 @@ h1, h2, h3, .display {
 
 .auth-card h1 {
   margin: 0 0 0.35rem;
-  font-family: var(--font-serif);
   font-size: 1.85rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--c-ink);
 }
@@ -265,7 +216,7 @@ h1, h2, h3, .display {
   text-decoration: underline;
 }
 .dark .auth-card a {
-  color: #a5b4fc;
+  color: #ff9d63;
 }
 
 .field {
@@ -275,18 +226,17 @@ h1, h2, h3, .display {
 }
 
 .field span {
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--c-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--c-ink-soft);
+  letter-spacing: 0.02em;
 }
 
 .field input,
 .field select {
-  padding: 0.7rem 0.85rem;
-  border: 1px solid var(--c-line-strong);
-  border-radius: 2px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--c-line);
+  border-radius: 4px;
   font-size: 0.95rem;
   font-family: var(--font-sans);
   background: var(--c-surface-2);
@@ -301,7 +251,7 @@ h1, h2, h3, .display {
   outline: none;
   border-color: var(--color-primary-500);
   background: var(--c-surface);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 28%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 22%, transparent);
 }
 
 .row {
@@ -310,26 +260,26 @@ h1, h2, h3, .display {
   gap: 0.75rem;
 }
 
-/* Buttons inside auth-card / actions areas — sharp, with a gradient hover. */
+/* Buttons inside auth-card / actions areas — solid coral. */
 .auth-card button[type='submit'],
 .auth-card .actions button {
   padding: 0.8rem 1rem;
-  background: linear-gradient(135deg, var(--color-primary-600) 0%, #c026d3 100%);
+  background: var(--color-primary-500);
   color: #ffffff;
   border: 0;
-  border-radius: 2px;
+  border-radius: 4px;
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.30);
-  transition: filter 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+  box-shadow: var(--shadow-sm);
+  transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 
 .auth-card button[type='submit']:hover,
 .auth-card .actions button:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.42);
+  background: var(--color-primary-600);
+  box-shadow: var(--shadow-md);
 }
 .auth-card button[type='submit']:active,
 .auth-card .actions button:active {
@@ -337,13 +287,12 @@ h1, h2, h3, .display {
 }
 
 .auth-card button[disabled] {
-  background: var(--color-primary-300);
+  background: var(--color-primary-200);
   cursor: not-allowed;
   box-shadow: none;
-  filter: none;
 }
 .dark .auth-card button[disabled] {
-  background: rgba(99, 102, 241, 0.30);
+  background: rgba(255, 107, 53, 0.30);
   color: var(--c-subtle);
 }
 
@@ -357,7 +306,7 @@ h1, h2, h3, .display {
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.28);
   padding: 0.6rem 0.85rem;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
 code {
