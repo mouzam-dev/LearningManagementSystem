@@ -117,3 +117,9 @@ coverage*/
 # =============================================================================
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# =============================================================================
+# Runtime upload storage — never commit user-supplied images / documents.
+# The folder is created on demand by LocalFileStorage; keep it out of git.
+# =============================================================================
+src/LMS.WebAPI/wwwroot/uploads/

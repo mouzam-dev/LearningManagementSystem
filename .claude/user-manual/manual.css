@@ -1,0 +1,186 @@
+/* PDF stylesheet for the LMS User Manual.
+   Matches the in-app "Multikart" palette: white surfaces, dark navy ink,
+   coral primary accent. */
+@page {
+  size: A4;
+  margin: 22mm 18mm 22mm 18mm;
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9pt;
+    color: #6b7280;
+  }
+  @bottom-left {
+    content: "LMS User Manual · v1.0";
+    font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9pt;
+    color: #9ca3af;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.6;
+  color: #1f2937;
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------- Headings --------------- */
+h1 {
+  font-size: 24pt;
+  font-weight: 700;
+  color: #2c3540;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.4rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 3px solid #ff6b35;
+  page-break-after: avoid;
+  page-break-before: always;
+}
+h1:first-of-type { page-break-before: avoid; }
+
+h2 {
+  font-size: 16pt;
+  font-weight: 700;
+  color: #2c3540;
+  letter-spacing: -0.02em;
+  margin: 1.6rem 0 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid #ff6b35;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 12pt;
+  font-weight: 700;
+  color: #2c3540;
+  margin: 1.2rem 0 0.35rem;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #475569;
+  margin: 0.9rem 0 0.25rem;
+  page-break-after: avoid;
+}
+
+/* --------------- Paragraphs & inline --------------- */
+p { margin: 0.45rem 0; }
+
+strong { color: #2c3540; font-weight: 600; }
+
+em { color: #475569; }
+
+a {
+  color: #c04417;
+  text-decoration: none;
+  font-weight: 500;
+}
+a:hover { text-decoration: underline; }
+
+hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
+
+/* --------------- Lists --------------- */
+ul, ol {
+  margin: 0.5rem 0;
+  padding-left: 1.4rem;
+}
+li { margin: 0.2rem 0; }
+li::marker { color: #ff6b35; }
+
+/* --------------- Code --------------- */
+code {
+  font-family: 'JetBrains Mono', 'Consolas', Menlo, monospace;
+  font-size: 9pt;
+  background: #f6f7f8;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  color: #c04417;
+  border: 1px solid #e5e7eb;
+}
+
+pre {
+  background: #f6f7f8;
+  border: 1px solid #e5e7eb;
+  border-left: 3px solid #ff6b35;
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  font-family: 'JetBrains Mono', 'Consolas', Menlo, monospace;
+  font-size: 8.5pt;
+  line-height: 1.5;
+  color: #1f2937;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* --------------- Tables --------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+th, td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+th {
+  background: #fff0e5;
+  color: #2c3540;
+  font-weight: 600;
+  font-size: 9pt;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid #ff6b35;
+}
+tr:nth-child(even) td { background: #fafafa; }
+
+/* --------------- Blockquotes --------------- */
+blockquote {
+  border-left: 3px solid #ff6b35;
+  background: #fff0e5;
+  padding: 0.6rem 1rem;
+  margin: 0.8rem 0;
+  color: #475569;
+  font-style: italic;
+  border-radius: 0 4px 4px 0;
+}
+blockquote p { margin: 0.3rem 0; }
+
+/* --------------- Cover --------------- */
+h1:first-child {
+  font-size: 36pt;
+  border-bottom: 4px solid #ff6b35;
+  padding-bottom: 0.6rem;
+  margin-top: 1rem;
+  text-align: left;
+}
+
+/* --------------- Misc --------------- */
+img {
+  max-width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}

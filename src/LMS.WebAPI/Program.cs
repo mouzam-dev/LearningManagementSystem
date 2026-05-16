@@ -136,6 +136,14 @@ if (app.Environment.IsDevelopment())
         .GetRequiredService<ILoggerFactory>()
         .CreateLogger("TenancySeeder");
     await TenancySeeder.SeedAsync(db, seedLogger);
+
+    // Sample data: only runs when the catalog is empty (i.e. on a freshly
+    // dropped dev DB). Produces 3 orgs / ~80 users / 15 courses with lessons,
+    // assessments, enrollments and a few completions so the UI looks real.
+    var sampleLogger = scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("SampleDataSeeder");
+    await SampleDataSeeder.SeedAsync(db, sampleLogger);
 }
 
 // ---------------------------------------------------------------------------
