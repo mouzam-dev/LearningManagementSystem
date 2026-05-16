@@ -180,6 +180,83 @@ public class OrgAdminController : ControllerBase
         catch (ValidationException ex) { return ValidationErrors(ex); }
     }
 
+    // ----- Course moderation -------------------------------------------
+
+    [HttpGet("courses")]
+    [ProducesResponseType(typeof(OrgAdminCoursesPage), StatusCodes.Status200OK)]
+    public async Task<ActionResult<OrgAdminCoursesPage>> GetCourses(
+        [FromQuery] string? search = null,
+        [FromQuery] string? category = null,
+        [FromQuery] bool? isPublished = null,
+        [FromQuery] Guid? branchId = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetOrgCoursesQuery(
+                search, category, isPublished, branchId, page, pageSize), ct);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+    }
+
+    [HttpGet("courses/{courseId:guid}")]
+    [ProducesResponseType(typeof(OrgAdminCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrgAdminCourseDetailDto>> GetCourseDetail(
+        Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetOrgCourseDetailQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    public class SetCoursePublishedRequest
+    {
+        public bool IsPublished { get; set; }
+    }
+
+    [HttpPatch("courses/{courseId:guid}/published")]
+    [ProducesResponseType(typeof(OrgAdminCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrgAdminCourseDetailDto>> SetCoursePublished(
+        Guid courseId,
+        [FromBody] SetCoursePublishedRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new OrgSetCoursePublishedCommand(courseId, request.IsPublished), ct);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpDelete("courses/{courseId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteCourse(Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new OrgDeleteCourseCommand(courseId), ct);
+            return NoContent();
+        }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
     // ------------------------------------------------------------------
 
     private ActionResult ValidationErrors(ValidationException ex)

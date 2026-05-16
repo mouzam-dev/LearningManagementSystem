@@ -47,3 +47,62 @@ export interface OrgCreateBranchRequest {
 export interface OrgUpdateBranchRequest extends OrgCreateBranchRequest {
   isActive: boolean;
 }
+
+// ---------------- Course moderation -------------------------------------
+
+export interface OrgCourseListItem {
+  courseId: string;
+  title: string;
+  category: string;
+  isPublished: boolean;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
+  branchId?: string | null;
+  branchName?: string | null;
+  moduleCount: number;
+  lessonCount: number;
+  studentCount: number;
+  assessmentCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrgCoursesPage {
+  items: OrgCourseListItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface OrgCourseDetail {
+  courseId: string;
+  title: string;
+  description: string;
+  category: string;
+  thumbnailUrl?: string | null;
+  maxStudents?: number | null;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
+  branchId?: string | null;
+  branchName?: string | null;
+  moduleCount: number;
+  lessonCount: number;
+  assessmentCount: number;
+  studentCount: number;
+  completedCount: number;
+  averageProgress: number;
+}
+
+export interface OrgCourseFilter {
+  search?: string;
+  category?: string;
+  isPublished?: boolean | null;
+  branchId?: string | null;
+  page?: number;
+  pageSize?: number;
+}

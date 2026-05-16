@@ -38,10 +38,9 @@ public class GetOrgAdminDashboardQueryHandler
         var studentCount = await _db.Users
             .CountAsync(u => u.OrganizationId == orgId && u.Role == Roles.Student, ct);
 
-        // Courses don't yet carry an OrganizationId (future slice). For now we
-        // derive them via the teacher's org so the count still reflects the tenant.
-        var courseQuery = _db.Courses
-            .Where(c => c.Teacher.OrganizationId == orgId);
+        // Courses carry a denormalized OrganizationId so we can scope without
+        // joining through Users.
+        var courseQuery = _db.Courses.Where(c => c.OrganizationId == orgId);
         var courseCount = await courseQuery.CountAsync(ct);
         var publishedCount = await courseQuery.CountAsync(c => c.IsPublished, ct);
 

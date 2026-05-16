@@ -23,9 +23,21 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .HasForeignKey(x => x.TeacherId)
             .OnDelete(DeleteBehavior.NoAction); // avoid cascade cycles via User
 
+        e.HasOne(x => x.Organization)
+            .WithMany()
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        e.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         e.HasIndex(x => x.Title);
         e.HasIndex(x => x.Category);
         e.HasIndex(x => x.TeacherId);
         e.HasIndex(x => x.IsPublished);
+        e.HasIndex(x => x.OrganizationId);
+        e.HasIndex(x => x.BranchId);
     }
 }

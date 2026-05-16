@@ -6,6 +6,9 @@ import { environment } from '../../environments/environment';
 import {
   OrgAdminDashboard,
   OrgBranch,
+  OrgCourseDetail,
+  OrgCourseFilter,
+  OrgCoursesPage,
   OrgCreateBranchRequest,
   OrgTeacher,
   OrgUpdateBranchRequest,
@@ -54,5 +57,33 @@ export class OrgAdminService {
     branchId: string;
   }): Observable<OrgTeacher> {
     return this.http.post<OrgTeacher>(`${this.baseUrl}/teachers`, req);
+  }
+
+  // ---- Course moderation -----------------------------------------------
+
+  listCourses(filter: OrgCourseFilter = {}): Observable<OrgCoursesPage> {
+    let params = new HttpParams();
+    if (filter.search?.trim()) params = params.set('search', filter.search.trim());
+    if (filter.category?.trim()) params = params.set('category', filter.category.trim());
+    if (filter.isPublished !== null && filter.isPublished !== undefined) {
+      params = params.set('isPublished', filter.isPublished);
+    }
+    if (filter.branchId) params = params.set('branchId', filter.branchId);
+    if (filter.page) params = params.set('page', filter.page);
+    if (filter.pageSize) params = params.set('pageSize', filter.pageSize);
+    return this.http.get<OrgCoursesPage>(`${this.baseUrl}/courses`, { params });
+  }
+
+  getCourse(courseId: string): Observable<OrgCourseDetail> {
+    return this.http.get<OrgCourseDetail>(`${this.baseUrl}/courses/${courseId}`);
+  }
+
+  setCoursePublished(courseId: string, isPublished: boolean): Observable<OrgCourseDetail> {
+    return this.http.patch<OrgCourseDetail>(
+      `${this.baseUrl}/courses/${courseId}/published`, { isPublished });
+  }
+
+  deleteCourse(courseId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/courses/${courseId}`);
   }
 }

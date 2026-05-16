@@ -215,6 +215,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./orgadmin/teachers/orgadmin-teachers').then((m) => m.OrgAdminTeachersPage),
       },
+      {
+        path: 'courses',
+        loadComponent: () =>
+          import('./orgadmin/courses/orgadmin-courses').then((m) => m.OrgAdminCoursesPage),
+      },
+      {
+        path: 'courses/:courseId',
+        loadComponent: () =>
+          import('./orgadmin/courses/orgadmin-course-detail').then((m) => m.OrgAdminCourseDetailPage),
+      },
     ],
   },
   // Profile — any authenticated role manages their own account here.

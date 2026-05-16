@@ -76,6 +76,28 @@ public class TransferUserCommandHandler
             user.BranchId = branch.Id;
             user.UpdatedAt = DateTime.UtcNow;
 
+            // Carry the teacher's courses with them. Course.OrganizationId /
+            // BranchId is denormalized from the owning teacher, so a transfer
+            // that left courses behind would orphan them in the source org's
+            // moderation list while the teacher (and their authored content)
+            // moved on. Re-stamp before audit so a single SaveChanges commits
+            // both the user row and its courses atomically.
+            var movedCourseCount = 0;
+            if (user.Role == Roles.Teacher)
+            {
+                var courses = await _db.Courses
+                    .Where(c => c.TeacherId == user.Id)
+                    .ToListAsync(ct);
+
+                foreach (var course in courses)
+                {
+                    course.OrganizationId = request.OrganizationId;
+                    course.BranchId = branch.Id;
+                    course.UpdatedAt = user.UpdatedAt;
+                }
+                movedCourseCount = courses.Count;
+            }
+
             _db.AuditLogs.Add(AdminAudit.Entry(
                 _currentUser.GetUserId(),
                 "user.transferred",
@@ -89,6 +111,7 @@ public class TransferUserCommandHandler
                     fromBranchId = previousBranch,
                     toOrganizationId = request.OrganizationId,
                     toBranchId = branch.Id,
+                    movedCourseCount,
                 }));
 
             await _db.SaveChangesAsync(ct);

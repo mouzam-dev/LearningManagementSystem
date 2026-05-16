@@ -64,10 +64,19 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, C
         var teacherId = _currentUser.GetUserId();
         var now = DateTime.UtcNow;
 
+        // Stamp tenancy from the JWT so the row is immediately scoped to the
+        // teacher's org+branch. OrgAdmin moderation queries filter on these
+        // columns; without the stamp the course would be invisible to the
+        // teacher's own OrgAdmin until a transfer happened.
+        var organizationId = _currentUser.GetOrganizationId();
+        var branchId = _currentUser.GetBranchId();
+
         var course = new Course
         {
             Id = Guid.NewGuid(),
             TeacherId = teacherId,
+            OrganizationId = organizationId,
+            BranchId = branchId,
             Title = request.Title.Trim(),
             Description = request.Description.Trim(),
             Category = request.Category.Trim(),

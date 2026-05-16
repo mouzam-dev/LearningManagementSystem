@@ -33,14 +33,16 @@
         <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Students</dt>
         <dd class="mt-1 text-2xl font-bold text-ink">{{ d.studentCount }}</dd>
       </div>
-      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+      <a routerLink="/orgadmin/courses"
+         class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm transition hover:border-primary-300 hover:shadow-md">
         <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Courses</dt>
         <dd class="mt-1 text-2xl font-bold text-ink">{{ d.courseCount }}</dd>
-      </div>
-      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+      </a>
+      <a routerLink="/orgadmin/courses" [queryParams]="{ status: 'published' }"
+         class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm transition hover:border-primary-300 hover:shadow-md">
         <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Published</dt>
         <dd class="mt-1 text-2xl font-bold text-emerald-600">{{ d.publishedCourseCount }}</dd>
-      </div>
+      </a>
     </dl>
 
     <div class="rounded-2xl border border-line bg-surface shadow-sm">

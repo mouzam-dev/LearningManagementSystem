@@ -10,10 +10,20 @@ public class Course
     public Guid TeacherId { get; set; }
     public int? MaxStudents { get; set; }
     public bool IsPublished { get; set; }
+
+    // Tenancy. Denormalized from the owning teacher so OrgAdmins can scope
+    // moderation queries to their own org without a join through Users.
+    // Stamped at create and re-stamped on TransferUserCommand. Nullable to
+    // allow platform-level (SuperAdmin-owned) courses.
+    public Guid? OrganizationId { get; set; }
+    public Guid? BranchId { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     public User Teacher { get; set; } = null!;
+    public Organization? Organization { get; set; }
+    public Branch? Branch { get; set; }
     public ICollection<Module> Modules { get; set; } = new List<Module>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
