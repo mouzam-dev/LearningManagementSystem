@@ -47,8 +47,9 @@ Future extensions:
 
 ## Org module follow-ups (extends Slice 1)
 
-- **Course tenancy** — denormalize `OrganizationId` + `BranchId` onto `Course`
-  so OrgAdmins can moderate their own org's courses without a SuperAdmin
+- ~~**Course tenancy**~~ — shipped 2026-05-16. `Course.OrganizationId` +
+  `BranchId` denormalized, OrgAdmin can list/moderate/delete their own org's
+  courses at `/orgadmin/courses`.
 - **Org-scoped student catalog filter** — student catalog gains an org filter
   so students see "all orgs" or just their own
 - **Per-user permission overrides** — `UserPermissionOverride` table for
