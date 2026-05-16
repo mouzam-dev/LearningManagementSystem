@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using LMS.Application.Common;
+using LMS.WebAPI.Authorization;
 
 namespace LMS.WebAPI.Services;
 
@@ -29,4 +30,21 @@ public class CurrentUserService : ICurrentUserService
     }
 
     public string? GetRole() => _accessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Role);
+
+    public Guid? GetOrganizationId() =>
+        TryGuid(_accessor.HttpContext?.User?.FindFirstValue(LmsClaims.OrganizationId));
+
+    public Guid? GetBranchId() =>
+        TryGuid(_accessor.HttpContext?.User?.FindFirstValue(LmsClaims.BranchId));
+
+    public bool HasPermission(string permissionCode)
+    {
+        if (string.IsNullOrWhiteSpace(permissionCode)) return false;
+        var user = _accessor.HttpContext?.User;
+        if (user is null) return false;
+        return user.Claims.Any(c => c.Type == LmsClaims.Permission && c.Value == permissionCode);
+    }
+
+    private static Guid? TryGuid(string? raw) =>
+        Guid.TryParse(raw, out var g) ? g : null;
 }

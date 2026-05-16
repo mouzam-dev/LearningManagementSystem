@@ -169,4 +169,32 @@ export class TeacherService {
   getCourseAnalytics(courseId: string): Observable<CourseAnalytics> {
     return this.http.get<CourseAnalytics>(`${this.baseUrl}/courses/${courseId}/analytics`);
   }
+
+  // ---- Announcements ---------------------------------------------------
+
+  getCourseAnnouncements(courseId: string): Observable<TeacherAnnouncement[]> {
+    return this.http.get<TeacherAnnouncement[]>(
+      `${this.baseUrl}/courses/${courseId}/announcements`);
+  }
+
+  createCourseAnnouncement(
+    courseId: string,
+    body: { title: string; body: string; isPinned: boolean },
+  ): Observable<TeacherAnnouncement> {
+    return this.http.post<TeacherAnnouncement>(
+      `${this.baseUrl}/courses/${courseId}/announcements`, body);
+  }
+}
+
+export interface TeacherAnnouncement {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  authorId: string;
+  authorName: string;
+  title: string;
+  body: string;
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

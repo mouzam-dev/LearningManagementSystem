@@ -3,7 +3,7 @@
   <div class="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
     <!-- Brand -->
     <a
-      [routerLink]="user()?.role === 'Student' ? '/student/dashboard' : user()?.role === 'Teacher' ? '/teacher/dashboard' : user()?.role === 'Admin' ? '/admin/dashboard' : '/home'"
+      [routerLink]="user()?.role === 'Student' ? '/student/dashboard' : user()?.role === 'Teacher' ? '/teacher/dashboard' : user()?.role === 'SuperAdmin' ? '/admin/dashboard' : user()?.role === 'OrgAdmin' ? '/orgadmin/dashboard' : '/home'"
       (click)="closeMenu()"
       class="flex shrink-0 items-center gap-2 text-ink transition hover:opacity-80">
       <span
@@ -23,12 +23,18 @@
           <a routerLink="/teacher/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
           <a routerLink="/teacher/courses" routerLinkActive="nav-active" class="nav-pill">My courses</a>
           <a routerLink="/teacher/grading" routerLinkActive="nav-active" class="nav-pill">Grading</a>
-        } @else if (user()?.role === 'Admin') {
+        } @else if (user()?.role === 'SuperAdmin') {
           <a routerLink="/admin/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
+          <a routerLink="/admin/organizations" routerLinkActive="nav-active" class="nav-pill">Organizations</a>
           <a routerLink="/admin/users" routerLinkActive="nav-active" class="nav-pill">Users</a>
+          <a routerLink="/admin/role-permissions" routerLinkActive="nav-active" class="nav-pill">Roles &amp; Permissions</a>
           <a routerLink="/admin/courses" routerLinkActive="nav-active" class="nav-pill">Courses</a>
           <a routerLink="/admin/reports" routerLinkActive="nav-active" class="nav-pill">Reports</a>
           <a routerLink="/admin/audit" routerLinkActive="nav-active" class="nav-pill">Audit log</a>
+        } @else if (user()?.role === 'OrgAdmin') {
+          <a routerLink="/orgadmin/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
+          <a routerLink="/orgadmin/branches" routerLinkActive="nav-active" class="nav-pill">Branches</a>
+          <a routerLink="/orgadmin/teachers" routerLinkActive="nav-active" class="nav-pill">Teachers</a>
         }
       </nav>
     }
@@ -55,6 +61,23 @@
       </button>
 
       @if (isAuthed()) {
+        <!-- Notification bell -->
+        <a routerLink="/notifications" (click)="closeMenu()"
+           class="relative flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:border-line-strong hover:text-ink"
+           aria-label="Notifications">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+          </svg>
+          @if (unreadCount() > 0) {
+            <span class="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow"
+                  [attr.aria-label]="unreadCount() + ' unread'">
+              {{ unreadCount() > 99 ? '99+' : unreadCount() }}
+            </span>
+          }
+        </a>
+
         <!-- User chip — links to the profile page -->
         <a routerLink="/profile"
            class="hidden items-center gap-2.5 rounded-xl border border-line bg-surface py-1 pl-1 pr-3 transition hover:border-primary-300 sm:flex">
@@ -115,12 +138,18 @@
           <a routerLink="/teacher/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
           <a routerLink="/teacher/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">My courses</a>
           <a routerLink="/teacher/grading" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Grading</a>
-        } @else if (user()?.role === 'Admin') {
+        } @else if (user()?.role === 'SuperAdmin') {
           <a routerLink="/admin/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
+          <a routerLink="/admin/organizations" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Organizations</a>
           <a routerLink="/admin/users" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Users</a>
+          <a routerLink="/admin/role-permissions" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Roles &amp; Permissions</a>
           <a routerLink="/admin/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Courses</a>
           <a routerLink="/admin/reports" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Reports</a>
           <a routerLink="/admin/audit" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Audit log</a>
+        } @else if (user()?.role === 'OrgAdmin') {
+          <a routerLink="/orgadmin/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
+          <a routerLink="/orgadmin/branches" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Branches</a>
+          <a routerLink="/orgadmin/teachers" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Teachers</a>
         }
         <a routerLink="/profile" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Profile</a>
       </div>

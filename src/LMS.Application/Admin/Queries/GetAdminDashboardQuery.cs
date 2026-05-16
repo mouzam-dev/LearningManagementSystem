@@ -27,7 +27,7 @@ public class GetAdminDashboardQueryHandler
         var activeUsers = await users.CountAsync(u => u.IsActive, cancellationToken);
         var students = await users.CountAsync(u => u.Role == "Student", cancellationToken);
         var teachers = await users.CountAsync(u => u.Role == "Teacher", cancellationToken);
-        var admins = await users.CountAsync(u => u.Role == "Admin", cancellationToken);
+        var admins = await users.CountAsync(u => u.Role == "SuperAdmin" || u.Role == "OrgAdmin", cancellationToken);
         var recent7 = await users.CountAsync(u => u.CreatedAt >= sevenDaysAgo, cancellationToken);
 
         // -- Course / learning -------------------------------------------

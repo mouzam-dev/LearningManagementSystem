@@ -10,6 +10,7 @@ import {
   TeacherModule,
 } from '../models/teacher.models';
 import { TeacherService } from '../teacher.service';
+import { CourseAnnouncementsPanel } from './course-announcements';
 
 type LessonDraft = {
   title: string;
@@ -58,7 +59,7 @@ const EMPTY_MODULE: ModuleDraft = { title: '', description: '' };
 @Component({
   selector: 'app-teacher-course-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, CourseAnnouncementsPanel],
   templateUrl: './course-builder.html',
 })
 export class TeacherCourseBuilderPage {

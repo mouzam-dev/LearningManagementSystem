@@ -650,5 +650,10 @@
         </form>
       </div>
     }
+
+    <!-- Announcements panel — fans out to enrolled students as notifications. -->
+    <div class="mt-6">
+      <app-course-announcements [courseId]="c.courseId" />
+    </div>
   }
 </section>

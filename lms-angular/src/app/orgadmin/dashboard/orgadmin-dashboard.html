@@ -1,0 +1,85 @@
+<section class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="h-32 animate-pulse rounded-3xl bg-surface-3"></div>
+      <div class="h-40 animate-pulse rounded-2xl bg-surface-3"></div>
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (data(); as d) {
+    <header class="mb-6">
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Organization admin</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">{{ d.organizationName }}</h1>
+      @if (d.organizationSlug) {
+        <p class="mt-1 font-mono text-sm text-subtle">/{{ d.organizationSlug }}</p>
+      }
+      @if (d.organizationDescription) {
+        <p class="mt-2 max-w-2xl text-sm text-muted">{{ d.organizationDescription }}</p>
+      }
+    </header>
+
+    <dl class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Branches</dt>
+        <dd class="mt-1 text-2xl font-bold text-ink">{{ d.branchCount }}</dd>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Teachers</dt>
+        <dd class="mt-1 text-2xl font-bold text-ink">{{ d.teacherCount }}</dd>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Students</dt>
+        <dd class="mt-1 text-2xl font-bold text-ink">{{ d.studentCount }}</dd>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Courses</dt>
+        <dd class="mt-1 text-2xl font-bold text-ink">{{ d.courseCount }}</dd>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface p-4 text-center shadow-sm">
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Published</dt>
+        <dd class="mt-1 text-2xl font-bold text-emerald-600">{{ d.publishedCourseCount }}</dd>
+      </div>
+    </dl>
+
+    <div class="rounded-2xl border border-line bg-surface shadow-sm">
+      <header class="flex items-center justify-between border-b border-line px-5 py-4">
+        <div>
+          <h2 class="text-base font-bold text-ink">Branches</h2>
+          <p class="text-xs text-muted">Where the work happens. Manage them from the Branches page.</p>
+        </div>
+        <a routerLink="/orgadmin/branches"
+           class="rounded-xl border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong">
+          Manage branches →
+        </a>
+      </header>
+      @if (d.branches.length === 0) {
+        <div class="px-5 py-10 text-center text-sm text-muted">
+          No branches yet. Add one from the Branches page so teachers and students can be assigned.
+        </div>
+      } @else {
+        <ul class="divide-y divide-line">
+          @for (b of d.branches; track b.id) {
+            <li class="flex items-center justify-between px-5 py-3.5">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="truncate text-sm font-semibold text-ink">{{ b.name }}</p>
+                  @if (b.code) {
+                    <span class="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-muted">{{ b.code }}</span>
+                  }
+                  @if (!b.isActive) {
+                    <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">Inactive</span>
+                  }
+                </div>
+              </div>
+              <p class="text-xs text-muted">
+                {{ b.teacherCount }} teachers · {{ b.studentCount }} students
+              </p>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>

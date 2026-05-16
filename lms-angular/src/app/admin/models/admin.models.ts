@@ -73,6 +73,10 @@ export interface AdminUserDetail {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  organizationId?: string | null;
+  organizationName?: string | null;
+  branchId?: string | null;
+  branchName?: string | null;
   coursesTaught: number;
   publishedCourses: number;
   totalStudentsAcrossCourses: number;

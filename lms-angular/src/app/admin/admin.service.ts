@@ -48,9 +48,31 @@ export class AdminService {
       `${this.baseUrl}/users/${userId}/active`, { isActive });
   }
 
-  changeUserRole(userId: string, role: string): Observable<AdminUserDetail> {
+  changeUserRole(
+    userId: string,
+    role: string,
+    opts?: { organizationId?: string | null; branchId?: string | null },
+  ): Observable<AdminUserDetail> {
     return this.http.patch<AdminUserDetail>(
-      `${this.baseUrl}/users/${userId}/role`, { role });
+      `${this.baseUrl}/users/${userId}/role`,
+      { role, organizationId: opts?.organizationId ?? null, branchId: opts?.branchId ?? null },
+    );
+  }
+
+  /**
+   * SuperAdmin-only: move a Teacher or Student to a different organization
+   * and branch in one shot. Hits the dedicated transfer endpoint so it can
+   * be audited separately from a role change.
+   */
+  transferUser(
+    userId: string,
+    organizationId: string,
+    branchId: string,
+  ): Observable<AdminUserDetail> {
+    return this.http.patch<AdminUserDetail>(
+      `${environment.apiUrl}/superadmin/users/${userId}/transfer`,
+      { organizationId, branchId },
+    );
   }
 
   // ---- Course moderation -----------------------------------------------

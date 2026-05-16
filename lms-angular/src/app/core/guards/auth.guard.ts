@@ -10,7 +10,9 @@ export function landingPathForRole(role: string | undefined): string {
       return '/student/dashboard';
     case 'Teacher':
       return '/teacher/dashboard';
-    case 'Admin':
+    case 'OrgAdmin':
+      return '/orgadmin/dashboard';
+    case 'SuperAdmin':
       return '/admin/dashboard';
     default:
       return '/home';

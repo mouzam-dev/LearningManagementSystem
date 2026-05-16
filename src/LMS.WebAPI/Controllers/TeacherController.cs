@@ -1,4 +1,7 @@
 using FluentValidation;
+using LMS.Application.Announcements.Commands;
+using LMS.Application.Announcements.Dtos;
+using LMS.Application.Announcements.Queries;
 using LMS.Application.Common;
 using LMS.Application.Teacher.Commands;
 using LMS.Application.Teacher.Dtos;
@@ -726,5 +729,54 @@ public class TeacherController : ControllerBase
             .GroupBy(e => e.PropertyName)
             .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
         return new ValidationProblemDetails(errors);
+    }
+
+    // -----------------------------------------------------------------------
+    // Announcements (per course owned by this teacher). Posting fans out to
+    // every enrolled student as an in-app notification.
+    // -----------------------------------------------------------------------
+
+    [HttpGet("courses/{courseId:guid}/announcements")]
+    [ProducesResponseType(typeof(IReadOnlyList<AnnouncementDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<AnnouncementDto>>> GetCourseAnnouncements(
+        Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseAnnouncementsQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+    }
+
+    public class CreateAnnouncementRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public bool IsPinned { get; set; }
+    }
+
+    [HttpPost("courses/{courseId:guid}/announcements")]
+    [ProducesResponseType(typeof(AnnouncementDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AnnouncementDto>> CreateAnnouncement(
+        Guid courseId,
+        [FromBody] CreateAnnouncementRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new CreateAnnouncementCommand(
+                courseId, request.Title, request.Body, request.IsPinned), ct);
+            return CreatedAtAction(nameof(GetCourseAnnouncements), new { courseId }, result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
     }
 }

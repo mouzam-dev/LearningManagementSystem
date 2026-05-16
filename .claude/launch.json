@@ -6,9 +6,18 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": [
         "/c",
-        "cd lms-angular && npx ng serve --host 127.0.0.1 --port 4200"
+        "cd lms-angular && npx ng serve --host 127.0.0.1 --port 4201"
       ],
-      "port": 4200
+      "port": 4201
+    },
+    {
+      "name": "lms-api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "dotnet run --project src/LMS.WebAPI --urls http://localhost:5117"
+      ],
+      "port": 5117
     }
   ]
 }

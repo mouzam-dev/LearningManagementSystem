@@ -9,7 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AdminUserListItem } from '../models/admin.models';
 import { AdminService } from '../admin.service';
 
-type RoleFilter = '' | 'Student' | 'Teacher' | 'Admin';
+type RoleFilter = '' | 'Student' | 'Teacher' | 'OrgAdmin' | 'SuperAdmin';
 type StatusFilter = 'all' | 'active' | 'suspended';
 
 @Component({

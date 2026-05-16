@@ -11,7 +11,7 @@ namespace LMS.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "SuperAdmin")]
 public class AdminController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -92,6 +92,10 @@ public class AdminController : ControllerBase
     public class ChangeRoleRequest
     {
         public string Role { get; set; } = string.Empty;
+        /// <summary>Required when promoting to OrgAdmin.</summary>
+        public Guid? OrganizationId { get; set; }
+        /// <summary>Required when assigning Teacher or Student.</summary>
+        public Guid? BranchId { get; set; }
     }
 
     [HttpPatch("users/{userId:guid}/role")]
@@ -106,7 +110,8 @@ public class AdminController : ControllerBase
     {
         try
         {
-            var result = await _mediator.Send(new ChangeUserRoleCommand(userId, request.Role), ct);
+            var result = await _mediator.Send(new ChangeUserRoleCommand(
+                userId, request.Role, request.OrganizationId, request.BranchId), ct);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)

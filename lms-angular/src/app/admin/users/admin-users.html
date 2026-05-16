@@ -22,7 +22,7 @@
 
     <!-- Role segmented -->
     <div class="inline-flex rounded-xl border border-line bg-surface p-0.5 shadow-sm">
-      @for (r of [{ k: '', label: 'All roles' }, { k: 'Student', label: 'Students' }, { k: 'Teacher', label: 'Teachers' }, { k: 'Admin', label: 'Admins' }]; track r.k) {
+      @for (r of [{ k: '', label: 'All roles' }, { k: 'Student', label: 'Students' }, { k: 'Teacher', label: 'Teachers' }, { k: 'OrgAdmin', label: 'Org admins' }, { k: 'SuperAdmin', label: 'Super admins' }]; track r.k) {
         <button type="button" (click)="setRole($any(r.k))"
                 class="rounded-lg px-3 py-1.5 text-xs font-semibold transition"
                 [class.bg-primary-600]="roleFilter() === r.k"
@@ -75,8 +75,10 @@
                   [class.text-primary-700]="u.role === 'Student'"
                   [class.bg-violet-100]="u.role === 'Teacher'"
                   [class.text-violet-700]="u.role === 'Teacher'"
-                  [class.bg-amber-100]="u.role === 'Admin'"
-                  [class.text-amber-700]="u.role === 'Admin'"
+                  [class.bg-amber-100]="u.role === 'OrgAdmin'"
+                  [class.text-amber-700]="u.role === 'OrgAdmin'"
+                  [class.bg-rose-100]="u.role === 'SuperAdmin'"
+                  [class.text-rose-700]="u.role === 'SuperAdmin'"
                   aria-hidden="true">{{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}</span>
 
             <div class="min-w-0 flex-1">
@@ -89,8 +91,10 @@
                       [class.text-primary-700]="u.role === 'Student'"
                       [class.bg-violet-100]="u.role === 'Teacher'"
                       [class.text-violet-700]="u.role === 'Teacher'"
-                      [class.bg-amber-100]="u.role === 'Admin'"
-                      [class.text-amber-700]="u.role === 'Admin'">{{ u.role }}</span>
+                      [class.bg-amber-100]="u.role === 'OrgAdmin'"
+                      [class.text-amber-700]="u.role === 'OrgAdmin'"
+                      [class.bg-rose-100]="u.role === 'SuperAdmin'"
+                      [class.text-rose-700]="u.role === 'SuperAdmin'">{{ u.role }}</span>
                 @if (!u.isActive) {
                   <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">Suspended</span>
                 }
@@ -108,7 +112,9 @@
                 <p class="text-sm font-bold text-ink-soft">{{ u.enrollments }}</p>
               } @else {
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Role</p>
-                <p class="text-sm font-bold text-amber-600">Admin</p>
+                <p class="text-sm font-bold"
+                   [class.text-amber-600]="u.role === 'OrgAdmin'"
+                   [class.text-rose-600]="u.role === 'SuperAdmin'">{{ u.role }}</p>
               }
             </div>
 

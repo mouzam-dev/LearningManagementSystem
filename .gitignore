@@ -116,3 +116,4 @@ coverage*/
 # Claude Code (per-user)
 # =============================================================================
 .claude/settings.local.json
+.claude/scheduled_tasks.lock

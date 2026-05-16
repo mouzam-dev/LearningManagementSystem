@@ -11,6 +11,10 @@ namespace LMS.Application.Common;
 public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
+    DbSet<Organization> Organizations { get; }
+    DbSet<Branch> Branches { get; }
+    DbSet<Permission> Permissions { get; }
+    DbSet<RolePermission> RolePermissions { get; }
     DbSet<Course> Courses { get; }
     DbSet<Module> Modules { get; }
     DbSet<Lesson> Lessons { get; }
@@ -21,6 +25,8 @@ public interface IApplicationDbContext
     DbSet<Submission> Submissions { get; }
     DbSet<Certificate> Certificates { get; }
     DbSet<Notification> Notifications { get; }
+    DbSet<Announcement> Announcements { get; }
+    DbSet<UserToken> UserTokens { get; }
     DbSet<AuditLog> AuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

@@ -1,0 +1,199 @@
+<section class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Organization admin</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Teachers</h1>
+      <p class="mt-2 max-w-2xl text-sm text-muted">
+        Every teacher in your organization. Assign each one to a branch so students and courses roll up consistently.
+      </p>
+    </div>
+    <button type="button" (click)="openAddDialog()"
+            class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+      + Add teacher
+    </button>
+  </header>
+
+  <!-- Filters -->
+  <div class="mb-5 flex flex-wrap items-center gap-3">
+    <div class="relative min-w-[220px] flex-1 max-w-md">
+      <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle"
+           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+      </svg>
+      <input type="search" (input)="onSearchInput($any($event.target).value)"
+             placeholder="Search by name or email…"
+             class="w-full rounded-xl border border-line bg-surface py-2 pl-9 pr-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+    </div>
+
+    <select [ngModel]="branchFilter()" (ngModelChange)="setBranchFilter($event)"
+            class="rounded-xl border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink-soft shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+      <option value="">All branches</option>
+      <option value="none">— Unassigned —</option>
+      @for (b of branches(); track b.id) {
+        <option [value]="b.id">{{ b.name }}@if (b.code) { ({{ b.code }}) }</option>
+      }
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+        <div class="h-14 animate-pulse rounded-xl bg-surface-3"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (teachers().length === 0) {
+    <div class="rounded-3xl border-2 border-dashed border-line bg-surface px-6 py-16 text-center">
+      <h2 class="text-lg font-semibold text-ink">No teachers match these filters</h2>
+      <p class="mt-1 text-sm text-muted">Try clearing the search or branch filter.</p>
+    </div>
+  } @else {
+    <ul class="divide-y divide-line rounded-2xl border border-line bg-surface shadow-sm">
+      @for (t of teachers(); track t.userId) {
+        <li class="px-5 py-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex min-w-0 items-center gap-3">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700"
+                    aria-hidden="true">{{ t.firstName.charAt(0) }}{{ t.lastName.charAt(0) }}</span>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-ink">{{ t.firstName }} {{ t.lastName }}</p>
+                <p class="truncate text-xs text-muted">{{ t.email }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div class="hidden text-right sm:block">
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Branch</p>
+                @if (t.branchName) {
+                  <p class="text-sm font-bold text-ink-soft">{{ t.branchName }}</p>
+                } @else {
+                  <p class="text-sm font-bold text-amber-600">— Unassigned —</p>
+                }
+              </div>
+              <div class="hidden text-right sm:block">
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Courses</p>
+                <p class="text-sm font-bold text-ink-soft">{{ t.publishedCourseCount }} / {{ t.courseCount }}</p>
+              </div>
+              <button type="button" (click)="openAssign(t.userId, t.branchId)"
+                      class="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:border-line-strong">
+                @if (t.branchId) { Change branch } @else { Assign branch }
+              </button>
+            </div>
+          </div>
+
+          <!-- Inline picker -->
+          @if (assignTarget() === t.userId) {
+            <div class="mt-3 rounded-xl border border-primary-200 bg-primary-50/40 p-3">
+              @if (activeBranches().length === 0) {
+                <p class="text-xs text-amber-700">No active branches yet. Create one from the Branches page first.</p>
+              } @else {
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-muted">Pick a branch</p>
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                  @for (b of activeBranches(); track b.id) {
+                    <button type="button" (click)="pickBranch(b.id)"
+                            class="rounded-lg border px-3 py-1.5 text-xs font-semibold transition"
+                            [class.border-primary-600]="assignSelection() === b.id"
+                            [class.bg-primary-600]="assignSelection() === b.id"
+                            [class.text-white]="assignSelection() === b.id"
+                            [class.border-line]="assignSelection() !== b.id"
+                            [class.bg-surface]="assignSelection() !== b.id"
+                            [class.text-ink-soft]="assignSelection() !== b.id"
+                            [class.hover:border-line-strong]="assignSelection() !== b.id">
+                      {{ b.name }}@if (b.code) { <span class="ml-1 font-mono text-[10px] opacity-70">({{ b.code }})</span> }
+                    </button>
+                  }
+                </div>
+              }
+              @if (assignError()) {
+                <div class="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs text-rose-700">{{ assignError() }}</div>
+              }
+              <div class="mt-3 flex justify-end gap-2">
+                <button type="button" (click)="cancelAssign()"
+                        class="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-line-strong hover:text-ink">
+                  Cancel
+                </button>
+                <button type="button" (click)="confirmAssign()"
+                        [disabled]="assignBusy() || !assignSelection() || activeBranches().length === 0"
+                        class="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50">
+                  {{ assignBusy() ? 'Saving…' : 'Save assignment' }}
+                </button>
+              </div>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- Add teacher dialog -->
+  @if (addDialogOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" (click)="closeAddDialog()">
+      <div class="w-full max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-xl" (click)="$event.stopPropagation()">
+        <h2 class="text-lg font-bold text-ink">Add a teacher</h2>
+        <p class="mt-1 text-sm text-muted">
+          Creates a new teacher account under your organization and the branch you pick.
+        </p>
+
+        @if (activeBranches().length === 0) {
+          <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-800">
+            No active branches yet. Create one on the
+            <a routerLink="/orgadmin/branches" class="font-semibold underline">Branches</a> page first.
+          </div>
+        } @else {
+          <form [formGroup]="addForm" (ngSubmit)="submitAddTeacher()" class="mt-4 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-ink-soft">First name</label>
+                <input formControlName="firstName"
+                       class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-ink-soft">Last name</label>
+                <input formControlName="lastName"
+                       class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-ink-soft">Email</label>
+              <input formControlName="email" type="email"
+                     class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-ink-soft">Temporary password</label>
+              <input formControlName="password" type="text"
+                     class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-mono text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              <p class="mt-1 text-xs text-subtle">Min 8 chars, must include upper, lower, and digit.</p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-ink-soft">Branch</label>
+              <select formControlName="branchId"
+                      class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                <option value="" disabled>— Pick a branch —</option>
+                @for (b of activeBranches(); track b.id) {
+                  <option [value]="b.id">{{ b.name }}@if (b.code) { ({{ b.code }}) }</option>
+                }
+              </select>
+            </div>
+            @if (addError()) {
+              <div class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{{ addError() }}</div>
+            }
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" (click)="closeAddDialog()"
+                      class="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-line-strong hover:text-ink">
+                Cancel
+              </button>
+              <button type="submit" [disabled]="addSubmitting()"
+                      class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-60">
+                {{ addSubmitting() ? 'Creating…' : 'Create teacher' }}
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  }
+</section>

@@ -1,3 +1,5 @@
+using LMS.Application.Announcements.Dtos;
+using LMS.Application.Announcements.Queries;
 using LMS.Application.Common;
 using LMS.Application.Student.Commands;
 using LMS.Application.Student.Dtos;
@@ -240,5 +242,18 @@ public class StudentController : ControllerBase
         {
             return Conflict(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Recent announcements from courses the student is enrolled in. Powers
+    /// the dashboard announcements widget (BRD STU-013 + STU-054).
+    /// </summary>
+    [HttpGet("announcements")]
+    [ProducesResponseType(typeof(IReadOnlyList<AnnouncementDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<AnnouncementDto>>> GetMyAnnouncements(
+        [FromQuery] int limit = 20, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetMyAnnouncementsQuery(limit), ct);
+        return Ok(result);
     }
 }

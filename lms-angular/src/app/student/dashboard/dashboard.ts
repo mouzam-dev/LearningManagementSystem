@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../auth/auth.service';
 import { Dashboard } from '../models/dashboard.models';
-import { StudentService } from '../student.service';
+import { StudentAnnouncement, StudentService } from '../student.service';
 
 @Component({
   selector: 'app-student-dashboard',
@@ -23,6 +23,7 @@ export class StudentDashboard implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly dashboard = signal<Dashboard | null>(null);
+  readonly announcements = signal<StudentAnnouncement[]>([]);
 
   ngOnInit(): void {
     this.load();
@@ -42,6 +43,23 @@ export class StudentDashboard implements OnInit {
         this.error.set(this.formatError(err));
       },
     });
+    // Best-effort — failure here shouldn't break the rest of the dashboard.
+    this.studentService.getAnnouncements(5).subscribe({
+      next: (rows) => this.announcements.set(rows),
+      error: () => this.announcements.set([]),
+    });
+  }
+
+  relativeTime(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.round(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m} min ago`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `${h} hr ago`;
+    const d = Math.round(h / 24);
+    if (d < 14) return `${d} day${d === 1 ? '' : 's'} ago`;
+    return new Date(iso).toLocaleDateString();
   }
 
   continueCourse(courseId: string): void {

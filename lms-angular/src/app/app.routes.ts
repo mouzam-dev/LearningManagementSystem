@@ -15,6 +15,21 @@ export const routes: Routes = [
     loadComponent: () => import('./auth/register/register').then((m) => m.Register),
   },
   {
+    path: 'auth/forgot-password',
+    loadComponent: () =>
+      import('./auth/forgot-password/forgot-password').then((m) => m.ForgotPasswordPage),
+  },
+  {
+    path: 'auth/reset-password',
+    loadComponent: () =>
+      import('./auth/reset-password/reset-password').then((m) => m.ResetPasswordPage),
+  },
+  {
+    path: 'auth/verify-email',
+    loadComponent: () =>
+      import('./auth/verify-email/verify-email').then((m) => m.VerifyEmailPage),
+  },
+  {
     path: 'home',
     canActivate: [authGuard],
     loadComponent: () => import('./home/home').then((m) => m.Home),
@@ -134,6 +149,21 @@ export const routes: Routes = [
           import('./admin/dashboard/admin-dashboard').then((m) => m.AdminDashboardPage),
       },
       {
+        path: 'organizations',
+        loadComponent: () =>
+          import('./admin/organizations/organizations-list').then((m) => m.OrganizationsListPage),
+      },
+      {
+        path: 'organizations/:organizationId',
+        loadComponent: () =>
+          import('./admin/organizations/organization-detail').then((m) => m.OrganizationDetailPage),
+      },
+      {
+        path: 'role-permissions',
+        loadComponent: () =>
+          import('./admin/role-permissions/role-permissions').then((m) => m.RolePermissionsPage),
+      },
+      {
         path: 'users',
         loadComponent: () =>
           import('./admin/users/admin-users').then((m) => m.AdminUsersPage),
@@ -165,11 +195,40 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'orgadmin',
+    canActivate: [authGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./orgadmin/dashboard/orgadmin-dashboard').then((m) => m.OrgAdminDashboardPage),
+      },
+      {
+        path: 'branches',
+        loadComponent: () =>
+          import('./orgadmin/branches/orgadmin-branches').then((m) => m.OrgAdminBranchesPage),
+      },
+      {
+        path: 'teachers',
+        loadComponent: () =>
+          import('./orgadmin/teachers/orgadmin-teachers').then((m) => m.OrgAdminTeachersPage),
+      },
+    ],
+  },
   // Profile — any authenticated role manages their own account here.
   {
     path: 'profile',
     canActivate: [authGuard],
     loadComponent: () => import('./profile/profile-page').then((m) => m.ProfilePage),
+  },
+  // Notification center — same idea: any signed-in role can see their own feed.
+  {
+    path: 'notifications',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./notifications/notifications-page').then((m) => m.NotificationsPage),
   },
   // Public certificate verification — no authGuard, anyone with the code can hit this.
   {

@@ -34,8 +34,10 @@
               [class.text-primary-700]="u.role === 'Student'"
               [class.bg-violet-100]="u.role === 'Teacher'"
               [class.text-violet-700]="u.role === 'Teacher'"
-              [class.bg-amber-100]="u.role === 'Admin'"
-              [class.text-amber-700]="u.role === 'Admin'"
+              [class.bg-amber-100]="u.role === 'OrgAdmin'"
+              [class.text-amber-700]="u.role === 'OrgAdmin'"
+              [class.bg-rose-100]="u.role === 'SuperAdmin'"
+              [class.text-rose-700]="u.role === 'SuperAdmin'"
               aria-hidden="true">{{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}</span>
 
         <div class="min-w-0 flex-1">
@@ -48,8 +50,10 @@
                   [class.text-primary-700]="u.role === 'Student'"
                   [class.bg-violet-100]="u.role === 'Teacher'"
                   [class.text-violet-700]="u.role === 'Teacher'"
-                  [class.bg-amber-100]="u.role === 'Admin'"
-                  [class.text-amber-700]="u.role === 'Admin'">{{ u.role }}</span>
+                  [class.bg-amber-100]="u.role === 'OrgAdmin'"
+                  [class.text-amber-700]="u.role === 'OrgAdmin'"
+                  [class.bg-rose-100]="u.role === 'SuperAdmin'"
+                  [class.text-rose-700]="u.role === 'SuperAdmin'">{{ u.role }}</span>
             @if (u.isActive) {
               <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">Active</span>
             } @else {
@@ -63,6 +67,19 @@
           <p class="mt-1 text-xs text-subtle">
             Joined {{ u.createdAt | date: 'mediumDate' }} · Updated {{ u.updatedAt | date: 'mediumDate' }}
           </p>
+          @if (u.organizationName || u.branchName) {
+            <p class="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+              <svg class="h-3.5 w-3.5 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 21h18M5 21V7l8-4 8 4v14M9 9h1m-1 4h1m-1 4h1m4-8h1m-1 4h1m-1 4h1"></path>
+              </svg>
+              <span class="font-semibold text-ink-soft">{{ u.organizationName ?? '—' }}</span>
+              @if (u.branchName) {
+                <span class="text-subtle">·</span>
+                <span>{{ u.branchName }}</span>
+              }
+            </p>
+          }
           @if (u.bio) {
             <p class="mt-3 max-w-xl text-sm text-muted">{{ u.bio }}</p>
           }
@@ -137,9 +154,9 @@
         <div>
           <p class="text-sm font-semibold text-ink-soft">Role</p>
           <p class="mt-0.5 text-xs text-muted">Changes what the user can access on sign-in.</p>
-          <div class="mt-2 inline-flex rounded-xl border border-line bg-surface p-0.5 shadow-sm">
+          <div class="mt-2 inline-flex flex-wrap rounded-xl border border-line bg-surface p-0.5 shadow-sm">
             @for (r of roles; track r) {
-              <button type="button" (click)="changeRole(r)"
+              <button type="button" (click)="pickRole(r)"
                       [disabled]="isSelf() || busy() === 'role' || u.role === r"
                       class="rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed"
                       [class.bg-primary-600]="u.role === r"
@@ -152,6 +169,25 @@
             }
           </div>
         </div>
+
+        <!-- Tenancy transfer (Teachers & Students only) -->
+        @if (u.role === 'Teacher' || u.role === 'Student') {
+          <div>
+            <p class="text-sm font-semibold text-ink-soft">Organization &amp; branch</p>
+            <p class="mt-0.5 text-xs text-muted">
+              Move this {{ u.role.toLowerCase() }} to a different organization or branch.
+            </p>
+            <button type="button" (click)="openTransfer()"
+                    [disabled]="busy() === 'transfer'"
+                    class="mt-2 inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-50">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12h18M3 12l4-4m-4 4 4 4M21 12l-4-4m4 4-4 4"></path>
+              </svg>
+              Move to org &amp; branch
+            </button>
+          </div>
+        }
 
         <!-- Active state -->
         <div>
@@ -182,5 +218,115 @@
         </div>
       </div>
     </section>
+
+    <!-- Tenancy picker dialog (org for OrgAdmin, org+branch for Teacher/Student) -->
+    @if (picker(); as p) {
+      @if (p.kind !== 'none') {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+             (click)="closePicker()">
+          <div class="w-full max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-xl"
+               (click)="$event.stopPropagation()">
+            <h2 class="text-lg font-bold text-ink">
+              @if (p.kind === 'org') {
+                Promote to organization admin
+              } @else if (p.kind === 'transfer') {
+                Move {{ u.firstName }} {{ u.lastName }}
+              } @else {
+                Assign {{ p.role.toLowerCase() }} to a branch
+              }
+            </h2>
+            <p class="mt-1 text-sm text-muted">
+              @if (p.kind === 'org') {
+                Pick which organization {{ u.firstName }} will manage.
+              } @else if (p.kind === 'transfer') {
+                Pick the destination organization and branch. This {{ u.role.toLowerCase() }}'s role
+                stays the same — only their tenancy changes.
+              } @else {
+                Pick the organization and branch this {{ p.role.toLowerCase() }} belongs to.
+              }
+            </p>
+
+            @if (orgsLoading()) {
+              <div class="mt-4 h-32 animate-pulse rounded-xl bg-surface-3"></div>
+            } @else if (orgsList().length === 0) {
+              <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-800">
+                No active organizations exist yet. Create one first from the
+                <a routerLink="/admin/organizations" class="font-semibold underline">Organizations</a> page.
+              </div>
+            } @else {
+              <div class="mt-4 max-h-72 overflow-y-auto rounded-xl border border-line">
+                <ul class="divide-y divide-line">
+                  @for (o of orgsList(); track o.id) {
+                    <li>
+                      <button type="button" (click)="onPickOrg(o.id)"
+                              class="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left transition hover:bg-surface-2"
+                              [class.bg-primary-50]="p.selectedOrgId === o.id">
+                        <span class="min-w-0">
+                          <span class="block truncate text-sm font-semibold text-ink">{{ o.name }}</span>
+                          @if (o.slug) {
+                            <span class="block truncate font-mono text-xs text-subtle">/{{ o.slug }}</span>
+                          }
+                        </span>
+                        @if (p.selectedOrgId === o.id) {
+                          <span class="rounded-full bg-primary-600 px-2 py-0.5 text-[10px] font-semibold text-white">Selected</span>
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+
+              @if ((p.kind === 'branch' || p.kind === 'transfer') && p.selectedOrgId) {
+                <div class="mt-4">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-muted">Branch</p>
+                  @if (branchesForSelected().length === 0) {
+                    <div class="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      No active branches in this organization yet.
+                    </div>
+                  } @else {
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                      @for (b of branchesForSelected(); track b.id) {
+                        <button type="button" (click)="onPickBranch(b.id)"
+                                class="rounded-lg border px-3 py-1.5 text-xs font-semibold transition"
+                                [class.border-primary-600]="p.selectedBranchId === b.id"
+                                [class.bg-primary-600]="p.selectedBranchId === b.id"
+                                [class.text-white]="p.selectedBranchId === b.id"
+                                [class.border-line]="p.selectedBranchId !== b.id"
+                                [class.bg-surface]="p.selectedBranchId !== b.id"
+                                [class.text-ink-soft]="p.selectedBranchId !== b.id"
+                                [class.hover:border-line-strong]="p.selectedBranchId !== b.id">
+                          {{ b.name }}@if (b.code) { <span class="ml-1 font-mono text-[10px] opacity-70">({{ b.code }})</span> }
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            @if (actionError(); as msg) {
+              <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{{ msg }}</div>
+            }
+
+            <div class="mt-5 flex justify-end gap-2">
+              <button type="button" (click)="closePicker()"
+                      class="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-line-strong hover:text-ink">
+                Cancel
+              </button>
+              <button type="button" (click)="confirmPicker()"
+                      [disabled]="busy() !== null
+                                  || !p.selectedOrgId
+                                  || ((p.kind === 'branch' || p.kind === 'transfer') && !p.selectedBranchId)"
+                      class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50">
+                @if (busy() !== null) { Saving… }
+                @else if (p.kind === 'org') { Grant org admin access }
+                @else if (p.kind === 'transfer') { Move {{ u.role.toLowerCase() }} }
+                @else { Assign }
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    }
   }
 </section>

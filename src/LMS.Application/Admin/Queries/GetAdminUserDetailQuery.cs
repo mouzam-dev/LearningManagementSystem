@@ -49,6 +49,24 @@ public class GetAdminUserDetailQueryHandler
             ? await _db.Submissions.CountAsync(s => s.StudentId == user.Id, cancellationToken)
             : 0;
 
+        // Tenancy labels — fetched separately so the projection above stays clean.
+        string? organizationName = null;
+        if (user.OrganizationId.HasValue)
+        {
+            organizationName = await _db.Organizations
+                .Where(o => o.Id == user.OrganizationId)
+                .Select(o => o.Name)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+        string? branchName = null;
+        if (user.BranchId.HasValue)
+        {
+            branchName = await _db.Branches
+                .Where(b => b.Id == user.BranchId)
+                .Select(b => b.Name)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
         return new AdminUserDetailDto
         {
             UserId = user.Id,
@@ -62,6 +80,10 @@ public class GetAdminUserDetailQueryHandler
             IsVerified = user.IsVerified,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
+            OrganizationId = user.OrganizationId,
+            OrganizationName = organizationName,
+            BranchId = user.BranchId,
+            BranchName = branchName,
             CoursesTaught = coursesTaught,
             PublishedCourses = publishedCourses,
             TotalStudentsAcrossCourses = totalStudentsAcrossCourses,

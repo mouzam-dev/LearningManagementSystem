@@ -1,0 +1,89 @@
+<section class="rounded-2xl border border-line bg-surface shadow-sm">
+  <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+    <div>
+      <h2 class="text-base font-bold text-ink">Announcements</h2>
+      <p class="text-xs text-muted">Posting fans out to every enrolled student as a notification.</p>
+    </div>
+    <button type="button" (click)="openComposer()"
+            class="rounded-xl bg-primary-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+      + New announcement
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="space-y-2 p-5">
+      @for (i of [0, 1, 2]; track i) {
+        <div class="h-16 animate-pulse rounded-xl bg-surface-3"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="px-5 py-6 text-center text-sm text-rose-700">{{ error() }}</div>
+  } @else if (items().length === 0) {
+    <div class="px-5 py-10 text-center text-sm text-muted">
+      No announcements yet. Post one to reach your enrolled students.
+    </div>
+  } @else {
+    <ul class="divide-y divide-line">
+      @for (a of items(); track a.id) {
+        <li class="px-5 py-4">
+          <div class="flex flex-wrap items-baseline gap-2">
+            @if (a.isPinned) {
+              <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Pinned</span>
+            }
+            <p class="text-sm font-semibold text-ink">{{ a.title }}</p>
+            <span class="text-xs text-subtle">· {{ relativeTime(a.createdAt) }}</span>
+          </div>
+          <p class="mt-1 whitespace-pre-line text-sm text-muted">{{ a.body }}</p>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+@if (composerOpen()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" (click)="closeComposer()">
+    <div class="w-full max-w-xl rounded-2xl border border-line bg-surface p-6 shadow-xl" (click)="$event.stopPropagation()">
+      <h2 class="text-lg font-bold text-ink">New announcement</h2>
+      <p class="mt-1 text-sm text-muted">
+        Every student enrolled in this course will receive an in-app notification.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-ink-soft">Title</label>
+          <input formControlName="title" type="text" autocomplete="off"
+                 class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+          @if (form.controls.title.touched && form.controls.title.errors?.['required']) {
+            <p class="mt-1 text-xs text-rose-600">Title is required.</p>
+          }
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-ink-soft">Message</label>
+          <textarea formControlName="body" rows="6"
+                    class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"></textarea>
+          @if (form.controls.body.touched && form.controls.body.errors?.['required']) {
+            <p class="mt-1 text-xs text-rose-600">Message is required.</p>
+          }
+        </div>
+        <label class="flex items-center gap-2 text-sm text-ink-soft">
+          <input type="checkbox" formControlName="isPinned"
+                 class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500" />
+          Pin to the top of the list
+        </label>
+        @if (submitError()) {
+          <div class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{{ submitError() }}</div>
+        }
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" (click)="closeComposer()"
+                  class="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-line-strong hover:text-ink">
+            Cancel
+          </button>
+          <button type="submit" [disabled]="submitting()"
+                  class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-60">
+            {{ submitting() ? 'Posting…' : 'Post announcement' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

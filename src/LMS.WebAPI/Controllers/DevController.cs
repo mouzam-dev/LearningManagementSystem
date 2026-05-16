@@ -20,6 +20,8 @@ public class DevController : ControllerBase
     private const string DemoTeacherPassword = "Password1!";
     private const string DemoAdminEmail = "demo.admin@lms.dev";
     private const string DemoAdminPassword = "Password1!";
+    private const string DemoOrgAdminEmail = "demo.orgadmin@lms.dev";
+    private const string DemoOrgAdminPassword = "Password1!";
     private const string DemoStudentEmail = "demo.student@lms.dev";
     private const string DemoStudentPassword = "Password1!";
 
@@ -90,13 +92,36 @@ public class DevController : ControllerBase
             {
                 Id = Guid.NewGuid(),
                 Email = DemoAdminEmail,
-                FirstName = "Admin",
-                LastName = "Root",
-                Role = "Admin",
+                FirstName = "Super",
+                LastName = "Admin",
+                Role = LMS.Domain.Constants.Roles.SuperAdmin,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(DemoAdminPassword, workFactor: 12),
-                Bio = "Demo admin for the Admin module.",
+                Bio = "Demo super admin for platform-wide management.",
                 IsVerified = true,
                 IsActive = true,
+                // SuperAdmin is platform-wide, no specific organization or branch.
+                CreatedAt = now,
+                UpdatedAt = now,
+            });
+        }
+
+        // Idempotent — demo OrgAdmin scoped to the Default Organization so the
+        // OrgAdmin role has a working demo login alongside SuperAdmin.
+        var orgAdminExists = await _db.Users.AnyAsync(u => u.Email == DemoOrgAdminEmail, ct);
+        if (!orgAdminExists)
+        {
+            _db.Users.Add(new User
+            {
+                Id = Guid.NewGuid(),
+                Email = DemoOrgAdminEmail,
+                FirstName = "Org",
+                LastName = "Admin",
+                Role = LMS.Domain.Constants.Roles.OrgAdmin,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(DemoOrgAdminPassword, workFactor: 12),
+                Bio = "Demo organization admin for the Default Organization.",
+                IsVerified = true,
+                IsActive = true,
+                OrganizationId = LMS.Infrastructure.Persistence.Seeding.TenancySeeder.DefaultOrganizationId,
                 CreatedAt = now,
                 UpdatedAt = now,
             });

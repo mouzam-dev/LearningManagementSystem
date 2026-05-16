@@ -6,23 +6,40 @@ using LMS.Application.Auth;
 using LMS.Application.Auth.Dtos;
 using LMS.Domain.Entities;
 using LMS.Infrastructure.Persistence;
+using LMS.Infrastructure.Persistence.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LMS.Infrastructure.Services.Auth;
 
 public class AuthService : IAuthService
 {
+    // JWT custom claim type names. Duplicated from LmsClaims (which lives in WebAPI)
+    // because Infrastructure can't reference WebAPI. Keep in sync.
+    private const string ClaimOrgId = "org_id";
+    private const string ClaimBranchId = "branch_id";
+    private const string ClaimPermission = "perm";
+
     private readonly ApplicationDbContext _db;
     private readonly IConfiguration _config;
     private readonly IMapper _mapper;
+    private readonly IAccountLifecycleService _lifecycle;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(ApplicationDbContext db, IConfiguration config, IMapper mapper)
+    public AuthService(
+        ApplicationDbContext db,
+        IConfiguration config,
+        IMapper mapper,
+        IAccountLifecycleService lifecycle,
+        ILogger<AuthService> logger)
     {
         _db = db;
         _config = config;
         _mapper = mapper;
+        _lifecycle = lifecycle;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
@@ -47,19 +64,35 @@ public class AuthService : IAuthService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, workFactor: 12),
             IsVerified = false,
             IsActive = true,
+            // Public sign-ups (Student/Teacher) land in the Default tenant. An
+            // OrgAdmin can transfer them later. Without this they'd be orphans.
+            OrganizationId = TenancySeeder.DefaultOrganizationId,
+            BranchId = TenancySeeder.DefaultBranchId,
             CreatedAt = now,
-            UpdatedAt = now
+            UpdatedAt = now,
         };
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
 
-        var (access, refresh) = GenerateTokens(user);
+        // Fire-and-forget the verification email — failure here shouldn't
+        // block registration; the user can request a fresh link later.
+        try
+        {
+            await _lifecycle.IssueEmailVerificationAsync(user.Id, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not send verification email to {Email}", user.Email);
+        }
+
+        var permissions = await LoadPermissionsAsync(user.Role, ct);
+        var (access, refresh) = GenerateTokens(user, permissions);
 
         return new AuthResponse
         {
             Success = true,
-            Message = "Registration successful.",
+            Message = "Registration successful. Check your email to verify your account.",
             AccessToken = access,
             RefreshToken = refresh,
             User = _mapper.Map<UserDto>(user)
@@ -80,7 +113,8 @@ public class AuthService : IAuthService
             return new AuthResponse { Success = false, Message = "Account is inactive." };
         }
 
-        var (access, refresh) = GenerateTokens(user);
+        var permissions = await LoadPermissionsAsync(user.Role, ct);
+        var (access, refresh) = GenerateTokens(user, permissions);
 
         return new AuthResponse
         {
@@ -92,7 +126,16 @@ public class AuthService : IAuthService
         };
     }
 
-    private (string AccessToken, string RefreshToken) GenerateTokens(User user)
+    private async Task<List<string>> LoadPermissionsAsync(string role, CancellationToken ct)
+    {
+        return await _db.RolePermissions
+            .AsNoTracking()
+            .Where(rp => rp.Role == role)
+            .Select(rp => rp.Permission.Code)
+            .ToListAsync(ct);
+    }
+
+    private (string AccessToken, string RefreshToken) GenerateTokens(User user, IEnumerable<string> permissions)
     {
         var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key not configured.");
         var issuer = _config["Jwt:Issuer"];
@@ -103,14 +146,27 @@ public class AuthService : IAuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role),
         };
+
+        if (user.OrganizationId.HasValue)
+        {
+            claims.Add(new Claim(ClaimOrgId, user.OrganizationId.Value.ToString()));
+        }
+        if (user.BranchId.HasValue)
+        {
+            claims.Add(new Claim(ClaimBranchId, user.BranchId.Value.ToString()));
+        }
+        foreach (var code in permissions)
+        {
+            claims.Add(new Claim(ClaimPermission, code));
+        }
 
         var access = new JwtSecurityToken(
             issuer: issuer,

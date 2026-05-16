@@ -80,6 +80,12 @@ public class AdminUserDetailDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
+    // Tenancy. Null for SuperAdmin; OrgAdmin has org but no branch; Teacher/Student have both.
+    public Guid? OrganizationId { get; set; }
+    public string? OrganizationName { get; set; }
+    public Guid? BranchId { get; set; }
+    public string? BranchName { get; set; }
+
     // Teacher-only summary (zeroed for non-teachers)
     public int CoursesTaught { get; set; }
     public int PublishedCourses { get; set; }

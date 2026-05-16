@@ -101,5 +101,32 @@
         </table>
       }
     </section>
+
+    <!-- Announcements from enrolled courses (BRD STU-013 + STU-054) -->
+    @if (announcements().length > 0) {
+      <section class="announcements-panel">
+        <header class="announcements-header">
+          <h2>Latest announcements</h2>
+          <a routerLink="/notifications" class="all-link">View all →</a>
+        </header>
+        <ul class="announcements-list">
+          @for (a of announcements(); track a.id) {
+            <li class="announcement-card">
+              <div class="announcement-meta">
+                @if (a.isPinned) {
+                  <span class="announcement-pin">Pinned</span>
+                }
+                <span class="announcement-course">{{ a.courseTitle }}</span>
+                <span class="announcement-time">· {{ relativeTime(a.createdAt) }}</span>
+              </div>
+              <p class="announcement-title">{{ a.title }}</p>
+              <p class="announcement-body">{{ a.body }}</p>
+              <p class="announcement-author">— {{ a.authorName }}</p>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
   }
 </section>

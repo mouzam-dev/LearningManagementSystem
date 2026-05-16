@@ -14,4 +14,13 @@ public interface ICurrentUserService
 
     /// <summary>Role claim from the JWT, or null when unauthenticated.</summary>
     string? GetRole();
+
+    /// <summary>OrganizationId claim, or null for SuperAdmin / unauthenticated.</summary>
+    Guid? GetOrganizationId();
+
+    /// <summary>BranchId claim, or null for SuperAdmin / OrgAdmin / unauthenticated.</summary>
+    Guid? GetBranchId();
+
+    /// <summary>Whether the caller has been granted the given permission code.</summary>
+    bool HasPermission(string permissionCode);
 }

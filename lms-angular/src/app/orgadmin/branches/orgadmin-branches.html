@@ -1,0 +1,120 @@
+<section class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Organization admin</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Branches</h1>
+      <p class="mt-2 max-w-2xl text-sm text-muted">
+        Locations or units within your organization. Each branch can host teachers, students, and courses.
+      </p>
+    </div>
+    <button type="button" (click)="openCreate()"
+            class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+      + New branch
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [0, 1, 2, 3]; track i) {
+        <div class="h-14 animate-pulse rounded-xl bg-surface-3"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (branches().length === 0) {
+    <div class="rounded-3xl border-2 border-dashed border-line bg-surface px-6 py-16 text-center">
+      <h2 class="text-lg font-semibold text-ink">No branches yet</h2>
+      <p class="mt-1 text-sm text-muted">Add the first branch so teachers and students can be assigned.</p>
+      <button type="button" (click)="openCreate()"
+              class="mt-4 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+        Create a branch
+      </button>
+    </div>
+  } @else {
+    <ul class="divide-y divide-line rounded-2xl border border-line bg-surface shadow-sm">
+      @for (b of branches(); track b.id) {
+        <li class="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="truncate text-sm font-semibold text-ink">{{ b.name }}</p>
+              @if (b.code) {
+                <span class="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-muted">{{ b.code }}</span>
+              }
+              @if (!b.isActive) {
+                <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">Inactive</span>
+              }
+            </div>
+            @if (b.location) {
+              <p class="mt-0.5 text-xs text-muted">{{ b.location }}</p>
+            }
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="hidden text-right sm:block">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-subtle">Teachers · Students</p>
+              <p class="text-sm font-bold text-ink-soft">{{ b.teacherCount }} · {{ b.studentCount }}</p>
+            </div>
+            <button type="button" (click)="openEdit(b.id)"
+                    class="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:border-line-strong">
+              Edit
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (dialog() !== 'none') {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" (click)="closeDialog()">
+      <div class="w-full max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-xl" (click)="$event.stopPropagation()">
+        <h2 class="mb-4 text-lg font-bold text-ink">
+          {{ dialog() === 'edit' ? 'Edit branch' : 'New branch' }}
+        </h2>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-ink-soft">Name</label>
+            <input formControlName="name"
+                   class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+            @if (form.controls.name.touched && form.controls.name.errors?.['required']) {
+              <p class="mt-1 text-xs text-rose-600">Name is required.</p>
+            }
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-ink-soft">Code <span class="text-subtle">(optional)</span></label>
+              <input formControlName="code" placeholder="HQ"
+                     class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 font-mono text-sm uppercase shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              @if (form.controls.code.touched && form.controls.code.errors?.['pattern']) {
+                <p class="mt-1 text-xs text-rose-600">A-Z, 0-9, dash, underscore.</p>
+              }
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-ink-soft">Location</label>
+              <input formControlName="location"
+                     class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-ink-soft">Contact email <span class="text-subtle">(optional)</span></label>
+            <input formControlName="contactEmail" type="email"
+                   class="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200" />
+          </div>
+          @if (dialog() === 'edit') {
+            <label class="flex items-center gap-2 text-sm text-ink-soft">
+              <input type="checkbox" formControlName="isActive" class="h-4 w-4 rounded border-line text-primary-600 focus:ring-primary-500" />
+              Active
+            </label>
+          }
+          @if (dialogError()) {
+            <div class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{{ dialogError() }}</div>
+          }
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" (click)="closeDialog()" class="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-line-strong hover:text-ink">Cancel</button>
+            <button type="submit" [disabled]="submitting()" class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-60">{{ submitting() ? 'Saving…' : 'Save' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</section>

@@ -42,6 +42,32 @@ export class AuthService {
     return this.http.get<MeResponse>(`${this.baseUrl}/me`);
   }
 
+  // ---- Account lifecycle ------------------------------------------------
+
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/reset-password`, { token, password });
+  }
+
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/verify-email`, { token });
+  }
+
+  resendVerification(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/resend-verification`, {});
+  }
+
+  /** Update the in-memory user's IsVerified flag without re-fetching. */
+  markVerified(): void {
+    const current = this._user();
+    if (!current || current.isVerified) return;
+    this.patchStoredUser({ isVerified: true });
+  }
+
   logout(): void {
     this.clearStorage();
     this._accessToken.set(null);

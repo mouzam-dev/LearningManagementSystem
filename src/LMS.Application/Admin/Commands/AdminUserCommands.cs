@@ -11,7 +11,7 @@ internal static class AdminUserRules
 {
     public static readonly HashSet<string> AllowedRoles = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Student", "Teacher", "Admin",
+        "Student", "Teacher", "OrgAdmin", "SuperAdmin",
     };
 
     public static bool IsValidRole(string? r) =>
@@ -71,15 +71,36 @@ public class SetUserActiveCommandHandler
 
 // ---------------- Change role ----------------------------------------------
 
-public record ChangeUserRoleCommand(Guid UserId, string Role)
-    : IRequest<AdminUserDetailDto>;
+/// <summary>
+/// Change a user's role, optionally re-homing them under a different organization
+/// or branch. The tenancy fields are required for the roles that need them:
+///   - SuperAdmin: ignores OrganizationId/BranchId (always cleared).
+///   - OrgAdmin: requires OrganizationId; BranchId is cleared.
+///   - Teacher/Student: requires BranchId (OrganizationId is derived from it).
+/// </summary>
+public record ChangeUserRoleCommand(
+    Guid UserId,
+    string Role,
+    Guid? OrganizationId = null,
+    Guid? BranchId = null) : IRequest<AdminUserDetailDto>;
 
 public class ChangeUserRoleCommandValidator : AbstractValidator<ChangeUserRoleCommand>
 {
     public ChangeUserRoleCommandValidator()
     {
         RuleFor(x => x.Role).Must(AdminUserRules.IsValidRole)
-            .WithMessage("Role must be one of: Student, Teacher, Admin.");
+            .WithMessage("Role must be one of: Student, Teacher, OrgAdmin, SuperAdmin.");
+
+        RuleFor(x => x.OrganizationId)
+            .NotEmpty()
+            .When(x => string.Equals(x.Role, "OrgAdmin", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("Pick an organization for the org admin.");
+
+        RuleFor(x => x.BranchId)
+            .NotEmpty()
+            .When(x => string.Equals(x.Role, "Teacher", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(x.Role, "Student", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("Pick a branch for the teacher or student.");
     }
 }
 
@@ -110,22 +131,64 @@ public class ChangeUserRoleCommandHandler
             throw new InvalidOperationException("You can't change your own role.");
         }
 
-        // Avoid demoting the last remaining admin.
-        if (string.Equals(user.Role, "Admin", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(newRole, "Admin", StringComparison.OrdinalIgnoreCase))
+        // Avoid demoting the last remaining SuperAdmin.
+        if (string.Equals(user.Role, "SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(newRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
         {
-            var otherAdmins = await _db.Users
-                .CountAsync(u => u.Role == "Admin" && u.Id != user.Id && u.IsActive, cancellationToken);
-            if (otherAdmins == 0)
+            var otherSuperAdmins = await _db.Users
+                .CountAsync(u => u.Role == "SuperAdmin" && u.Id != user.Id && u.IsActive, cancellationToken);
+            if (otherSuperAdmins == 0)
             {
-                throw new InvalidOperationException("Can't demote the last active admin.");
+                throw new InvalidOperationException("Can't demote the last active super admin.");
             }
         }
 
         var previousRole = user.Role;
-        if (!string.Equals(previousRole, newRole, StringComparison.Ordinal))
+        var previousOrgId = user.OrganizationId;
+        var previousBranchId = user.BranchId;
+
+        // Resolve the new tenancy from the requested role. SuperAdmin is platform-wide
+        // (no org/branch). OrgAdmin attaches to an organization but no specific branch.
+        // Teacher/Student attach to a branch; the org is derived to keep them consistent.
+        Guid? newOrgId = previousOrgId;
+        Guid? newBranchId = previousBranchId;
+
+        if (string.Equals(newRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+        {
+            newOrgId = null;
+            newBranchId = null;
+        }
+        else if (string.Equals(newRole, "OrgAdmin", StringComparison.OrdinalIgnoreCase))
+        {
+            var targetOrgId = request.OrganizationId!.Value;
+            var orgExists = await _db.Organizations
+                .AnyAsync(o => o.Id == targetOrgId, cancellationToken);
+            if (!orgExists)
+            {
+                throw new KeyNotFoundException($"Organization {targetOrgId} was not found.");
+            }
+            newOrgId = targetOrgId;
+            newBranchId = null;
+        }
+        else // Teacher or Student
+        {
+            var targetBranchId = request.BranchId!.Value;
+            var branch = await _db.Branches
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.Id == targetBranchId, cancellationToken)
+                ?? throw new KeyNotFoundException($"Branch {targetBranchId} was not found.");
+            newBranchId = branch.Id;
+            newOrgId = branch.OrganizationId;
+        }
+
+        var roleChanged = !string.Equals(previousRole, newRole, StringComparison.Ordinal);
+        var tenancyChanged = previousOrgId != newOrgId || previousBranchId != newBranchId;
+
+        if (roleChanged || tenancyChanged)
         {
             user.Role = newRole;
+            user.OrganizationId = newOrgId;
+            user.BranchId = newBranchId;
             user.UpdatedAt = DateTime.UtcNow;
 
             _db.AuditLogs.Add(AdminAudit.Entry(
@@ -133,7 +196,14 @@ public class ChangeUserRoleCommandHandler
                 "user.role_changed",
                 "User",
                 user.Id,
-                new { user.Email, from = previousRole, to = newRole }));
+                new
+                {
+                    user.Email,
+                    from = previousRole,
+                    to = newRole,
+                    organizationId = newOrgId,
+                    branchId = newBranchId,
+                }));
 
             await _db.SaveChangesAsync(cancellationToken);
         }

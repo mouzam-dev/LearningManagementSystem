@@ -173,8 +173,10 @@
                           [class.text-primary-700]="u.role === 'Student'"
                           [class.bg-violet-100]="u.role === 'Teacher'"
                           [class.text-violet-700]="u.role === 'Teacher'"
-                          [class.bg-amber-100]="u.role === 'Admin'"
-                          [class.text-amber-700]="u.role === 'Admin'">{{ u.role }}</span>
+                          [class.bg-amber-100]="u.role === 'OrgAdmin'"
+                          [class.text-amber-700]="u.role === 'OrgAdmin'"
+                          [class.bg-rose-100]="u.role === 'SuperAdmin'"
+                          [class.text-rose-700]="u.role === 'SuperAdmin'">{{ u.role }}</span>
                     @if (!u.isActive) {
                       <span class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-700">Suspended</span>
                     }

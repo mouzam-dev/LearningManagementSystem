@@ -100,4 +100,23 @@ export class StudentService {
       `${environment.apiUrl}/certificates/verify/${encodeURIComponent(code)}`,
     );
   }
+
+  /** Recent announcements from enrolled courses — powers the dashboard widget. */
+  getAnnouncements(limit = 5): Observable<StudentAnnouncement[]> {
+    return this.http.get<StudentAnnouncement[]>(
+      `${this.baseUrl}/announcements?limit=${limit}`);
+  }
+}
+
+export interface StudentAnnouncement {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  authorId: string;
+  authorName: string;
+  title: string;
+  body: string;
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

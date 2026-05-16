@@ -15,7 +15,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         e.Property(x => x.PasswordHash).IsRequired().HasMaxLength(512);
         e.Property(x => x.FirstName).IsRequired().HasMaxLength(100);
         e.Property(x => x.LastName).IsRequired().HasMaxLength(100);
-        e.Property(x => x.Role).IsRequired().HasMaxLength(20);
+        e.Property(x => x.Role).IsRequired().HasMaxLength(40);
         e.Property(x => x.ProfilePictureUrl).HasMaxLength(500);
         e.Property(x => x.Bio).HasMaxLength(1000);
         e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
@@ -23,5 +23,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         e.HasIndex(x => x.Email).IsUnique();
         e.HasIndex(x => x.Role);
+        e.HasIndex(x => x.OrganizationId);
+        e.HasIndex(x => x.BranchId);
+
+        e.HasOne(x => x.Organization)
+            .WithMany(o => o.Users)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        e.HasOne(x => x.Branch)
+            .WithMany(b => b.Users)
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

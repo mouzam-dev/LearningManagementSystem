@@ -1,0 +1,57 @@
+<section class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Inbox</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Notifications</h1>
+      <p class="mt-2 text-sm text-muted">
+        Announcements, grading updates, and other activity from your courses.
+      </p>
+    </div>
+    @if (unreadCount() > 0) {
+      <button type="button" (click)="markAllRead()" [disabled]="busy()"
+              class="rounded-xl border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-50">
+        {{ busy() ? 'Marking…' : 'Mark all as read' }}
+      </button>
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+        <div class="h-16 animate-pulse rounded-xl bg-surface-3"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="rounded-3xl border-2 border-dashed border-line bg-surface px-6 py-16 text-center">
+      <h2 class="text-lg font-semibold text-ink">You're all caught up</h2>
+      <p class="mt-1 text-sm text-muted">New announcements and grading updates will show up here.</p>
+    </div>
+  } @else {
+    <ul class="divide-y divide-line rounded-2xl border border-line bg-surface shadow-sm">
+      @for (n of items(); track n.id) {
+        <li (click)="toggleRead(n.id, n.isRead)"
+            class="flex cursor-pointer items-start gap-3 px-5 py-4 transition hover:bg-surface-2"
+            [class.bg-primary-50]="!n.isRead">
+          <span class="mt-1 inline-flex h-2.5 w-2.5 shrink-0 rounded-full"
+                [class.bg-primary-600]="!n.isRead"
+                [class.bg-transparent]="n.isRead"
+                aria-hidden="true"></span>
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-baseline gap-2">
+              <p class="text-sm font-semibold text-ink">{{ n.title }}</p>
+              <span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                {{ n.type }}
+              </span>
+            </div>
+            <p class="mt-1 line-clamp-3 whitespace-pre-line text-sm text-muted">{{ n.message }}</p>
+            <p class="mt-1 text-xs text-subtle">{{ relativeTime(n.createdAt) }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>
