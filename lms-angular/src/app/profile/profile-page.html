@@ -98,17 +98,16 @@
       </div>
 
       <div class="mt-5">
-        <label for="avatar" class="block text-sm font-semibold text-ink-soft">
-          Avatar URL <span class="font-normal text-subtle">(optional)</span>
+        <label class="block text-sm font-semibold text-ink-soft">
+          Avatar <span class="font-normal text-subtle">(optional)</span>
         </label>
-        <input id="avatar" type="url" formControlName="profilePictureUrl"
-               class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-               [class.border-line]="!(detailsForm.controls.profilePictureUrl.touched && detailsForm.controls.profilePictureUrl.invalid)"
-               [class.border-rose-300]="detailsForm.controls.profilePictureUrl.touched && detailsForm.controls.profilePictureUrl.invalid"
-               placeholder="https://example.com/me.jpg" />
-        @if (detailsForm.controls.profilePictureUrl.touched && detailsForm.controls.profilePictureUrl.errors?.['url']) {
-          <p class="mt-1 text-xs text-rose-600">Must be a valid http(s) URL.</p>
-        }
+        <div class="mt-1.5">
+          <app-image-uploader
+            kind="avatar"
+            label="Profile picture"
+            [value]="detailsForm.controls.profilePictureUrl.value || null"
+            (uploaded)="detailsForm.controls.profilePictureUrl.setValue($event); detailsForm.controls.profilePictureUrl.markAsDirty()" />
+        </div>
         @if (serverFieldError(detailsFieldErrors(), 'ProfilePictureUrl'); as e) {
           <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
         }

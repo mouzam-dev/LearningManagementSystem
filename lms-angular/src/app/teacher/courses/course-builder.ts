@@ -4,6 +4,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
+import { ImageUploaderComponent } from '../../shared/uploads/image-uploader';
 import {
   TeacherCourseDetail,
   TeacherLesson,
@@ -59,7 +60,7 @@ const EMPTY_MODULE: ModuleDraft = { title: '', description: '' };
 @Component({
   selector: 'app-teacher-course-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CourseAnnouncementsPanel],
+  imports: [CommonModule, FormsModule, RouterLink, CourseAnnouncementsPanel, ImageUploaderComponent],
   templateUrl: './course-builder.html',
 })
 export class TeacherCourseBuilderPage {

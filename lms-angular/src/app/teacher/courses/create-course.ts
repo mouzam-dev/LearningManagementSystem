@@ -12,6 +12,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { ImageUploaderComponent } from '../../shared/uploads/image-uploader';
 import { TeacherService } from '../teacher.service';
 
 /** Mirror of the FluentValidation rules on CreateCourseCommand. Kept here so
@@ -27,7 +28,7 @@ interface CreateCourseFormControls {
 @Component({
   selector: 'app-teacher-create-course',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ImageUploaderComponent],
   templateUrl: './create-course.html',
 })
 export class TeacherCreateCoursePage {

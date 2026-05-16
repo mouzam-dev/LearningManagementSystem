@@ -627,11 +627,14 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-semibold text-ink-soft">Thumbnail URL</label>
-              <input type="url" [ngModel]="metaDraft().thumbnailUrl" name="metaThumbnailUrl"
-                     (ngModelChange)="updateDraft(metaDraft, 'thumbnailUrl', $event)"
-                     class="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                     placeholder="https://example.com/thumbnail.jpg" />
+              <label class="block text-sm font-semibold text-ink-soft">Thumbnail</label>
+              <div class="mt-1.5">
+                <app-image-uploader
+                  kind="thumbnail"
+                  label="Course thumbnail"
+                  [value]="metaDraft().thumbnailUrl || null"
+                  (uploaded)="updateDraft(metaDraft, 'thumbnailUrl', $event)" />
+              </div>
               @if (fieldError(metaErrors(), 'ThumbnailUrl'); as e) {
                 <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
               }

@@ -102,19 +102,18 @@
       </div>
     </div>
 
-    <!-- Thumbnail URL -->
+    <!-- Thumbnail -->
     <div>
-      <label for="thumbnailUrl" class="block text-sm font-semibold text-ink-soft">
-        Thumbnail URL <span class="font-normal text-subtle">(optional)</span>
+      <label class="block text-sm font-semibold text-ink-soft">
+        Thumbnail <span class="font-normal text-subtle">(optional)</span>
       </label>
-      <input id="thumbnailUrl" type="url" formControlName="thumbnailUrl"
-             class="mt-1.5 w-full rounded-xl border bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-             [class.border-line]="!(form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.invalid)"
-             [class.border-rose-300]="form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.invalid"
-             placeholder="https://example.com/thumbnail.jpg" />
-      @if (form.controls.thumbnailUrl.touched && form.controls.thumbnailUrl.errors?.['url']) {
-        <p class="mt-1 text-xs text-rose-600">Must be a valid http(s) URL.</p>
-      }
+      <div class="mt-1.5">
+        <app-image-uploader
+          kind="thumbnail"
+          label="Course thumbnail"
+          [value]="form.controls.thumbnailUrl.value || null"
+          (uploaded)="form.controls.thumbnailUrl.setValue($event); form.controls.thumbnailUrl.markAsDirty()" />
+      </div>
       @if (serverFieldError('ThumbnailUrl'); as e) {
         <p class="mt-1 text-xs text-rose-600">{{ e }}</p>
       }

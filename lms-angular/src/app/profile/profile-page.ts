@@ -12,6 +12,7 @@ import {
 } from '@angular/forms';
 
 import { AuthService } from '../auth/auth.service';
+import { ImageUploaderComponent } from '../shared/uploads/image-uploader';
 import { Profile } from './profile.models';
 import { ProfileService } from './profile.service';
 
@@ -31,7 +32,7 @@ interface PasswordControls {
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ImageUploaderComponent],
   templateUrl: './profile-page.html',
 })
 export class ProfilePage {

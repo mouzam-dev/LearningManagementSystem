@@ -260,6 +260,18 @@ h1, h2, h3, .display {
   gap: 0.75rem;
 }
 
+/* Grid children need min-width:0 to actually obey the 1fr track instead of
+   inflating to their intrinsic content width — without this, side-by-side
+   fields (e.g. First/Last name on the Register card) overflow the card. */
+.row > * {
+  min-width: 0;
+}
+.row .field input,
+.row .field select {
+  width: 100%;
+  min-width: 0;
+}
+
 /* Buttons inside auth-card / actions areas — solid coral. */
 .auth-card button[type='submit'],
 .auth-card .actions button {

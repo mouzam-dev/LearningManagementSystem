@@ -4,6 +4,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { ImageUploaderComponent } from '../../shared/uploads/image-uploader';
 import { OrganizationDetail } from './models/organization.models';
 import { OrganizationsService } from './organizations.service';
 
@@ -12,7 +13,7 @@ type Dialog = 'none' | 'edit-org' | 'create-branch' | 'edit-branch' | 'create-ad
 @Component({
   selector: 'app-organization-detail',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ImageUploaderComponent],
   templateUrl: './organization-detail.html',
 })
 export class OrganizationDetailPage {
@@ -36,6 +37,7 @@ export class OrganizationDetailPage {
     slug: ['', [Validators.pattern(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/)]],
     description: ['', [Validators.maxLength(2000)]],
     contactEmail: ['', [Validators.email]],
+    logoUrl: [''],
     isActive: [true],
   });
 
@@ -84,6 +86,7 @@ export class OrganizationDetailPage {
       slug: o.slug ?? '',
       description: o.description ?? '',
       contactEmail: o.contactEmail ?? '',
+      logoUrl: o.logoUrl ?? '',
       isActive: o.isActive,
     });
     this.dialogError.set(null);
@@ -100,7 +103,7 @@ export class OrganizationDetailPage {
       slug: v.slug.trim() || null,
       description: v.description.trim() || null,
       contactEmail: v.contactEmail.trim() || null,
-      logoUrl: this.data()?.logoUrl ?? null,
+      logoUrl: v.logoUrl.trim() || null,
       isActive: v.isActive,
     }).subscribe({
       next: (updated) => {
