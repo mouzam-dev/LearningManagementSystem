@@ -8,20 +8,23 @@
 .kv {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 0.4rem 1rem;
+  gap: 0.45rem 1rem;
   margin: 1.25rem 0;
 }
 
 .kv dt {
   color: var(--c-muted);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .kv dd {
   margin: 0;
   color: var(--c-ink);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 500;
 }
 
 .actions {
@@ -29,41 +32,49 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  margin: 1.25rem 0;
+  margin: 1.5rem 0 0.5rem;
 }
 
 .actions .primary-link {
   display: inline-block;
-  padding: 0.7rem 1rem;
-  background: var(--color-primary-600);
+  padding: 0.75rem 1.1rem;
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, #c026d3 100%);
   color: #ffffff;
-  border-radius: 0.75rem;
+  border-radius: 2px;
   font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
   text-decoration: none;
-  box-shadow: var(--shadow-sm);
-  transition: background 120ms ease;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.30);
+  transition: filter 120ms ease, box-shadow 120ms ease;
 }
 
 .actions .primary-link:hover {
-  background: var(--color-primary-700);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.42);
 }
 
 .actions .secondary {
   background: var(--c-surface-2);
   color: var(--c-ink);
-  border: 1px solid var(--c-line);
+  border: 1px solid var(--c-line-strong);
+  box-shadow: none;
 }
 
 .actions .secondary:hover {
   background: var(--c-surface-3);
+  filter: none;
+  box-shadow: none;
 }
 
 .result {
   background: var(--c-surface-3);
   color: var(--c-ink-soft);
-  padding: 0.85rem 1rem;
-  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: 2px;
   border: 1px solid var(--c-line);
   overflow-x: auto;
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
