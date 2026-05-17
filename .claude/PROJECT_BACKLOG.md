@@ -65,8 +65,8 @@ See the audit produced 2026-05-16 — short summary of the bigger missing bucket
   notification rules, storage, security policy, maintenance mode
 - **Bulk operations** — TCH-043 (bulk enroll), ADM-012 (bulk import users),
   TCH-032 (bulk grading) — all CSV-based
-- **Rich teacher tools** — co-instructors (TCH-007), archive/duplicate
-  courses (TCH-005/006), question bank (TCH-021), rubric builder (TCH-025),
-  content scheduling (TCH-017)
+- **Rich teacher tools** — ~~co-instructors (TCH-007)~~ shipped 2026-05-17;
+  ~~archive/duplicate courses (TCH-005/006)~~ shipped 2026-05-17;
+  question bank (TCH-021), rubric builder (TCH-025), content scheduling (TCH-017)
 - **Certificates** — PDF download (STU-061), badges (STU-063), social
   sharing (STU-064)
