@@ -4,6 +4,7 @@ using MediatR;
 using LMS.Application;
 using LMS.Application.Auth;
 using LMS.Application.Common;
+using LMS.Application.Student.Services;
 using LMS.Infrastructure.Persistence;
 using LMS.Infrastructure.Persistence.Seeding;
 using LMS.Infrastructure.Services.Auth;
@@ -55,6 +56,12 @@ builder.Services.Configure<LMS.Infrastructure.Services.Email.SmtpOptions>(builde
 builder.Services.AddScoped<IEmailSender, LMS.Infrastructure.Services.Email.SmtpEmailSender>();
 builder.Services.AddScoped<IAccountLifecycleService, LMS.Infrastructure.Services.Auth.AccountLifecycleService>();
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
+
+// QuestPDF needs its Community license registered before the first PDF is rendered.
+// Free under their non-commercial / under-$1M-revenue terms — fine for this LMS demo.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+builder.Services.AddSingleton<ICertificatePdfService,
+    LMS.Infrastructure.Services.Certificates.CertificatePdfService>();
 
 // Expose the EF Core ApplicationDbContext to MediatR handlers via the Application
 // abstraction, so Application code never references the concrete type.

@@ -92,6 +92,17 @@ export class StudentService {
   }
 
   /**
+   * Server-rendered PDF for the certificate. Returns the raw blob — caller
+   * triggers the actual download (so the same method works from a list page,
+   * a detail page, or a programmatic export).
+   */
+  downloadCertificatePdf(certificateId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/certificates/${certificateId}/pdf`, {
+      responseType: 'blob',
+    });
+  }
+
+  /**
    * Public verification — calls the anonymous /api/certificates/verify endpoint
    * (not under /api/student). Bypasses the JWT interceptor.
    */

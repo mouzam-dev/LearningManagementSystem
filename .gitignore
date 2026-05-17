@@ -123,3 +123,28 @@ coverage*/
 # The folder is created on demand by LocalFileStorage; keep it out of git.
 # =============================================================================
 src/LMS.WebAPI/wwwroot/uploads/
+# But keep the .gitignore / .gitkeep scaffolding so the empty folder structure
+# is preserved on a fresh clone (LocalFileStorage looks for these subfolders).
+!src/LMS.WebAPI/wwwroot/uploads/**/.gitignore
+!src/LMS.WebAPI/wwwroot/uploads/**/.gitkeep
+
+# =============================================================================
+# Angular production build output (lands in wwwroot during ./deploy/build-azure-bundle.ps1).
+# We don't want the chunk-*.js / main-*.js / index.html etc. tracked in git —
+# they're rebuilt from lms-angular/ on every deploy. The uploads/ folder above
+# is the one exception.
+# =============================================================================
+src/LMS.WebAPI/wwwroot/*.js
+src/LMS.WebAPI/wwwroot/*.css
+src/LMS.WebAPI/wwwroot/*.html
+src/LMS.WebAPI/wwwroot/*.ico
+src/LMS.WebAPI/wwwroot/*.json
+src/LMS.WebAPI/wwwroot/*.txt
+src/LMS.WebAPI/wwwroot/browser/
+
+# =============================================================================
+# Deploy artifacts — produced by ./deploy/build-azure-bundle.ps1 + smoke tests.
+# Keep the deploy/ folder structure + scripts; never commit the binary bundles.
+# =============================================================================
+deploy/*.zip
+deploy/sample-certificate.pdf

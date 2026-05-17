@@ -4,6 +4,7 @@ using LMS.Application.Common;
 using LMS.Application.Student.Commands;
 using LMS.Application.Student.Dtos;
 using LMS.Application.Student.Queries;
+using LMS.Application.Student.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +17,17 @@ namespace LMS.WebAPI.Controllers;
 public class StudentController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ICertificatePdfService _certificatePdfService;
+    private readonly IConfiguration _configuration;
 
-    public StudentController(IMediator mediator)
+    public StudentController(
+        IMediator mediator,
+        ICertificatePdfService certificatePdfService,
+        IConfiguration configuration)
     {
         _mediator = mediator;
+        _certificatePdfService = certificatePdfService;
+        _configuration = configuration;
     }
 
     [HttpGet("dashboard")]
@@ -212,6 +220,41 @@ public class StudentController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Download the certificate as a PDF. Re-uses <see cref="GetCertificateQuery"/>
+    /// (which enforces the ownership check) and pipes the DTO through QuestPDF.
+    /// Public verify URL is embedded so anyone holding the PDF can confirm it.
+    /// </summary>
+    [HttpGet("certificates/{certificateId:guid}/pdf")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCertificatePdf(Guid certificateId, CancellationToken ct)
+    {
+        CertificateDto cert;
+        try
+        {
+            cert = await _mediator.Send(new GetCertificateQuery(certificateId), ct);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+
+        // Prefer App:PublicWebUrl (set in App Service config for prod) so the
+        // embedded link points at the public hostname even when the API is
+        // behind a proxy. Fall back to the request origin in dev / local runs.
+        var publicWebUrl = _configuration["App:PublicWebUrl"];
+        var origin = !string.IsNullOrWhiteSpace(publicWebUrl)
+            ? publicWebUrl.TrimEnd('/')
+            : $"{Request.Scheme}://{Request.Host}";
+        var verifyUrl = $"{origin}/verify/{Uri.EscapeDataString(cert.VerifyCode)}";
+
+        var pdf = _certificatePdfService.Render(cert, verifyUrl);
+
+        var fileName = $"Certificate-{cert.VerifyCode}.pdf";
+        return File(pdf, "application/pdf", fileName);
     }
 
     [HttpPost("assessments/{assessmentId:guid}/submit")]

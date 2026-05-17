@@ -48,6 +48,8 @@ export class StudentCertificateDetail {
   readonly error = signal<string | null>(null);
   readonly cert = signal<Certificate | null>(null);
   readonly copied = signal(false);
+  readonly downloading = signal(false);
+  readonly downloadError = signal<string | null>(null);
 
   readonly verifyUrl = computed(() => {
     const c = this.cert();
@@ -99,4 +101,39 @@ export class StudentCertificateDetail {
       if (typeof window !== 'undefined') window.prompt('Copy this link:', url);
     }
   }
+
+  downloadPdf(): void {
+    const c = this.cert();
+    if (!c || this.downloading()) return;
+    this.downloading.set(true);
+    this.downloadError.set(null);
+
+    this.studentService.downloadCertificatePdf(c.certificateId).subscribe({
+      next: (blob) => {
+        triggerBlobDownload(blob, `Certificate-${c.verifyCode}.pdf`);
+        this.downloading.set(false);
+      },
+      error: () => {
+        this.downloading.set(false);
+        this.downloadError.set('Could not download the PDF. Please try again.');
+      },
+    });
+  }
+}
+
+/**
+ * Browser-only file-download helper. Creates a temporary object URL, clicks
+ * an anchor, then revokes the URL to release the blob. Kept top-level so the
+ * cert-list page can reuse it later without going through the component.
+ */
+function triggerBlobDownload(blob: Blob, fileName: string): void {
+  if (typeof window === 'undefined') return;
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 }

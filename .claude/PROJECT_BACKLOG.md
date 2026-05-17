@@ -37,11 +37,11 @@ Future extensions:
 
 ---
 
-## Email & account lifecycle (Path C — IN PROGRESS)
+## Email & account lifecycle (Path C — SHIPPED 2026-05-16)
 
-- SMTP-backed `IEmailSender`
-- Email verification at registration (STU-002)
-- Password reset flow (STU-005)
+- ~~SMTP-backed `IEmailSender`~~ shipped
+- ~~Email verification at registration (STU-002)~~ shipped — `/auth/verify-email`
+- ~~Password reset flow (STU-005)~~ shipped — `/auth/forgot-password` + `/auth/reset-password`
 
 ---
 
@@ -68,5 +68,8 @@ See the audit produced 2026-05-16 — short summary of the bigger missing bucket
 - **Rich teacher tools** — ~~co-instructors (TCH-007)~~ shipped 2026-05-17;
   ~~archive/duplicate courses (TCH-005/006)~~ shipped 2026-05-17;
   question bank (TCH-021), rubric builder (TCH-025), content scheduling (TCH-017)
-- **Certificates** — PDF download (STU-061), badges (STU-063), social
-  sharing (STU-064)
+- **Certificates** — ~~PDF download (STU-061)~~ shipped 2026-05-17 (QuestPDF
+  on `GET /api/student/certificates/{id}/pdf`); ~~public verification page
+  (STU-062)~~ shipped earlier (`/verify/:code` against anonymous
+  `/api/certificates/verify/{code}`); badges (STU-063), social sharing
+  (STU-064) still TODO
