@@ -104,10 +104,17 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 
 builder.Services.AddCors(options =>
     options.AddPolicy(CorsPolicyName, policy =>
+    {
+        // Skip configuring origins entirely when none are listed — happens in
+        // production where the SPA is served from the same App Service as the
+        // API and no cross-origin requests exist. Calling WithOrigins([]) is
+        // a misconfiguration ASP.NET refuses to start with.
+        if (allowedOrigins.Length == 0) return;
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()));
+              .AllowCredentials();
+    }));
 
 // ---------------------------------------------------------------------------
 // Web API
@@ -119,11 +126,21 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // ---------------------------------------------------------------------------
-// Apply EF Core migrations automatically in Development. Lets `docker compose
-// up` bring up a fresh SQL Server volume and have the schema ready without a
-// manual `dotnet ef database update` step. Idempotent for existing databases.
+// Apply EF Core migrations automatically. Always runs (Development + Production)
+// so the first deploy to Azure picks up the schema without a manual step.
+// Idempotent for existing databases. The sample-data seeder is itself idempotent
+// (it bails out the moment one Course exists) so re-running on each cold start
+// is safe — only fires on a fresh database.
+//
+// Disable with environment variable LMS_SKIP_AUTO_MIGRATE=true if you ever need
+// to deploy without touching the DB schema.
 // ---------------------------------------------------------------------------
-if (app.Environment.IsDevelopment())
+var skipAutoMigrate = string.Equals(
+    Environment.GetEnvironmentVariable("LMS_SKIP_AUTO_MIGRATE"),
+    "true",
+    StringComparison.OrdinalIgnoreCase);
+
+if (!skipAutoMigrate)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -137,13 +154,21 @@ if (app.Environment.IsDevelopment())
         .CreateLogger("TenancySeeder");
     await TenancySeeder.SeedAsync(db, seedLogger);
 
-    // Sample data: only runs when the catalog is empty (i.e. on a freshly
-    // dropped dev DB). Produces 3 orgs / ~80 users / 15 courses with lessons,
-    // assessments, enrollments and a few completions so the UI looks real.
-    var sampleLogger = scope.ServiceProvider
-        .GetRequiredService<ILoggerFactory>()
-        .CreateLogger("SampleDataSeeder");
-    await SampleDataSeeder.SeedAsync(db, sampleLogger);
+    // Sample data: only runs when the catalog is empty. Produces 3 orgs / ~80
+    // users / 15 courses with lessons, assessments, enrollments and a few
+    // completions so the UI looks real. Set LMS_SEED_SAMPLE=false in App Service
+    // settings if you want an empty production DB.
+    var seedSample = !string.Equals(
+        Environment.GetEnvironmentVariable("LMS_SEED_SAMPLE"),
+        "false",
+        StringComparison.OrdinalIgnoreCase);
+    if (seedSample)
+    {
+        var sampleLogger = scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("SampleDataSeeder");
+        await SampleDataSeeder.SeedAsync(db, sampleLogger);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -176,5 +201,33 @@ app.MapControllers();
 
 // Smoke endpoint to verify the API boots before controllers exist.
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", utc = DateTime.UtcNow }));
+
+// ---------------------------------------------------------------------------
+// SPA fallback — when the Angular build has been copied into wwwroot during a
+// production deploy, any non-API request that doesn't match a static file
+// should return index.html so the Angular Router can take over. Lets a single
+// App Service host both the API and the SPA (no CORS, no second origin).
+//
+// In Development we don't enable this so /api routes still 404 cleanly when
+// the Angular dev server isn't proxying.
+// ---------------------------------------------------------------------------
+if (!app.Environment.IsDevelopment())
+{
+    var indexPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "index.html");
+    if (File.Exists(indexPath))
+    {
+        app.MapFallback(async ctx =>
+        {
+            // Don't swallow API misses — let them 404 normally.
+            if (ctx.Request.Path.StartsWithSegments("/api"))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+            ctx.Response.ContentType = "text/html; charset=utf-8";
+            await ctx.Response.SendFileAsync(indexPath);
+        });
+    }
+}
 
 app.Run();
