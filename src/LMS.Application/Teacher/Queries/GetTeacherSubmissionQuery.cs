@@ -30,13 +30,10 @@ public class GetTeacherSubmissionQueryHandler
             .Include(s => s.Student)
             .Include(s => s.Assessment).ThenInclude(a => a.Course)
             .Include(s => s.Assessment).ThenInclude(a => a.Questions.OrderBy(q => q.Order))
-            .FirstOrDefaultAsync(s => s.Id == request.SubmissionId, cancellationToken)
+            .FirstOrDefaultAsync(s => s.Id == request.SubmissionId
+                && (s.Assessment.Course.TeacherId == teacherId
+                    || s.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Submission {request.SubmissionId} was not found.");
-
-        if (submission.Assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Submission {request.SubmissionId} was not found.");
-        }
 
         var totalPoints = submission.Assessment.Questions.Sum(q => q.Points);
 

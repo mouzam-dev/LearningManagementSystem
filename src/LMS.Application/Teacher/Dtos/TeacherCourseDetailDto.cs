@@ -10,11 +10,15 @@ public class TeacherCourseDetailDto
     public string? ThumbnailUrl { get; set; }
     public int? MaxStudents { get; set; }
     public bool IsPublished { get; set; }
+    public bool IsArchived { get; set; }
+    /// <summary>True when the caller is the primary teacher; false = co-instructor.</summary>
+    public bool IsPrimaryTeacher { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     public int StudentCount { get; set; }
     public int AssessmentCount { get; set; }
+    public int CoInstructorCount { get; set; }
     public decimal AverageProgress { get; set; }
 
     public IReadOnlyList<TeacherModuleDto> Modules { get; set; } = Array.Empty<TeacherModuleDto>();

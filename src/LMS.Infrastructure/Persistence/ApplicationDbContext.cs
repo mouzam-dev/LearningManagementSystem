@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<Course> Courses => Set<Course>();
+    public DbSet<CourseCoInstructor> CourseCoInstructors => Set<CourseCoInstructor>();
     public DbSet<Module> Modules => Set<Module>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();

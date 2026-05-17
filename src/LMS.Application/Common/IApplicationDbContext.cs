@@ -16,6 +16,7 @@ public interface IApplicationDbContext
     DbSet<Permission> Permissions { get; }
     DbSet<RolePermission> RolePermissions { get; }
     DbSet<Course> Courses { get; }
+    DbSet<CourseCoInstructor> CourseCoInstructors { get; }
     DbSet<Module> Modules { get; }
     DbSet<Lesson> Lessons { get; }
     DbSet<Enrollment> Enrollments { get; }

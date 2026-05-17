@@ -72,12 +72,10 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
 
         var assessment = await _db.Assessments
             .Include(a => a.Course)
-            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId, cancellationToken)
+            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId
+                && (a.Course.TeacherId == teacherId
+                    || a.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        if (assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        }
 
         var maxOrder = await _db.Questions
             .Where(q => q.AssessmentId == assessment.Id)
@@ -170,12 +168,10 @@ public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionComman
 
         var question = await _db.Questions
             .Include(q => q.Assessment).ThenInclude(a => a.Course)
-            .FirstOrDefaultAsync(q => q.Id == request.QuestionId, cancellationToken)
+            .FirstOrDefaultAsync(q => q.Id == request.QuestionId
+                && (q.Assessment.Course.TeacherId == teacherId
+                    || q.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Question {request.QuestionId} was not found.");
-        if (question.Assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Question {request.QuestionId} was not found.");
-        }
 
         question.QuestionText = request.QuestionText.Trim();
         question.Type = request.Type.Trim();
@@ -215,12 +211,10 @@ public class DeleteQuestionCommandHandler : IRequestHandler<DeleteQuestionComman
 
         var question = await _db.Questions
             .Include(q => q.Assessment).ThenInclude(a => a.Course)
-            .FirstOrDefaultAsync(q => q.Id == request.QuestionId, cancellationToken)
+            .FirstOrDefaultAsync(q => q.Id == request.QuestionId
+                && (q.Assessment.Course.TeacherId == teacherId
+                    || q.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Question {request.QuestionId} was not found.");
-        if (question.Assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Question {request.QuestionId} was not found.");
-        }
 
         _db.Questions.Remove(question);
         question.Assessment.Course.UpdatedAt = DateTime.UtcNow;

@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
   CourseAnalytics,
+  CourseInstructor,
   CourseStudentDetail,
   CourseStudentListItem,
   CreateAssessmentBody,
@@ -13,6 +14,7 @@ import {
   CreateModuleBody,
   CreateQuestionBody,
   CreatedCourse,
+  EligibleCoInstructor,
   GradeSubmissionBody,
   GradingQueueItem,
   TeacherAssessment,
@@ -39,12 +41,52 @@ export class TeacherService {
     return this.http.get<TeacherDashboard>(`${this.baseUrl}/dashboard`);
   }
 
-  getCourses(): Observable<TeacherCourseListItem[]> {
-    return this.http.get<TeacherCourseListItem[]>(`${this.baseUrl}/courses`);
+  getCourses(includeArchived = false): Observable<TeacherCourseListItem[]> {
+    let params = new HttpParams();
+    if (includeArchived) params = params.set('includeArchived', 'true');
+    return this.http.get<TeacherCourseListItem[]>(`${this.baseUrl}/courses`, { params });
   }
 
   createCourse(body: CreateCourseBody): Observable<CreatedCourse> {
     return this.http.post<CreatedCourse>(`${this.baseUrl}/courses`, body);
+  }
+
+  setCourseArchived(courseId: string, isArchived: boolean): Observable<TeacherCourseDetail> {
+    return this.http.patch<TeacherCourseDetail>(
+      `${this.baseUrl}/courses/${courseId}/archived`,
+      { isArchived },
+    );
+  }
+
+  duplicateCourse(courseId: string, newTitle?: string | null): Observable<CreatedCourse> {
+    return this.http.post<CreatedCourse>(
+      `${this.baseUrl}/courses/${courseId}/duplicate`,
+      { newTitle: newTitle ?? null },
+    );
+  }
+
+  // ---- Co-instructors --------------------------------------------------
+
+  listCourseInstructors(courseId: string): Observable<CourseInstructor[]> {
+    return this.http.get<CourseInstructor[]>(
+      `${this.baseUrl}/courses/${courseId}/instructors`);
+  }
+
+  listEligibleCoInstructors(courseId: string, search?: string): Observable<EligibleCoInstructor[]> {
+    let params = new HttpParams();
+    if (search?.trim()) params = params.set('search', search.trim());
+    return this.http.get<EligibleCoInstructor[]>(
+      `${this.baseUrl}/courses/${courseId}/instructors/eligible`, { params });
+  }
+
+  addCoInstructor(courseId: string, userId: string): Observable<CourseInstructor[]> {
+    return this.http.post<CourseInstructor[]>(
+      `${this.baseUrl}/courses/${courseId}/instructors`, { userId });
+  }
+
+  removeCoInstructor(courseId: string, userId: string): Observable<CourseInstructor[]> {
+    return this.http.delete<CourseInstructor[]>(
+      `${this.baseUrl}/courses/${courseId}/instructors/${userId}`);
   }
 
   // ---- Course builder ---------------------------------------------------

@@ -49,14 +49,10 @@ public class CreateAnnouncementCommandHandler
         var teacherId = _currentUser.GetUserId();
 
         var course = await _db.Courses
-            .FirstOrDefaultAsync(c => c.Id == request.CourseId, ct)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId
+                && (c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId)), ct)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-
-        if (course.TeacherId != teacherId)
-        {
-            throw new UnauthorizedAccessException(
-                "You can only post announcements to your own courses.");
-        }
 
         var now = DateTime.UtcNow;
         var announcement = new Announcement

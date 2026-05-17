@@ -27,17 +27,23 @@ public class GetCourseAnnouncementsQueryHandler
     {
         var teacherId = _currentUser.GetUserId();
 
-        // Teacher must own the course OR be a Student enrolled in it. We let
-        // students reach this endpoint too so the course-detail page can show
-        // the announcement timeline without a separate query.
+        // Teacher (primary OR co-instructor) must own the course, OR the caller
+        // must be a Student enrolled in it. We let students reach this endpoint
+        // so the course-detail page can show the announcement timeline without
+        // a separate query.
         var course = await _db.Courses
             .AsNoTracking()
             .Where(c => c.Id == request.CourseId)
-            .Select(c => new { c.Id, c.TeacherId })
+            .Select(c => new
+            {
+                c.Id,
+                IsTeacherOnCourse = c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId),
+            })
             .FirstOrDefaultAsync(ct)
             ?? throw new KeyNotFoundException("Course not found.");
 
-        if (course.TeacherId != teacherId)
+        if (!course.IsTeacherOnCourse)
         {
             var enrolled = await _db.Enrollments
                 .AsNoTracking()

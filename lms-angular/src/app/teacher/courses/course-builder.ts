@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { ImageUploaderComponent } from '../../shared/uploads/image-uploader';
 import {
@@ -11,7 +11,9 @@ import {
   TeacherModule,
 } from '../models/teacher.models';
 import { TeacherService } from '../teacher.service';
+import { AuthService } from '../../auth/auth.service';
 import { CourseAnnouncementsPanel } from './course-announcements';
+import { CourseInstructorsPanel } from './course-instructors';
 
 type LessonDraft = {
   title: string;
@@ -60,11 +62,17 @@ const EMPTY_MODULE: ModuleDraft = { title: '', description: '' };
 @Component({
   selector: 'app-teacher-course-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CourseAnnouncementsPanel, ImageUploaderComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CourseAnnouncementsPanel, CourseInstructorsPanel, ImageUploaderComponent],
   templateUrl: './course-builder.html',
 })
 export class TeacherCourseBuilderPage {
   private readonly teacher = inject(TeacherService);
+  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
+
+  /** Used by the <app-course-instructors> panel to highlight / hide the
+   *  "Leave" button for the caller. */
+  readonly currentUserId = computed(() => this.auth.user()?.id ?? '');
 
   readonly courseId = input.required<string>();
 
@@ -223,6 +231,48 @@ export class TeacherCourseBuilderPage {
         } else {
           this.publishError.set(this.formatError(err));
         }
+      },
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Archive + Duplicate (TCH-005 / TCH-006)
+  // -------------------------------------------------------------------------
+
+  toggleArchived(): void {
+    const c = this.course();
+    if (!c) return;
+    const next = !c.isArchived;
+    if (next && typeof window !== 'undefined' &&
+        !window.confirm(`Archive "${c.title}"? Students can no longer enroll and the course will be unpublished. You can unarchive at any time.`)) {
+      return;
+    }
+    this.busy.set('archive');
+    this.teacher.setCourseArchived(c.courseId, next).subscribe({
+      next: (updated) => {
+        this.course.set(updated);
+        this.busy.set(null);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.busy.set(null);
+        this.publishError.set(this.formatError(err));
+      },
+    });
+  }
+
+  duplicate(): void {
+    const c = this.course();
+    if (!c) return;
+    this.busy.set('duplicate');
+    this.teacher.duplicateCourse(c.courseId).subscribe({
+      next: (created) => {
+        this.busy.set(null);
+        // Land in the new draft.
+        this.router.navigate(['/teacher/courses', created.courseId]);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.busy.set(null);
+        this.publishError.set(this.formatError(err));
       },
     });
   }

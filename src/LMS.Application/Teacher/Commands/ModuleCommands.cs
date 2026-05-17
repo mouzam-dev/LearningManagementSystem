@@ -39,13 +39,15 @@ public class CreateModuleCommandHandler : IRequestHandler<CreateModuleCommand, T
     {
         var teacherId = _currentUser.GetUserId();
 
+        // Visible to the primary teacher OR any co-instructor. The inline
+        // filter on CoInstructors translates to an EXISTS in SQL so an
+        // unauthorized lookup returns null — and we surface a clean 404
+        // rather than leak existence.
         var course = await _db.Courses
-            .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId
+                && (c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        if (course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        }
 
         // Append to the end of the existing modules.
         var maxOrder = await _db.Modules
@@ -115,12 +117,10 @@ public class UpdateModuleCommandHandler : IRequestHandler<UpdateModuleCommand, T
 
         var module = await _db.Modules
             .Include(m => m.Course)
-            .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken)
+            .FirstOrDefaultAsync(m => m.Id == request.ModuleId
+                && (m.Course.TeacherId == teacherId
+                    || m.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Module {request.ModuleId} was not found.");
-        if (module.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Module {request.ModuleId} was not found.");
-        }
 
         module.Title = request.Title.Trim();
         module.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
@@ -163,12 +163,10 @@ public class DeleteModuleCommandHandler : IRequestHandler<DeleteModuleCommand, U
 
         var module = await _db.Modules
             .Include(m => m.Course)
-            .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken)
+            .FirstOrDefaultAsync(m => m.Id == request.ModuleId
+                && (m.Course.TeacherId == teacherId
+                    || m.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Module {request.ModuleId} was not found.");
-        if (module.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Module {request.ModuleId} was not found.");
-        }
 
         _db.Modules.Remove(module);   // EF cascade also removes lessons
         module.Course.UpdatedAt = DateTime.UtcNow;

@@ -55,13 +55,10 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, T
         var teacherId = _currentUser.GetUserId();
 
         var course = await _db.Courses
-            .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId
+                && (c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-
-        if (course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        }
 
         course.Title = request.Title.Trim();
         course.Description = request.Description.Trim();

@@ -36,9 +36,11 @@ public class TeacherController : ControllerBase
 
     [HttpGet("courses")]
     [ProducesResponseType(typeof(IReadOnlyList<TeacherCourseListItemDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<TeacherCourseListItemDto>>> GetCourses(CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<TeacherCourseListItemDto>>> GetCourses(
+        [FromQuery] bool includeArchived = false,
+        CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetTeacherCoursesQuery(), ct);
+        var result = await _mediator.Send(new GetTeacherCoursesQuery(includeArchived), ct);
         return Ok(result);
     }
 
@@ -653,6 +655,125 @@ public class TeacherController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Co-instructors (TCH-007)
+    // -----------------------------------------------------------------------
+
+    [HttpGet("courses/{courseId:guid}/instructors")]
+    [ProducesResponseType(typeof(IReadOnlyList<CourseInstructorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<CourseInstructorDto>>> GetCourseInstructors(
+        Guid courseId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetCourseInstructorsQuery(courseId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    [HttpGet("courses/{courseId:guid}/instructors/eligible")]
+    [ProducesResponseType(typeof(IReadOnlyList<EligibleCoInstructorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<EligibleCoInstructorDto>>> GetEligibleCoInstructors(
+        Guid courseId,
+        [FromQuery] string? search = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _mediator.Send(new GetEligibleCoInstructorsQuery(courseId, search), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    public class AddCoInstructorRequest
+    {
+        public Guid UserId { get; set; }
+    }
+
+    [HttpPost("courses/{courseId:guid}/instructors")]
+    [ProducesResponseType(typeof(IReadOnlyList<CourseInstructorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<IReadOnlyList<CourseInstructorDto>>> AddCoInstructor(
+        Guid courseId, [FromBody] AddCoInstructorRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new AddCourseCoInstructorCommand(courseId, request.UserId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
+
+    [HttpDelete("courses/{courseId:guid}/instructors/{userId:guid}")]
+    [ProducesResponseType(typeof(IReadOnlyList<CourseInstructorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<IReadOnlyList<CourseInstructorDto>>> RemoveCoInstructor(
+        Guid courseId, Guid userId, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new RemoveCourseCoInstructorCommand(courseId, userId), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
+    }
+
+    // -----------------------------------------------------------------------
+    // Archive + Duplicate (TCH-005 / TCH-006)
+    // -----------------------------------------------------------------------
+
+    public class SetArchivedRequest
+    {
+        public bool IsArchived { get; set; }
+    }
+
+    [HttpPatch("courses/{courseId:guid}/archived")]
+    [ProducesResponseType(typeof(TeacherCourseDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TeacherCourseDetailDto>> SetCourseArchived(
+        Guid courseId, [FromBody] SetArchivedRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new SetCourseArchivedCommand(courseId, request.IsArchived), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    public class DuplicateCourseRequest
+    {
+        public string? NewTitle { get; set; }
+    }
+
+    [HttpPost("courses/{courseId:guid}/duplicate")]
+    [ProducesResponseType(typeof(CreatedCourseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CreatedCourseDto>> DuplicateCourse(
+        Guid courseId, [FromBody] DuplicateCourseRequest? request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new DuplicateCourseCommand(courseId, request?.NewTitle), ct);
+            return CreatedAtAction(nameof(GetCourses), null, result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
     // -----------------------------------------------------------------------

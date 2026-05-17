@@ -29,8 +29,10 @@ public class EnrollCommandHandler : IRequestHandler<EnrollCommand, CourseListIte
             .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
 
-        if (!course.IsPublished)
+        if (!course.IsPublished || course.IsArchived)
         {
+            // Same message for unpublished + archived — no point telling a
+            // would-be student "the teacher pulled this one offline".
             throw new InvalidOperationException("This course is not currently available for enrollment.");
         }
 

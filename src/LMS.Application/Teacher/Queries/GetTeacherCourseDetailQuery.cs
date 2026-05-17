@@ -27,14 +27,10 @@ public class GetTeacherCourseDetailQueryHandler
             .AsNoTracking()
             .Include(c => c.Modules.OrderBy(m => m.Order))
                 .ThenInclude(m => m.Lessons.OrderBy(l => l.Order))
-            .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId
+                && (c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-
-        if (course.TeacherId != teacherId)
-        {
-            // Same 404 message as "doesn't exist" so other teachers can't probe ids.
-            throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        }
 
         var studentCount = await _db.Enrollments
             .AsNoTracking()
@@ -74,6 +70,10 @@ public class GetTeacherCourseDetailQueryHandler
             .AverageAsync(e => (decimal?)e.ProgressPercentage, cancellationToken)
             ?? 0m;
 
+        var coInstructorCount = await _db.CourseCoInstructors
+            .AsNoTracking()
+            .CountAsync(ci => ci.CourseId == course.Id, cancellationToken);
+
         return new TeacherCourseDetailDto
         {
             CourseId = course.Id,
@@ -83,10 +83,13 @@ public class GetTeacherCourseDetailQueryHandler
             ThumbnailUrl = course.ThumbnailUrl,
             MaxStudents = course.MaxStudents,
             IsPublished = course.IsPublished,
+            IsArchived = course.IsArchived,
+            IsPrimaryTeacher = course.TeacherId == teacherId,
             CreatedAt = course.CreatedAt,
             UpdatedAt = course.UpdatedAt,
             StudentCount = studentCount,
             AssessmentCount = assessmentCount,
+            CoInstructorCount = coInstructorCount,
             AverageProgress = Math.Round(averageProgress, 1),
             Modules = course.Modules
                 .OrderBy(m => m.Order)

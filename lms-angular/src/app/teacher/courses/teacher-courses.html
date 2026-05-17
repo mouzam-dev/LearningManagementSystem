@@ -1,10 +1,10 @@
 <section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-  <header class="mb-8 flex flex-wrap items-end justify-between gap-3">
+  <header class="mb-6 flex flex-wrap items-end justify-between gap-3">
     <div>
       <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher</p>
       <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">My courses</h1>
       <p class="mt-2 max-w-2xl text-sm text-muted">
-        Everything you teach. Drafts stay private until you publish them.
+        Everything you teach (including courses you co-instruct). Drafts stay private until you publish them.
       </p>
     </div>
     <a routerLink="/teacher/courses/new"
@@ -17,6 +17,23 @@
     </a>
   </header>
 
+  <!-- Visibility filter chips: Active (default) / Archived / All -->
+  <div class="mb-5 inline-flex rounded-xl border border-line bg-surface p-0.5 shadow-sm">
+    @for (v of [{ k: 'active', label: 'Active' }, { k: 'archived', label: 'Archived' }, { k: 'all', label: 'All' }]; track v.k) {
+      <button type="button" (click)="setVisibility($any(v.k))"
+              class="rounded-lg px-3 py-1.5 text-xs font-semibold transition"
+              [class.bg-primary-600]="visibility() === v.k"
+              [class.text-white]="visibility() === v.k"
+              [class.text-muted]="visibility() !== v.k"
+              [class.hover:bg-surface-2]="visibility() !== v.k">
+        {{ v.label }}
+        @if (v.k === 'archived' && archivedCount() > 0) {
+          <span class="ml-1 text-[10px] opacity-70">({{ archivedCount() }})</span>
+        }
+      </button>
+    }
+  </div>
+
   @if (loading()) {
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       @for (i of [0, 1, 2, 3]; track i) {
@@ -27,7 +44,7 @@
     <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
       <p class="text-base font-semibold">{{ error() }}</p>
     </div>
-  } @else if (courses().length === 0) {
+  } @else if (visibleCourses().length === 0) {
     <div class="rounded-3xl border-2 border-dashed border-line bg-surface px-6 py-16 text-center">
       <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
         <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
@@ -35,41 +52,68 @@
           <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
         </svg>
       </div>
-      <h2 class="mt-4 text-lg font-semibold text-ink">You haven't created any courses yet</h2>
+      <h2 class="mt-4 text-lg font-semibold text-ink">
+        @if (visibility() === 'archived') { No archived courses }
+        @else if (visibility() === 'all' && courses().length === 0) { You haven't created any courses yet }
+        @else { No active courses }
+      </h2>
       <p class="mt-1 text-sm text-muted">
-        Start a draft — you can add modules, lessons, and assessments before publishing.
+        @if (visibility() === 'archived') {
+          Courses you archive will land here. Active courses are listed under "Active".
+        } @else {
+          Start a draft — you can add modules, lessons, and assessments before publishing.
+        }
       </p>
-      <a routerLink="/teacher/courses/new"
-         class="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
-        Create your first course
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m9 18 6-6-6-6"></path>
-        </svg>
-      </a>
+      @if (visibility() !== 'archived') {
+        <a routerLink="/teacher/courses/new"
+           class="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+          Create your first course
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </a>
+      }
     </div>
   } @else {
     <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      @for (c of courses(); track c.courseId) {
-        <li [id]="c.courseId">
+      @for (c of visibleCourses(); track c.courseId) {
+        <li [id]="c.courseId" class="relative">
           <a [routerLink]="['/teacher/courses', c.courseId]"
-             class="group flex h-full flex-col rounded-2xl border border-line bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-lg">
+             class="group flex h-full flex-col rounded-2xl border border-line bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-lg"
+             [class.opacity-70]="c.isArchived">
             <!-- Thumbnail or gradient placeholder -->
             <div class="relative h-32 overflow-hidden rounded-t-2xl">
               @if (c.thumbnailUrl) {
-                <img [src]="c.thumbnailUrl" [alt]="c.title" class="h-full w-full object-cover" />
+                <img [src]="c.thumbnailUrl" [alt]="c.title" class="h-full w-full object-cover"
+                     [class.grayscale]="c.isArchived" />
               } @else {
-                <div class="flex h-full w-full items-center justify-center bg-linear-to-br from-indigo-500 to-violet-600 text-white">
+                <div class="flex h-full w-full items-center justify-center bg-linear-to-br from-indigo-500 to-violet-600 text-white"
+                     [class.grayscale]="c.isArchived">
                   <span class="text-3xl font-bold">{{ c.title.charAt(0) }}</span>
                 </div>
               }
-              <span class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur"
-                    [class.bg-emerald-100]="c.isPublished"
-                    [class.text-emerald-700]="c.isPublished"
-                    [class.bg-amber-100]="!c.isPublished"
-                    [class.text-amber-700]="!c.isPublished">
-                {{ c.isPublished ? 'Published' : 'Draft' }}
-              </span>
+              <div class="absolute right-3 top-3 flex flex-wrap items-center gap-1.5">
+                @if (c.isArchived) {
+                  <span class="inline-flex items-center gap-1 rounded-full bg-slate-200/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700 backdrop-blur">
+                    Archived
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold backdrop-blur"
+                        [class.bg-emerald-100]="c.isPublished"
+                        [class.text-emerald-700]="c.isPublished"
+                        [class.bg-amber-100]="!c.isPublished"
+                        [class.text-amber-700]="!c.isPublished">
+                    {{ c.isPublished ? 'Published' : 'Draft' }}
+                  </span>
+                }
+                @if (!c.isPrimaryTeacher) {
+                  <span class="inline-flex items-center gap-1 rounded-full bg-primary-100/90 px-2 py-0.5 text-[10px] font-semibold text-primary-700 backdrop-blur"
+                        title="You're listed as a co-instructor on this course">
+                    Co-instructor
+                  </span>
+                }
+              </div>
             </div>
 
             <!-- Body -->
@@ -97,11 +141,31 @@
               <div class="mt-4 flex items-center justify-between">
                 <p class="text-[10px] text-subtle">
                   Updated {{ c.updatedAt | date: 'mediumDate' }}
+                  @if (c.coInstructorCount > 0) {
+                    · {{ c.coInstructorCount }} co-instructor{{ c.coInstructorCount === 1 ? '' : 's' }}
+                  }
                 </p>
                 <span class="text-xs font-semibold text-primary-600 group-hover:text-primary-700">Open →</span>
               </div>
             </div>
           </a>
+
+          <!-- Duplicate action — sits over the card, outside the routerLink so it doesn't navigate. -->
+          <button type="button" (click)="duplicate(c)"
+                  [disabled]="duplicatingId() !== null"
+                  class="absolute right-3 top-[100px] z-10 inline-flex items-center gap-1 rounded-lg bg-white/90 px-2 py-1 text-[11px] font-semibold text-ink-soft opacity-0 shadow-sm backdrop-blur transition hover:bg-white hover:text-primary-600 disabled:cursor-wait disabled:opacity-50 group-hover:opacity-100 sm:top-[136px]"
+                  title="Duplicate this course as a fresh draft">
+            @if (duplicatingId() === c.courseId) {
+              Duplicating…
+            } @else {
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Duplicate
+            }
+          </button>
         </li>
       }
     </ul>

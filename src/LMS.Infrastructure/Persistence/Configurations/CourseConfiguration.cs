@@ -37,6 +37,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         e.HasIndex(x => x.Category);
         e.HasIndex(x => x.TeacherId);
         e.HasIndex(x => x.IsPublished);
+        e.HasIndex(x => x.IsArchived);
         e.HasIndex(x => x.OrganizationId);
         e.HasIndex(x => x.BranchId);
     }

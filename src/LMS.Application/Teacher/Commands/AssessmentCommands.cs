@@ -65,12 +65,10 @@ public class CreateAssessmentCommandHandler : IRequestHandler<CreateAssessmentCo
         var teacherId = _currentUser.GetUserId();
 
         var course = await _db.Courses
-            .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId
+                && (c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        if (course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        }
 
         var assessment = new Assessment
         {
@@ -134,12 +132,10 @@ public class UpdateAssessmentCommandHandler : IRequestHandler<UpdateAssessmentCo
 
         var assessment = await _db.Assessments
             .Include(a => a.Course)
-            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId, cancellationToken)
+            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId
+                && (a.Course.TeacherId == teacherId
+                    || a.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        if (assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        }
 
         assessment.Title = request.Title.Trim();
         assessment.TimeLimit = request.TimeLimit;
@@ -175,12 +171,10 @@ public class DeleteAssessmentCommandHandler : IRequestHandler<DeleteAssessmentCo
 
         var assessment = await _db.Assessments
             .Include(a => a.Course)
-            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId, cancellationToken)
+            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId
+                && (a.Course.TeacherId == teacherId
+                    || a.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        if (assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        }
 
         _db.Assessments.Remove(assessment); // EF cascades to Questions + Submissions
         assessment.Course.UpdatedAt = DateTime.UtcNow;

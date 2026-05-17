@@ -34,7 +34,12 @@
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-[10px] font-semibold uppercase tracking-wider text-primary-600">{{ c.category }}</span>
             <span aria-hidden="true" class="text-subtle">·</span>
-            @if (c.isPublished) {
+            @if (c.isArchived) {
+              <span class="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-slate-500" aria-hidden="true"></span>
+                Archived
+              </span>
+            } @else if (c.isPublished) {
               <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
                 Published
@@ -43,6 +48,11 @@
               <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                 <span class="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true"></span>
                 Draft
+              </span>
+            }
+            @if (!c.isPrimaryTeacher) {
+              <span class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-700">
+                Co-instructor view
               </span>
             }
           </div>
@@ -93,14 +103,15 @@
             </svg>
             Edit details
           </button>
-          <button type="button" (click)="togglePublished()" [disabled]="busy() === 'publish'"
+          <button type="button" (click)="togglePublished()" [disabled]="busy() === 'publish' || c.isArchived"
                   class="inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50"
                   [class.bg-amber-100]="c.isPublished"
                   [class.text-amber-700]="c.isPublished"
                   [class.hover:bg-amber-200]="c.isPublished"
                   [class.bg-emerald-600]="!c.isPublished"
                   [class.text-white]="!c.isPublished"
-                  [class.hover:bg-emerald-700]="!c.isPublished">
+                  [class.hover:bg-emerald-700]="!c.isPublished"
+                  [title]="c.isArchived ? 'Unarchive the course first' : ''">
             @if (busy() === 'publish') {
               <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25"></circle>
@@ -112,6 +123,39 @@
             } @else {
               Publish course
             }
+          </button>
+
+          <!-- Archive / Unarchive — primary teacher only -->
+          <button type="button" (click)="toggleArchived()" [disabled]="busy() === 'archive'"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+                  [class.border-line]="!c.isArchived"
+                  [class.bg-surface]="!c.isArchived"
+                  [class.text-ink-soft]="!c.isArchived"
+                  [class.hover:border-primary-300]="!c.isArchived"
+                  [class.hover:text-primary-700]="!c.isArchived"
+                  [class.border-emerald-300]="c.isArchived"
+                  [class.bg-emerald-50]="c.isArchived"
+                  [class.text-emerald-700]="c.isArchived"
+                  [class.hover:bg-emerald-100]="c.isArchived">
+            @if (busy() === 'archive') {
+              Saving…
+            } @else if (c.isArchived) {
+              Unarchive
+            } @else {
+              Archive
+            }
+          </button>
+
+          <!-- Duplicate — primary OR co-instructor -->
+          <button type="button" (click)="duplicate()" [disabled]="busy() === 'duplicate'"
+                  class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-primary-300 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Create a fresh draft copy you own">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            {{ busy() === 'duplicate' ? 'Duplicating…' : 'Duplicate' }}
           </button>
         </div>
       </div>
@@ -653,6 +697,14 @@
         </form>
       </div>
     }
+
+    <!-- Instructors panel — primary teacher manages co-instructors. -->
+    <div class="mt-6">
+      <app-course-instructors
+        [courseId]="c.courseId"
+        [canManage]="c.isPrimaryTeacher"
+        [currentUserId]="currentUserId()" />
+    </div>
 
     <!-- Announcements panel — fans out to enrolled students as notifications. -->
     <div class="mt-6">

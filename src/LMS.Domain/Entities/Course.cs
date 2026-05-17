@@ -11,6 +11,12 @@ public class Course
     public int? MaxStudents { get; set; }
     public bool IsPublished { get; set; }
 
+    // Archived courses don't show in the student catalog and don't accept new
+    // enrollments, but existing enrollments + progress are preserved. Soft-
+    // hidden so teachers can revive an old course without losing its data.
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedAt { get; set; }
+
     // Tenancy. Denormalized from the owning teacher so OrgAdmins can scope
     // moderation queries to their own org without a join through Users.
     // Stamped at create and re-stamped on TransferUserCommand. Nullable to
@@ -28,4 +34,5 @@ public class Course
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Assessment> Assessments { get; set; } = new List<Assessment>();
     public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+    public ICollection<CourseCoInstructor> CoInstructors { get; set; } = new List<CourseCoInstructor>();
 }

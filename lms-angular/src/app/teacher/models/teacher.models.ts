@@ -51,13 +51,38 @@ export interface TeacherCourseListItem {
   thumbnailUrl?: string | null;
   maxStudents?: number | null;
   isPublished: boolean;
+  isArchived: boolean;
+  /** Caller is the primary teacher (Course.TeacherId) — false means co-instructor. */
+  isPrimaryTeacher: boolean;
   moduleCount: number;
   lessonCount: number;
   assessmentCount: number;
   studentCount: number;
+  coInstructorCount: number;
   averageProgress: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// ---------------- Co-instructors -----------------------------------------
+
+export interface CourseInstructor {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePictureUrl?: string | null;
+  branchName?: string | null;
+  isPrimary: boolean;
+  addedAt?: string | null;
+}
+
+export interface EligibleCoInstructor {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  branchName?: string | null;
 }
 
 export interface CreateCourseBody {
@@ -109,10 +134,14 @@ export interface TeacherCourseDetail {
   thumbnailUrl?: string | null;
   maxStudents?: number | null;
   isPublished: boolean;
+  isArchived: boolean;
+  /** Caller is the primary teacher; false = co-instructor. */
+  isPrimaryTeacher: boolean;
   createdAt: string;
   updatedAt: string;
   studentCount: number;
   assessmentCount: number;
+  coInstructorCount: number;
   averageProgress: number;
   modules: TeacherModule[];
   assessments: TeacherAssessmentListItem[];

@@ -28,14 +28,10 @@ public class GetTeacherAssessmentQueryHandler
             .AsNoTracking()
             .Include(a => a.Course)
             .Include(a => a.Questions.OrderBy(q => q.Order))
-            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId, cancellationToken)
+            .FirstOrDefaultAsync(a => a.Id == request.AssessmentId
+                && (a.Course.TeacherId == teacherId
+                    || a.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-
-        if (assessment.Course.TeacherId != teacherId)
-        {
-            // Same 404 — no enumeration.
-            throw new KeyNotFoundException($"Assessment {request.AssessmentId} was not found.");
-        }
 
         var submissionCount = await _db.Submissions
             .AsNoTracking()

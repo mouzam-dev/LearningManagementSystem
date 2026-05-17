@@ -27,13 +27,10 @@ public class SetCoursePublishedCommandHandler
         var teacherId = _currentUser.GetUserId();
 
         var course = await _db.Courses
-            .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId
+                && (c.TeacherId == teacherId
+                    || c.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-
-        if (course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Course {request.CourseId} was not found.");
-        }
 
         // Quality gate: must have at least one published lesson before going public.
         // Unpublish is always allowed.

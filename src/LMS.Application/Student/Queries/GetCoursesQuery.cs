@@ -35,9 +35,11 @@ public class GetCoursesQueryHandler
         var page = request.Page <= 0 ? 1 : request.Page;
         var pageSize = Math.Clamp(request.PageSize <= 0 ? 12 : request.PageSize, 1, MaxPageSize);
 
+        // Catalog only shows live, non-archived courses. Archived ones are
+        // a soft-hidden teacher concept; they shouldn't appear to new students.
         var query = _db.Courses
             .AsNoTracking()
-            .Where(c => c.IsPublished);
+            .Where(c => c.IsPublished && !c.IsArchived);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

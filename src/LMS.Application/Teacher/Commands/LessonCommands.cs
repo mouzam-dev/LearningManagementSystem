@@ -47,12 +47,10 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, T
 
         var module = await _db.Modules
             .Include(m => m.Course)
-            .FirstOrDefaultAsync(m => m.Id == request.ModuleId, cancellationToken)
+            .FirstOrDefaultAsync(m => m.Id == request.ModuleId
+                && (m.Course.TeacherId == teacherId
+                    || m.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Module {request.ModuleId} was not found.");
-        if (module.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Module {request.ModuleId} was not found.");
-        }
 
         var maxOrder = await _db.Lessons
             .Where(l => l.ModuleId == module.Id)
@@ -136,12 +134,10 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, T
 
         var lesson = await _db.Lessons
             .Include(l => l.Module).ThenInclude(m => m.Course)
-            .FirstOrDefaultAsync(l => l.Id == request.LessonId, cancellationToken)
+            .FirstOrDefaultAsync(l => l.Id == request.LessonId
+                && (l.Module.Course.TeacherId == teacherId
+                    || l.Module.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Lesson {request.LessonId} was not found.");
-        if (lesson.Module.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Lesson {request.LessonId} was not found.");
-        }
 
         lesson.Title = request.Title.Trim();
         lesson.Type = request.Type.Trim();
@@ -182,12 +178,10 @@ public class DeleteLessonCommandHandler : IRequestHandler<DeleteLessonCommand, U
 
         var lesson = await _db.Lessons
             .Include(l => l.Module).ThenInclude(m => m.Course)
-            .FirstOrDefaultAsync(l => l.Id == request.LessonId, cancellationToken)
+            .FirstOrDefaultAsync(l => l.Id == request.LessonId
+                && (l.Module.Course.TeacherId == teacherId
+                    || l.Module.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Lesson {request.LessonId} was not found.");
-        if (lesson.Module.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Lesson {request.LessonId} was not found.");
-        }
 
         _db.Lessons.Remove(lesson);
         lesson.Module.Course.UpdatedAt = DateTime.UtcNow;

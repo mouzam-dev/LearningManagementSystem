@@ -43,13 +43,10 @@ public class GradeSubmissionCommandHandler
 
         var submission = await _db.Submissions
             .Include(s => s.Assessment).ThenInclude(a => a.Course)
-            .FirstOrDefaultAsync(s => s.Id == request.SubmissionId, cancellationToken)
+            .FirstOrDefaultAsync(s => s.Id == request.SubmissionId
+                && (s.Assessment.Course.TeacherId == teacherId
+                    || s.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
             ?? throw new KeyNotFoundException($"Submission {request.SubmissionId} was not found.");
-
-        if (submission.Assessment.Course.TeacherId != teacherId)
-        {
-            throw new KeyNotFoundException($"Submission {request.SubmissionId} was not found.");
-        }
 
         submission.Score = request.Score;
         submission.Feedback = string.IsNullOrWhiteSpace(request.Feedback) ? null : request.Feedback.Trim();

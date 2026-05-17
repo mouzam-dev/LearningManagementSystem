@@ -22,16 +22,22 @@ public class GetTeacherDashboardQueryHandler : IRequestHandler<GetTeacherDashboa
     {
         var teacherId = _currentUser.GetUserId();
 
-        // Aggregate over the caller's courses only.
-        var ownedCourses = _db.Courses.AsNoTracking().Where(c => c.TeacherId == teacherId);
+        // Aggregate over courses the caller can teach — primary OR co-instructor.
+        // Archived courses are excluded so the dashboard reflects active load.
+        var taughtCourses = _db.Courses.AsNoTracking().Where(c =>
+            !c.IsArchived
+            && (c.TeacherId == teacherId
+                || c.CoInstructors.Any(ci => ci.UserId == teacherId)));
 
-        var totalCourses = await ownedCourses.CountAsync(cancellationToken);
-        var publishedCourses = await ownedCourses.CountAsync(c => c.IsPublished, cancellationToken);
+        var totalCourses = await taughtCourses.CountAsync(cancellationToken);
+        var publishedCourses = await taughtCourses.CountAsync(c => c.IsPublished, cancellationToken);
 
-        // "Enrolment" here means rows in Enrollments scoped to this teacher's courses.
+        // "Enrolment" here means rows in Enrollments scoped to courses the
+        // caller teaches (primary OR co-instructor).
         var enrolmentsOfMine = _db.Enrollments
             .AsNoTracking()
-            .Where(e => e.Course.TeacherId == teacherId);
+            .Where(e => e.Course.TeacherId == teacherId
+                     || e.Course.CoInstructors.Any(ci => ci.UserId == teacherId));
 
         var totalStudents = await enrolmentsOfMine
             .Select(e => e.StudentId)
@@ -47,15 +53,17 @@ public class GetTeacherDashboardQueryHandler : IRequestHandler<GetTeacherDashboa
 
         var pendingGradingCount = await _db.Submissions
             .AsNoTracking()
-            .CountAsync(s => s.Assessment.Course.TeacherId == teacherId
+            .CountAsync(s => (s.Assessment.Course.TeacherId == teacherId
+                              || s.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId))
                           && s.Score == null,
                 cancellationToken);
 
         var certificatesIssued = await _db.Certificates
             .AsNoTracking()
-            .CountAsync(c => c.Course.TeacherId == teacherId, cancellationToken);
+            .CountAsync(c => c.Course.TeacherId == teacherId
+                          || c.Course.CoInstructors.Any(ci => ci.UserId == teacherId), cancellationToken);
 
-        var topCourses = await ownedCourses
+        var topCourses = await taughtCourses
             .OrderByDescending(c => c.Enrollments.Count)
             .ThenByDescending(c => c.UpdatedAt)
             .Take(5)
@@ -86,7 +94,9 @@ public class GetTeacherDashboardQueryHandler : IRequestHandler<GetTeacherDashboa
 
         var pendingGrading = await _db.Submissions
             .AsNoTracking()
-            .Where(s => s.Assessment.Course.TeacherId == teacherId && s.Score == null)
+            .Where(s => (s.Assessment.Course.TeacherId == teacherId
+                          || s.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId))
+                     && s.Score == null)
             .OrderBy(s => s.SubmittedAt)
             .Take(8)
             .Select(s => new PendingGradingDto

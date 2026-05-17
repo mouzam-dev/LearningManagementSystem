@@ -33,7 +33,8 @@ public class GetGradingQueueQueryHandler
 
         var query = _db.Submissions
             .AsNoTracking()
-            .Where(s => s.Assessment.Course.TeacherId == teacherId);
+            .Where(s => s.Assessment.Course.TeacherId == teacherId
+                     || s.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId));
 
         if (!request.IncludeGraded)
         {
