@@ -130,4 +130,29 @@ export class AdminService {
         URL.revokeObjectURL(url);
       });
   }
+
+  // ---- Bulk import (BRD ADM-012) ---------------------------------------
+
+  /** Multipart upload of a CSV file; server returns the per-row import result. */
+  bulkImportUsers(file: File): Observable<BulkImportUsersResult> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<BulkImportUsersResult>(
+      `${this.baseUrl}/users/bulk-import`, form);
+  }
+}
+
+export interface BulkImportRowResult {
+  line: number;
+  email: string;
+  status: 'Created' | 'Failed';
+  userId?: string | null;
+  error?: string | null;
+}
+
+export interface BulkImportUsersResult {
+  totalRows: number;
+  successCount: number;
+  failureCount: number;
+  rows: BulkImportRowResult[];
 }

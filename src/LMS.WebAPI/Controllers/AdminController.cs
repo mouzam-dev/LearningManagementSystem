@@ -292,4 +292,143 @@ public class AdminController : ControllerBase
             .ToArray();
         return File(bytes, "text/csv", fileName);
     }
+
+    // -----------------------------------------------------------------------
+    // Bulk user import (BRD ADM-012). Multipart CSV upload; each row creates
+    // a user with a random password + queues a password-reset email so the
+    // user picks their own credentials on first sign-in.
+    // -----------------------------------------------------------------------
+
+    [HttpPost("users/bulk-import")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(2 * 1024 * 1024)] // 2MB cap — covers ~1000 rows easily
+    [ProducesResponseType(typeof(BulkImportUsersResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<BulkImportUsersResultDto>> BulkImportUsers(
+        IFormFile? file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Upload a non-empty CSV file." });
+        }
+
+        List<BulkImportUserRow> rows;
+        try
+        {
+            rows = await ParseCsvAsync(file, ct);
+        }
+        catch (FormatException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        if (rows.Count == 0)
+        {
+            return BadRequest(new { message = "CSV had no data rows after the header." });
+        }
+
+        try
+        {
+            var result = await _mediator.Send(new BulkImportUsersCommand(rows), ct);
+            return Ok(result);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Errors.FirstOrDefault()?.ErrorMessage ?? "Invalid request." });
+        }
+    }
+
+    /// <summary>
+    /// Minimal CSV parser tailored to the bulk-import format. Handles the
+    /// common cases: comma-separated fields, optional double-quoted fields,
+    /// and "" inside quoted fields as an escaped quote. Refuses to do
+    /// anything clever — admins should regenerate via the template if they
+    /// hit a weird edge case.
+    /// </summary>
+    private static async Task<List<BulkImportUserRow>> ParseCsvAsync(IFormFile file, CancellationToken ct)
+    {
+        // Expected header order — we map by header name (case-insensitive) so
+        // admins can reorder columns without breaking the import.
+        var expected = new[] { "Email", "FirstName", "LastName", "Role", "OrganizationSlug", "BranchName" };
+
+        using var stream = file.OpenReadStream();
+        using var reader = new StreamReader(stream);
+
+        var headerLine = await reader.ReadLineAsync(ct);
+        if (string.IsNullOrWhiteSpace(headerLine))
+        {
+            throw new FormatException("CSV is empty.");
+        }
+
+        var header = SplitCsvLine(headerLine).Select(h => h.Trim()).ToList();
+        var idx = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < header.Count; i++) idx[header[i]] = i;
+
+        foreach (var col in new[] { "Email", "FirstName", "LastName", "Role" })
+        {
+            if (!idx.ContainsKey(col))
+            {
+                throw new FormatException(
+                    $"CSV header missing required column '{col}'. Expected: {string.Join(",", expected)}");
+            }
+        }
+
+        var rows = new List<BulkImportUserRow>();
+        var lineNumber = 1;
+        string? line;
+        while ((line = await reader.ReadLineAsync(ct)) is not null)
+        {
+            lineNumber++;
+            if (string.IsNullOrWhiteSpace(line)) continue; // skip blanks
+
+            var cells = SplitCsvLine(line);
+            string Get(string col)
+            {
+                if (!idx.TryGetValue(col, out var i) || i >= cells.Count) return string.Empty;
+                return cells[i];
+            }
+
+            rows.Add(new BulkImportUserRow
+            {
+                Line = lineNumber,
+                Email = Get("Email"),
+                FirstName = Get("FirstName"),
+                LastName = Get("LastName"),
+                Role = Get("Role"),
+                OrganizationSlug = Get("OrganizationSlug"),
+                BranchName = Get("BranchName"),
+            });
+        }
+
+        return rows;
+    }
+
+    private static List<string> SplitCsvLine(string line)
+    {
+        var result = new List<string>();
+        var sb = new StringBuilder();
+        var inQuotes = false;
+        for (var i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            if (inQuotes)
+            {
+                if (c == '"')
+                {
+                    // Doubled "" -> literal quote, otherwise end of quoted field.
+                    if (i + 1 < line.Length && line[i + 1] == '"') { sb.Append('"'); i++; }
+                    else inQuotes = false;
+                }
+                else sb.Append(c);
+            }
+            else
+            {
+                if (c == ',') { result.Add(sb.ToString()); sb.Clear(); }
+                else if (c == '"' && sb.Length == 0) inQuotes = true;
+                else sb.Append(c);
+            }
+        }
+        result.Add(sb.ToString());
+        return result;
+    }
 }
