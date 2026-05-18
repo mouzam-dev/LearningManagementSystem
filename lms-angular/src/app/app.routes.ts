@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard, publicLandingGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
@@ -30,8 +30,10 @@ export const routes: Routes = [
       import('./auth/verify-email/verify-email').then((m) => m.VerifyEmailPage),
   },
   {
+    // Public marketing/landing page — visible to anonymous visitors.
+    // Signed-in users are bounced to their role dashboard by publicLandingGuard.
     path: 'home',
-    canActivate: [authGuard],
+    canActivate: [publicLandingGuard],
     loadComponent: () => import('./home/home').then((m) => m.Home),
   },
   {

@@ -1,35 +1,327 @@
-<section class="auth-card wide">
-  <h1>Welcome{{ user() ? ', ' + user()!.firstName : '' }} 👋</h1>
+<!-- ============================ HERO ============================ -->
+<section class="hero-section">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+    <div class="grid items-center gap-12 lg:grid-cols-12">
+      <!-- Copy + search -->
+      <div class="lg:col-span-7">
+        <span class="hero-eyebrow">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
+          New courses every week
+        </span>
+        <h1 class="hero-title">
+          Learn the skills the world needs —
+          <span class="hero-accent">at your own pace.</span>
+        </h1>
+        <p class="hero-sub">
+          Browse {{ totalCount() || 'hundreds of' }} expert-led courses, track your progress, and
+          earn verifiable certificates. Join the LMS community today.
+        </p>
 
-  @if (user(); as u) {
-    <dl class="kv">
-      <dt>Email</dt><dd>{{ u.email }}</dd>
-      <dt>Role</dt><dd>{{ u.role }}</dd>
-      <dt>Verified</dt><dd>{{ u.isVerified ? 'Yes' : 'No' }}</dd>
-      <dt>User Id</dt><dd><code>{{ u.id }}</code></dd>
-    </dl>
-  }
+        <form class="hero-search" (submit)="$event.preventDefault(); search()">
+          <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+          <input type="search" [formControl]="searchControl"
+                 placeholder="What do you want to learn today?"
+                 class="hero-search-input"
+                 aria-label="Search courses" />
+          <button type="submit" class="hero-search-button">Search</button>
+        </form>
 
-  <div class="actions">
-    @if (user()?.role === 'Student') {
-      <a class="primary-link" routerLink="/student/dashboard">Open student dashboard →</a>
-    }
-    @if (user()?.role === 'Teacher') {
-      <a class="primary-link" routerLink="/teacher/dashboard">Open teacher dashboard →</a>
-    }
-    @if (user()?.role === 'SuperAdmin' || user()?.role === 'OrgAdmin') {
-      <a class="primary-link" routerLink="/admin/dashboard">Open admin dashboard →</a>
-    }
-    <button type="button" (click)="callMe()" [disabled]="meLoading()">
-      {{ meLoading() ? 'Calling…' : 'Call /api/auth/me (with JWT)' }}
-    </button>
-    <button type="button" class="secondary" (click)="logout()">Sign out</button>
+        <div class="hero-ctas">
+          <a routerLink="/register" class="btn-primary">
+            Get started — it's free
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+            </svg>
+          </a>
+          <a routerLink="/login" class="btn-secondary">I already have an account</a>
+        </div>
+
+        <dl class="hero-stats">
+          <div>
+            <dt>Courses</dt>
+            <dd>{{ totalCount() || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Categories</dt>
+            <dd>{{ categories().length || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Certificates</dt>
+            <dd>verified</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Hero visual card -->
+      <div class="lg:col-span-5">
+        <div class="hero-visual">
+          <div class="hero-visual-badge">
+            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+            Live cohorts
+          </div>
+          <div class="hero-visual-stack">
+            <div class="hero-visual-row">
+              <span class="hv-pill hv-pill-primary">React</span>
+              <span class="hv-pill">Beginner → Pro</span>
+            </div>
+            <h3 class="hero-visual-title">Modern React with Signals &amp; Suspense</h3>
+            <p class="hero-visual-meta">12 modules · 48 lessons · 8h video</p>
+            <div class="hero-visual-progress">
+              <div class="hero-visual-progress-fill" style="width:62%"></div>
+            </div>
+            <div class="hero-visual-footer">
+              <div class="hv-avatars">
+                <span class="hv-avatar" style="background:#ff6b35">A</span>
+                <span class="hv-avatar" style="background:#3b82f6">M</span>
+                <span class="hv-avatar" style="background:#22c55e">T</span>
+              </div>
+              <span class="text-xs font-medium text-muted">+ 2,134 enrolled</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  @if (meResult(); as me) {
-    <pre class="result">{{ me | json }}</pre>
-  }
-  @if (meError()) {
-    <div class="err banner">{{ meError() }}</div>
-  }
 </section>
+
+<!-- ============================ CATEGORIES ============================ -->
+@if (categories().length > 0) {
+  <section class="bg-surface">
+    <div class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="mr-2 text-sm font-semibold text-ink">Browse by category:</span>
+        <button type="button" (click)="selectCategory('')"
+                [class.chip-active]="selectedCategory() === ''"
+                class="chip">All</button>
+        @for (cat of categories(); track cat) {
+          <button type="button" (click)="selectCategory(cat)"
+                  [class.chip-active]="selectedCategory() === cat"
+                  class="chip">{{ cat }}</button>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ============================ COURSE GRID ============================ -->
+<section id="courses" class="bg-canvas">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+    <header class="mb-8 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="section-title">
+          @if (selectedCategory()) {
+            {{ selectedCategory() }} courses
+          } @else if (searchControl.value) {
+            Results for "{{ searchControl.value }}"
+          } @else {
+            Popular courses right now
+          }
+        </h2>
+        <p class="section-sub">
+          Hand-picked by our community — fresh, practical, and ready to learn.
+        </p>
+      </div>
+      <a routerLink="/register"
+         class="hidden text-sm font-semibold text-primary-600 hover:text-primary-700 sm:inline">
+        Sign up to see all courses →
+      </a>
+    </header>
+
+    @if (error()) {
+      <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+           role="alert">{{ error() }}</div>
+    }
+
+    @if (loading()) {
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @for (n of [0,1,2,3,4,5,6,7]; track n) {
+          <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+            <div class="aspect-[16/9] animate-pulse bg-surface-3"></div>
+            <div class="space-y-3 p-5">
+              <div class="h-4 w-20 animate-pulse rounded bg-surface-3"></div>
+              <div class="h-5 w-3/4 animate-pulse rounded bg-surface-3"></div>
+              <div class="h-3 w-full animate-pulse rounded bg-surface-3"></div>
+              <div class="h-9 w-full animate-pulse rounded-xl bg-surface-3"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (courses().length === 0) {
+      <div class="rounded-2xl border-2 border-dashed border-line bg-surface py-16 text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3.5-3.5"></path>
+          </svg>
+        </div>
+        <h3 class="mt-4 text-base font-semibold text-ink">No courses match your search</h3>
+        <p class="mt-1 text-sm text-muted">Try a different category or clear your search.</p>
+      </div>
+    } @else {
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @for (course of courses(); track course.courseId) {
+          <article class="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-1 hover:ring-primary-200">
+            <div class="relative aspect-[16/9] overflow-hidden">
+              @if (course.thumbnailUrl) {
+                <img [src]="course.thumbnailUrl" [alt]="course.title"
+                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+              } @else {
+                <div class="flex h-full w-full items-center justify-center bg-linear-to-br text-5xl font-bold text-white"
+                     [ngClass]="gradientFor(course.courseId)">
+                  {{ initial(course.title) }}
+                </div>
+              }
+              <span class="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-slate-900/10">
+                {{ course.category }}
+              </span>
+            </div>
+
+            <div class="flex flex-1 flex-col p-5">
+              <h3 class="line-clamp-2 text-base font-semibold text-ink" [title]="course.title">
+                {{ course.title }}
+              </h3>
+              <p class="mt-2 line-clamp-2 text-sm text-muted">{{ course.description }}</p>
+
+              <div class="mt-auto pt-4">
+                <div class="flex items-center gap-2 text-xs text-muted">
+                  <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700"
+                        aria-hidden="true">{{ initial(course.teacherName) }}</span>
+                  <span class="truncate">{{ course.teacherName }}</span>
+                  <span aria-hidden="true">·</span>
+                  <span class="whitespace-nowrap">{{ course.enrolledCount }} enrolled</span>
+                </div>
+                <button type="button" (click)="goEnroll(course)"
+                        class="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+                  Enroll now
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      @if (totalCount() > courses().length) {
+        <div class="mt-10 text-center">
+          <a routerLink="/register"
+             class="inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-ink-soft">
+            See all {{ totalCount() }} courses
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+            </svg>
+          </a>
+        </div>
+      }
+    }
+  </div>
+</section>
+
+<!-- ============================ VALUE PROPS ============================ -->
+<section class="bg-surface">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+    <div class="mb-12 text-center">
+      <h2 class="section-title">Why learners choose LMS</h2>
+      <p class="section-sub mx-auto max-w-xl">
+        A modern platform built for outcomes — not just videos. Everything you need to learn,
+        practice, and prove your skills.
+      </p>
+    </div>
+
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="value-card">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m22 8-6 4 6 4V8z"></path>
+            <rect x="2" y="6" width="14" height="12" rx="2"></rect>
+          </svg>
+        </div>
+        <h3>Video-first lessons</h3>
+        <p>Stream professionally produced lessons with built-in progress tracking.</p>
+      </div>
+
+      <div class="value-card">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+        </div>
+        <h3>Quizzes &amp; assessments</h3>
+        <p>Auto-graded quizzes and rubric-based assignments to lock in what you've learned.</p>
+      </div>
+
+      <div class="value-card">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="6"></circle>
+            <path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"></path>
+          </svg>
+        </div>
+        <h3>Verifiable certificates</h3>
+        <p>Earn shareable certificates with a public verification link — proof you can showcase.</p>
+      </div>
+
+      <div class="value-card">
+        <div class="value-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <h3>Teach &amp; build cohorts</h3>
+        <p>Educators get a full course builder, question bank, rubrics, and bulk enrollment.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CTA BANNER ============================ -->
+<section class="bg-canvas">
+  <div class="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+    <div class="cta-banner">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          Ready to start learning?
+        </h2>
+        <p class="mt-2 max-w-xl text-sm text-white/80 sm:text-base">
+          Create a free account in less than a minute. No credit card required.
+        </p>
+      </div>
+      <div class="flex shrink-0 flex-wrap gap-3">
+        <a routerLink="/register" class="btn-primary-on-dark">Create free account</a>
+        <a routerLink="/login" class="btn-ghost-on-dark">Sign in</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="border-t border-line bg-surface">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-muted sm:flex-row sm:px-6 lg:px-8">
+    <div class="flex items-center gap-2">
+      <span class="flex h-7 w-7 items-center justify-center rounded bg-primary-500 text-xs font-bold text-white">L</span>
+      <span class="font-semibold text-ink">LMS</span>
+      <span>· Learn. Teach. Grow.</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a routerLink="/login" class="hover:text-ink">Sign in</a>
+      <a routerLink="/register" class="hover:text-ink">Register</a>
+    </div>
+  </div>
+</footer>

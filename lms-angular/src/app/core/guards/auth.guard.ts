@@ -40,3 +40,17 @@ export const guestGuard: CanActivateFn = () => {
     ? router.createUrlTree([landingPathForRole(auth.user()?.role)])
     : true;
 };
+
+/**
+ * Public marketing/landing page guard. Anonymous visitors get the page;
+ * already-signed-in users are bounced to their role dashboard so they don't
+ * see the marketing CTAs.
+ */
+export const publicLandingGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.isAuthenticated()
+    ? router.createUrlTree([landingPathForRole(auth.user()?.role)])
+    : true;
+};
