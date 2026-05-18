@@ -4,6 +4,8 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
+import { PagedResult } from '../../student/models/course.models';
+import { BankQuestionListItem } from '../models/bank-question.models';
 import {
   TeacherAssessment,
   TeacherQuestion,
@@ -74,6 +76,19 @@ export class TeacherAssessmentEditorPage {
   // -- Question-being-edited ------------------------------------------------
   readonly editingQuestionId = signal<string | null>(null);
   readonly questionEditDraft = signal<QuestionDraft>({ ...EMPTY_QUESTION });
+
+  // -- Import-from-bank picker ---------------------------------------------
+  readonly importing = signal(false);
+  readonly importLoading = signal(false);
+  readonly importError = signal<string | null>(null);
+  readonly importBusy = signal(false);
+  readonly importQuery = signal('');
+  readonly importTag = signal('');
+  readonly importPage = signal(1);
+  readonly importResult = signal<PagedResult<BankQuestionListItem> | null>(null);
+  readonly importTags = signal<string[]>([]);
+  readonly selectedImportIds = signal<Set<string>>(new Set());
+  readonly selectedImportCount = computed(() => this.selectedImportIds().size);
 
   readonly questionTypes = computed(() => {
     // For Quiz assessments: every type makes sense. For Assignment: typically
@@ -360,5 +375,105 @@ export class TeacherAssessmentEditorPage {
     if (err.status === 0) return 'Cannot reach the API.';
     if (err.status === 404) return 'This assessment no longer exists.';
     return err.error?.message ?? err.statusText ?? 'Something went wrong.';
+  }
+
+  // -------------------------------------------------------------------------
+  // Import from question bank (BRD TCH-021)
+  // -------------------------------------------------------------------------
+
+  openImport(): void {
+    this.importing.set(true);
+    this.importError.set(null);
+    this.importQuery.set('');
+    this.importTag.set('');
+    this.importPage.set(1);
+    this.selectedImportIds.set(new Set());
+    this.fetchImportPage();
+    this.teacher.getBankQuestionTags().subscribe({
+      next: (t) => this.importTags.set(t),
+      error: () => this.importTags.set([]),
+    });
+  }
+
+  closeImport(): void {
+    this.importing.set(false);
+    this.importResult.set(null);
+    this.selectedImportIds.set(new Set());
+  }
+
+  applyImportFilter(): void {
+    this.importPage.set(1);
+    this.fetchImportPage();
+  }
+
+  importGoToPage(p: number): void {
+    const total = this.importResult()?.totalPages ?? 0;
+    if (p < 1 || p > total) return;
+    this.importPage.set(p);
+    this.fetchImportPage();
+  }
+
+  toggleImportSelected(id: string): void {
+    const cur = new Set(this.selectedImportIds());
+    if (cur.has(id)) cur.delete(id);
+    else cur.add(id);
+    this.selectedImportIds.set(cur);
+  }
+
+  isImportSelected(id: string): boolean {
+    return this.selectedImportIds().has(id);
+  }
+
+  private fetchImportPage(): void {
+    this.importLoading.set(true);
+    this.importError.set(null);
+    this.teacher.getBankQuestions({
+      search: this.importQuery().trim() || undefined,
+      tag: this.importTag().trim() || undefined,
+      page: this.importPage(),
+      pageSize: 10,
+    }).subscribe({
+      next: (r) => {
+        this.importResult.set(r);
+        this.importLoading.set(false);
+      },
+      error: () => {
+        this.importLoading.set(false);
+        this.importError.set('Failed to load bank questions.');
+      },
+    });
+  }
+
+  doImport(): void {
+    const a = this.assessment();
+    if (!a || this.importBusy() || this.selectedImportCount() === 0) return;
+    const ids = Array.from(this.selectedImportIds());
+    this.importBusy.set(true);
+    this.importError.set(null);
+
+    this.teacher.importBankQuestionsToAssessment(a.assessmentId, ids).subscribe({
+      next: (updated) => {
+        this.assessment.set(updated);
+        this.importBusy.set(false);
+        this.closeImport();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.importBusy.set(false);
+        this.importError.set(err.status === 400
+          ? 'Could not import those questions.'
+          : err.status === 404 ? 'Assessment or questions no longer exist.'
+          : 'Import failed. Please try again.');
+      },
+    });
+  }
+
+  importTypeLabel(t: string): string {
+    switch (t) {
+      case 'MCQ': return 'Multiple choice';
+      case 'TrueFalse': return 'True / false';
+      case 'ShortAnswer': return 'Short answer';
+      case 'Essay': return 'Essay';
+      default: return t;
+    }
   }
 }

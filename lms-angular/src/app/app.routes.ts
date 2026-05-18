@@ -136,6 +136,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./teacher/students/course-analytics').then((m) => m.TeacherCourseAnalyticsPage),
       },
+      {
+        path: 'question-bank',
+        loadComponent: () =>
+          import('./teacher/question-bank/question-bank-list').then((m) => m.TeacherQuestionBankListPage),
+      },
+      {
+        path: 'question-bank/new',
+        loadComponent: () =>
+          import('./teacher/question-bank/question-bank-edit').then((m) => m.TeacherQuestionBankEditPage),
+      },
+      {
+        path: 'question-bank/:id',
+        loadComponent: () =>
+          import('./teacher/question-bank/question-bank-edit').then((m) => m.TeacherQuestionBankEditPage),
+      },
     ],
   },
   {

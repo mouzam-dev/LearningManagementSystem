@@ -23,6 +23,7 @@ public interface IApplicationDbContext
     DbSet<LessonProgress> LessonProgress { get; }
     DbSet<Assessment> Assessments { get; }
     DbSet<Question> Questions { get; }
+    DbSet<BankQuestion> BankQuestions { get; }
     DbSet<Submission> Submissions { get; }
     DbSet<Certificate> Certificates { get; }
     DbSet<Notification> Notifications { get; }

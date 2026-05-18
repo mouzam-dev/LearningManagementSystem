@@ -3,6 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { PagedResult } from '../student/models/course.models';
+import {
+  BankQuestion,
+  BankQuestionFilter,
+  BankQuestionListItem,
+  BankQuestionUpsertBody,
+} from './models/bank-question.models';
 import {
   CourseAnalytics,
   CourseInstructor,
@@ -225,6 +232,48 @@ export class TeacherService {
   ): Observable<TeacherAnnouncement> {
     return this.http.post<TeacherAnnouncement>(
       `${this.baseUrl}/courses/${courseId}/announcements`, body);
+  }
+
+  // ---------------- Question bank (BRD TCH-021) ----------------------------
+
+  getBankQuestions(filter: BankQuestionFilter = {}): Observable<PagedResult<BankQuestionListItem>> {
+    let params = new HttpParams();
+    if (filter.search?.trim()) params = params.set('search', filter.search.trim());
+    if (filter.tag?.trim()) params = params.set('tag', filter.tag.trim());
+    if (filter.page) params = params.set('page', filter.page);
+    if (filter.pageSize) params = params.set('pageSize', filter.pageSize);
+    return this.http.get<PagedResult<BankQuestionListItem>>(
+      `${this.baseUrl}/question-bank`, { params });
+  }
+
+  getBankQuestionTags(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/question-bank/tags`);
+  }
+
+  getBankQuestion(id: string): Observable<BankQuestion> {
+    return this.http.get<BankQuestion>(`${this.baseUrl}/question-bank/${id}`);
+  }
+
+  createBankQuestion(body: BankQuestionUpsertBody): Observable<BankQuestion> {
+    return this.http.post<BankQuestion>(`${this.baseUrl}/question-bank`, body);
+  }
+
+  updateBankQuestion(id: string, body: BankQuestionUpsertBody): Observable<BankQuestion> {
+    return this.http.put<BankQuestion>(`${this.baseUrl}/question-bank/${id}`, body);
+  }
+
+  deleteBankQuestion(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/question-bank/${id}`);
+  }
+
+  /** Copy the picked bank questions into an assessment; returns the refreshed assessment. */
+  importBankQuestionsToAssessment(
+    assessmentId: string,
+    questionIds: string[],
+  ): Observable<TeacherAssessment> {
+    return this.http.post<TeacherAssessment>(
+      `${this.baseUrl}/assessments/${assessmentId}/import-bank-questions`,
+      { questionIds });
   }
 }
 

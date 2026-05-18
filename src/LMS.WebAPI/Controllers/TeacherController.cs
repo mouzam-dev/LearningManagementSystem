@@ -900,4 +900,119 @@ public class TeacherController : ControllerBase
         catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
         catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
     }
+
+    // -----------------------------------------------------------------------
+    // Question bank (BRD TCH-021) — private per-teacher reusable question pool.
+    // Importing into an assessment COPIES rows so future bank edits don't
+    // silently alter past assessments.
+    // -----------------------------------------------------------------------
+
+    [HttpGet("question-bank")]
+    [ProducesResponseType(typeof(PagedResult<BankQuestionListItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<BankQuestionListItemDto>>> GetBankQuestions(
+        [FromQuery] string? search,
+        [FromQuery] string? tag,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetBankQuestionsQuery(search, tag, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("question-bank/tags")]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetBankQuestionTags(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetBankQuestionTagsQuery(), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("question-bank/{id:guid}")]
+    [ProducesResponseType(typeof(BankQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BankQuestionDto>> GetBankQuestion(Guid id, CancellationToken ct)
+    {
+        try { return Ok(await _mediator.Send(new GetBankQuestionQuery(id), ct)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    public class BankQuestionUpsertRequest
+    {
+        public string QuestionText { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public List<string>? Options { get; set; }
+        public string? CorrectAnswer { get; set; }
+        public int Points { get; set; } = 1;
+        public string? Tag { get; set; }
+    }
+
+    [HttpPost("question-bank")]
+    [ProducesResponseType(typeof(BankQuestionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<BankQuestionDto>> CreateBankQuestion(
+        [FromBody] BankQuestionUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new CreateBankQuestionCommand(
+                request.QuestionText, request.Type, request.Options,
+                request.CorrectAnswer, request.Points, request.Tag), ct);
+            return CreatedAtAction(nameof(GetBankQuestion), new { id = result.Id }, result);
+        }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
+
+    [HttpPut("question-bank/{id:guid}")]
+    [ProducesResponseType(typeof(BankQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BankQuestionDto>> UpdateBankQuestion(
+        Guid id, [FromBody] BankQuestionUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new UpdateBankQuestionCommand(
+                id, request.QuestionText, request.Type, request.Options,
+                request.CorrectAnswer, request.Points, request.Tag), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
+
+    [HttpDelete("question-bank/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteBankQuestion(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteBankQuestionCommand(id), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    public class ImportBankQuestionsRequest
+    {
+        public List<Guid> QuestionIds { get; set; } = new();
+    }
+
+    [HttpPost("assessments/{assessmentId:guid}/import-bank-questions")]
+    [ProducesResponseType(typeof(TeacherAssessmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TeacherAssessmentDto>> ImportBankQuestionsToAssessment(
+        Guid assessmentId, [FromBody] ImportBankQuestionsRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new ImportBankQuestionsToAssessmentCommand(
+                assessmentId, request.QuestionIds), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
 }
