@@ -1117,4 +1117,125 @@ public class TeacherController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
+
+    // -----------------------------------------------------------------------
+    // Bulk enroll (BRD TCH-043). CSV upload with a single Email column; each
+    // matching active Student is enrolled in the course. Idempotent — already-
+    // enrolled rows return Skipped, not Failed.
+    // -----------------------------------------------------------------------
+
+    [HttpPost("courses/{courseId:guid}/bulk-enroll")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(1 * 1024 * 1024)] // 1MB cap is plenty for ~50k email lines
+    [ProducesResponseType(typeof(BulkEnrollResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BulkEnrollResultDto>> BulkEnrollStudents(
+        Guid courseId, IFormFile? file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { message = "Upload a non-empty CSV file." });
+        }
+
+        List<BulkEnrollRow> rows;
+        try
+        {
+            rows = await ParseEnrollCsvAsync(file, ct);
+        }
+        catch (FormatException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        if (rows.Count == 0)
+        {
+            return BadRequest(new { message = "CSV had no data rows after the header." });
+        }
+
+        try
+        {
+            var result = await _mediator.Send(new BulkEnrollStudentsCommand(courseId, rows), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Errors.FirstOrDefault()?.ErrorMessage ?? "Invalid request." });
+        }
+    }
+
+    private static async Task<List<BulkEnrollRow>> ParseEnrollCsvAsync(IFormFile file, CancellationToken ct)
+    {
+        using var stream = file.OpenReadStream();
+        using var reader = new System.IO.StreamReader(stream);
+
+        var headerLine = await reader.ReadLineAsync(ct);
+        if (string.IsNullOrWhiteSpace(headerLine))
+        {
+            throw new FormatException("CSV is empty.");
+        }
+
+        // Accept either an "Email" header or a headerless single-column file
+        // where the first row is itself an email. The latter is what teachers
+        // get when they paste a list into Excel and save as CSV.
+        var headerCells = SplitSimple(headerLine);
+        var emailIdx = -1;
+        var dataStartsAtHeader = false;
+
+        for (var i = 0; i < headerCells.Count; i++)
+        {
+            if (headerCells[i].Trim().Equals("Email", StringComparison.OrdinalIgnoreCase))
+            {
+                emailIdx = i;
+                break;
+            }
+        }
+
+        if (emailIdx == -1)
+        {
+            // No header row found. Treat the first line as data IF it looks like an email.
+            if (headerCells.Count >= 1 && headerCells[0].Contains('@'))
+            {
+                emailIdx = 0;
+                dataStartsAtHeader = true;
+            }
+            else
+            {
+                throw new FormatException(
+                    "CSV must have an 'Email' column or be a single-column list of emails.");
+            }
+        }
+
+        var rows = new List<BulkEnrollRow>();
+        var lineNumber = 1;
+
+        if (dataStartsAtHeader)
+        {
+            rows.Add(new BulkEnrollRow { Line = 1, Email = headerCells[emailIdx].Trim() });
+        }
+
+        string? line;
+        while ((line = await reader.ReadLineAsync(ct)) is not null)
+        {
+            lineNumber++;
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            var cells = SplitSimple(line);
+            var email = emailIdx < cells.Count ? cells[emailIdx].Trim() : string.Empty;
+            rows.Add(new BulkEnrollRow { Line = lineNumber, Email = email });
+        }
+
+        return rows;
+    }
+
+    private static List<string> SplitSimple(string line)
+    {
+        // Bulk-enroll only needs one column, so we don't bother with quoted
+        // fields here — emails don't contain commas. Plain comma-split keeps
+        // the parser obvious.
+        return line.Split(',').Select(s => s.Trim('"')).ToList();
+    }
 }

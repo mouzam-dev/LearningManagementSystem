@@ -307,6 +307,35 @@ export class TeacherService {
   deleteRubric(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/rubrics/${id}`);
   }
+
+  // ---------------- Bulk enroll (BRD TCH-043) ------------------------------
+
+  bulkEnrollStudents(courseId: string, file: File): Observable<BulkEnrollResult> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<BulkEnrollResult>(
+      `${this.baseUrl}/courses/${courseId}/bulk-enroll`, form);
+  }
+}
+
+export interface BulkEnrollRowResult {
+  line: number;
+  email: string;
+  status: 'Enrolled' | 'Skipped' | 'Failed';
+  studentId?: string | null;
+  error?: string | null;
+}
+
+export interface BulkEnrollResult {
+  courseId: string;
+  courseTitle: string;
+  totalRows: number;
+  enrolledCount: number;
+  skippedCount: number;
+  failureCount: number;
+  courseEnrolledTotal: number;
+  courseMaxStudents?: number | null;
+  rows: BulkEnrollRowResult[];
 }
 
 export interface TeacherAnnouncement {

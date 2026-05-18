@@ -16,14 +16,26 @@
         Everyone enrolled in this course, sorted by activity. Click anyone to drill in.
       </p>
     </div>
-    <a [routerLink]="['/teacher/courses', courseId(), 'analytics']"
-       class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-primary-300 hover:text-primary-700">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3 3v18h18"></path><path d="m18 9-6 6-4-4-3 3"></path>
-      </svg>
-      View analytics
-    </a>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" (click)="openEnroll()"
+              class="inline-flex items-center gap-1.5 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" x2="12" y1="3" y2="15"></line>
+        </svg>
+        Bulk enroll
+      </button>
+      <a [routerLink]="['/teacher/courses', courseId(), 'analytics']"
+         class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 3v18h18"></path><path d="m18 9-6 6-4-4-3 3"></path>
+        </svg>
+        View analytics
+      </a>
+    </div>
   </header>
 
   @if (loading()) {
@@ -167,5 +179,150 @@
         </li>
       }
     </ul>
+  }
+
+  <!-- Bulk enroll modal (BRD TCH-043) ------------------------------------ -->
+  @if (enrollOpen()) {
+    <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/40 px-4 py-8"
+         role="dialog" aria-modal="true" aria-labelledby="bulk-enroll-title">
+      <div class="w-full max-w-2xl overflow-hidden rounded-3xl bg-surface shadow-2xl">
+        <header class="flex items-center justify-between border-b border-line px-6 py-4">
+          <div>
+            <h2 id="bulk-enroll-title" class="text-lg font-bold text-ink">Bulk enroll students</h2>
+            <p class="mt-0.5 text-xs text-muted">
+              Upload a CSV of student emails. Each match becomes an enrollment; already-enrolled rows are skipped.
+            </p>
+          </div>
+          <button type="button" (click)="closeEnroll()" aria-label="Close"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted hover:bg-surface-2 hover:text-ink">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </header>
+
+        <div class="px-6 py-5">
+          <!-- Format help + template download -->
+          <div class="rounded-2xl border border-line bg-surface-2/40 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wider text-muted">CSV format</p>
+            <p class="mt-1 text-sm text-ink-soft">
+              One <code class="rounded bg-surface px-1 text-xs">Email</code> column.
+              A plain list of emails (no header) also works as long as the first line looks like an email.
+              Students must already exist; rows that match a Teacher / Admin / suspended user are flagged.
+            </p>
+            <div class="mt-3">
+              <button type="button" (click)="downloadEnrollTemplate()"
+                      class="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:border-primary-300 hover:text-primary-700">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" x2="12" y1="15" y2="3"></line>
+                </svg>
+                Download sample template
+              </button>
+            </div>
+          </div>
+
+          <!-- Upload control -->
+          <div class="mt-5">
+            <label class="block text-sm font-semibold text-ink-soft">CSV file</label>
+            <p class="text-[11px] text-muted">Max 1 MB / 1000 emails per upload.</p>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <label class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-primary-300 hover:text-primary-700">
+                <input type="file" accept=".csv,text/csv"
+                       (change)="onEnrollFile($any($event.target))"
+                       [disabled]="enrollBusy()"
+                       class="hidden">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" x2="12" y1="3" y2="15"></line>
+                </svg>
+                {{ enrollBusy() ? 'Uploading...' : (enrollFileName() ? 'Choose a different file' : 'Choose CSV file') }}
+              </label>
+              @if (enrollFileName()) {
+                <span class="text-xs text-muted">{{ enrollFileName() }}</span>
+              }
+            </div>
+          </div>
+
+          @if (enrollError()) {
+            <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+              {{ enrollError() }}
+            </div>
+          }
+          @if (enrollBusy()) {
+            <div class="mt-4 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800">
+              Enrolling students -- larger uploads take a few seconds.
+            </div>
+          }
+
+          @if (enrollResult(); as res) {
+            <div class="mt-5 rounded-2xl border border-line bg-surface shadow-sm">
+              <div class="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 text-xs">
+                <span class="font-semibold text-ink">{{ res.totalRows }} rows</span>
+                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800">
+                  {{ res.enrolledCount }} enrolled
+                </span>
+                @if (res.skippedCount > 0) {
+                  <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
+                    {{ res.skippedCount }} skipped
+                  </span>
+                }
+                @if (res.failureCount > 0) {
+                  <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 font-semibold text-rose-800">
+                    {{ res.failureCount }} failed
+                  </span>
+                }
+                <span class="ml-auto text-muted">
+                  Course total: {{ res.courseEnrolledTotal }}{{ res.courseMaxStudents ? ' / ' + res.courseMaxStudents : '' }}
+                </span>
+              </div>
+              <div class="max-h-[40vh] overflow-y-auto">
+                <table class="min-w-full divide-y divide-line text-xs">
+                  <thead class="bg-surface-2 text-left font-semibold uppercase tracking-wider text-muted">
+                    <tr>
+                      <th class="px-3 py-2 w-12">Line</th>
+                      <th class="px-3 py-2">Email</th>
+                      <th class="px-3 py-2 w-24">Status</th>
+                      <th class="px-3 py-2">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-line">
+                    @for (row of res.rows; track row.line) {
+                      <tr [class.bg-rose-50]="row.status === 'Failed'"
+                          [class.bg-amber-50]="row.status === 'Skipped'">
+                        <td class="px-3 py-2 text-muted">{{ row.line }}</td>
+                        <td class="px-3 py-2 font-mono text-[11px] text-ink">{{ row.email || '(empty)' }}</td>
+                        <td class="px-3 py-2">
+                          @if (row.status === 'Enrolled') {
+                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800">Enrolled</span>
+                          } @else if (row.status === 'Skipped') {
+                            <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">Skipped</span>
+                          } @else {
+                            <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 font-semibold text-rose-800">Failed</span>
+                          }
+                        </td>
+                        <td class="px-3 py-2 text-muted">{{ row.error || (row.status === 'Enrolled' ? 'Added to course' : '') }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </div>
+
+        <footer class="flex justify-end gap-2 border-t border-line bg-surface-2 px-6 py-3">
+          <button type="button" (click)="closeEnroll()"
+                  class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700">
+            {{ enrollResult() ? 'Done' : 'Close' }}
+          </button>
+        </footer>
+      </div>
+    </div>
   }
 </section>

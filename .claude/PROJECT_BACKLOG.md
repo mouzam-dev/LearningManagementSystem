@@ -66,7 +66,10 @@ See the audit produced 2026-05-16 — short summary of the bigger missing bucket
 - **Bulk operations** — ~~ADM-012 (bulk import users)~~ shipped 2026-05-18
   (`/admin/users` "Bulk import" modal; POST `/api/admin/users/bulk-import`
   multipart CSV; random password + auto password-reset email per row);
-  TCH-043 (bulk enroll), TCH-032 (bulk grading) still TODO
+  ~~TCH-043 (bulk enroll)~~ shipped 2026-05-18 (`/teacher/courses/:id/students`
+  "Bulk enroll" modal; POST `/api/teacher/courses/{id}/bulk-enroll` multipart
+  CSV of emails; idempotent — already-enrolled rows return Skipped);
+  TCH-032 (bulk grading) still TODO
 - **Rich teacher tools** — ~~co-instructors (TCH-007)~~ shipped 2026-05-17;
   ~~archive/duplicate courses (TCH-005/006)~~ shipped 2026-05-17;
   ~~question bank (TCH-021)~~ shipped 2026-05-18 (`/teacher/question-bank` +

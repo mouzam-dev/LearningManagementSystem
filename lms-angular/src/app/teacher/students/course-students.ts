@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { CourseStudentListItem, TeacherCourseDetail } from '../models/teacher.models';
-import { TeacherService } from '../teacher.service';
+import { BulkEnrollResult, TeacherService } from '../teacher.service';
 
 @Component({
   selector: 'app-teacher-course-students',
@@ -94,5 +94,71 @@ export class TeacherCourseStudentsPage {
     if (!s.lastActivityAt) return true;
     const fortnight = 14 * 24 * 60 * 60 * 1000;
     return Date.now() - new Date(s.lastActivityAt).getTime() > fortnight;
+  }
+
+  // ----- Bulk enroll (BRD TCH-043) --------------------------------------
+
+  readonly enrollOpen = signal(false);
+  readonly enrollBusy = signal(false);
+  readonly enrollError = signal<string | null>(null);
+  readonly enrollResult = signal<BulkEnrollResult | null>(null);
+  readonly enrollFileName = signal<string | null>(null);
+
+  openEnroll(): void {
+    this.enrollOpen.set(true);
+    this.enrollResult.set(null);
+    this.enrollError.set(null);
+    this.enrollFileName.set(null);
+  }
+
+  closeEnroll(): void {
+    this.enrollOpen.set(false);
+    this.enrollBusy.set(false);
+    // Refresh the students list if anything new landed.
+    if (this.enrollResult()?.enrolledCount) {
+      this.fetch(this.courseId());
+    }
+  }
+
+  onEnrollFile(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) return;
+    this.enrollFileName.set(file.name);
+    this.enrollResult.set(null);
+    this.enrollError.set(null);
+    this.enrollBusy.set(true);
+
+    this.teacher.bulkEnrollStudents(this.courseId(), file).subscribe({
+      next: (res) => {
+        this.enrollResult.set(res);
+        this.enrollBusy.set(false);
+        input.value = '';
+      },
+      error: (err: HttpErrorResponse) => {
+        this.enrollBusy.set(false);
+        input.value = '';
+        this.enrollError.set(err.status === 400
+          ? (err.error?.message ?? 'CSV was rejected.')
+          : err.status === 404 ? 'Course no longer exists.'
+          : err.status === 0 ? 'Cannot reach the API.' : 'Enrollment failed.');
+      },
+    });
+  }
+
+  /** Build a tiny sample CSV in-memory and trigger a browser download. */
+  downloadEnrollTemplate(): void {
+    const lines = [
+      'Email',
+      'student1@example.com',
+      'student2@example.com',
+      'student3@example.com',
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'lms-bulk-enroll-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 }
