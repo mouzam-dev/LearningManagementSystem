@@ -115,7 +115,7 @@ export class Home implements OnInit {
 
   private formatError(err: HttpErrorResponse): string {
     if (err.status === 0) {
-      return 'Cannot reach the API. Is it running on http://localhost:5116?';
+      return "We couldn't reach the courses service. Please check your connection and try again.";
     }
     return err.statusText || 'Could not load courses right now.';
   }
