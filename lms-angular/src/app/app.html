@@ -25,6 +25,7 @@
           <a routerLink="/teacher/courses" routerLinkActive="nav-active" class="nav-pill">My courses</a>
           <a routerLink="/teacher/grading" routerLinkActive="nav-active" class="nav-pill">Grading</a>
           <a routerLink="/teacher/question-bank" routerLinkActive="nav-active" class="nav-pill">Question bank</a>
+          <a routerLink="/teacher/rubrics" routerLinkActive="nav-active" class="nav-pill">Rubrics</a>
         } @else if (user()?.role === 'SuperAdmin') {
           <a routerLink="/admin/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
           <a routerLink="/admin/organizations" routerLinkActive="nav-active" class="nav-pill">Organizations</a>
@@ -142,6 +143,7 @@
           <a routerLink="/teacher/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">My courses</a>
           <a routerLink="/teacher/grading" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Grading</a>
           <a routerLink="/teacher/question-bank" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Question bank</a>
+          <a routerLink="/teacher/rubrics" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Rubrics</a>
         } @else if (user()?.role === 'SuperAdmin') {
           <a routerLink="/admin/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
           <a routerLink="/admin/organizations" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Organizations</a>

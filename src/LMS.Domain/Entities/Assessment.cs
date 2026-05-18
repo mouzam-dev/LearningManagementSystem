@@ -12,7 +12,15 @@ public class Assessment
     public int? MaxAttempts { get; set; }
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>
+    /// Optional grading rubric (BRD TCH-025). Only meaningful for Assignment-
+    /// type assessments; quizzes auto-grade and ignore this. Nullable; null
+    /// means single-score grading (the existing behavior).
+    /// </summary>
+    public Guid? RubricId { get; set; }
+
     public Course Course { get; set; } = null!;
+    public Rubric? Rubric { get; set; }
     public ICollection<Question> Questions { get; set; } = new List<Question>();
     public ICollection<Submission> Submissions { get; set; } = new List<Submission>();
 }

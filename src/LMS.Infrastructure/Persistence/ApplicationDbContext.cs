@@ -24,6 +24,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Assessment> Assessments => Set<Assessment>();
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<BankQuestion> BankQuestions => Set<BankQuestion>();
+    public DbSet<Rubric> Rubrics => Set<Rubric>();
+    public DbSet<RubricCriterion> RubricCriteria => Set<RubricCriterion>();
     public DbSet<Submission> Submissions => Set<Submission>();
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<Notification> Notifications => Set<Notification>();

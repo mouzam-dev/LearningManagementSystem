@@ -1,0 +1,158 @@
+<section class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+  <a routerLink="/teacher/rubrics"
+     class="inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary-600">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+    Back to rubrics
+  </a>
+
+  <h1 class="mt-4 text-2xl font-bold text-ink sm:text-3xl">
+    {{ isEdit() ? 'Edit rubric' : 'New rubric' }}
+  </h1>
+  <p class="mt-1 text-sm text-muted">
+    Define the criteria you'll grade against. The total points should match how you score the assignment.
+  </p>
+
+  @if (loadError()) {
+    <div class="mt-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+      {{ loadError() }}
+    </div>
+  } @else if (loading()) {
+    <div class="mt-6 space-y-3">
+      <div class="h-10 animate-pulse rounded-xl bg-surface-3"></div>
+      <div class="h-24 animate-pulse rounded-xl bg-surface-3"></div>
+      <div class="h-24 animate-pulse rounded-xl bg-surface-3"></div>
+    </div>
+  } @else {
+    <form (submit)="$event.preventDefault(); save()"
+          class="mt-6 space-y-6 rounded-2xl border border-line bg-surface p-5 shadow-sm sm:p-6">
+      <!-- Meta -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-muted" for="rub-name">
+            Rubric name
+          </label>
+          <input id="rub-name" type="text" required maxlength="200"
+                 [ngModel]="draft().name" (ngModelChange)="updateName($event)" name="name"
+                 placeholder="e.g. Capstone project rubric"
+                 class="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-muted" for="rub-desc">
+            Description <span class="text-[10px] font-normal lowercase text-muted">(optional)</span>
+          </label>
+          <textarea id="rub-desc" rows="2" maxlength="2000"
+                    [ngModel]="draft().description" (ngModelChange)="updateDescription($event)" name="desc"
+                    placeholder="What this rubric is for, how to apply it..."
+                    class="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"></textarea>
+        </div>
+      </div>
+
+      <!-- Criteria -->
+      <div>
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-semibold text-ink">Criteria</h2>
+            <p class="text-[11px] text-muted">
+              Total: <span class="font-semibold text-ink">{{ totalPoints() }} points</span>
+            </p>
+          </div>
+          @if (draft().criteria.length < 20) {
+            <button type="button" (click)="addCriterion()"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-primary-300 hover:text-primary-700">
+              + Add criterion
+            </button>
+          }
+        </div>
+
+        <div class="mt-3 space-y-3">
+          @for (c of draft().criteria; track $index; let i = $index) {
+            <div class="rounded-2xl border border-line bg-surface-2/40 p-4">
+              <div class="flex items-start gap-3">
+                <div class="flex flex-col gap-1">
+                  <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-600 text-[11px] font-bold text-white">
+                    {{ i + 1 }}
+                  </span>
+                  <div class="flex flex-col gap-0.5">
+                    <button type="button" (click)="moveUp(i)" [disabled]="i === 0" title="Move up"
+                            class="rounded text-muted hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-30">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m18 15-6-6-6 6"></path>
+                      </svg>
+                    </button>
+                    <button type="button" (click)="moveDown(i)" [disabled]="i === draft().criteria.length - 1" title="Move down"
+                            class="rounded text-muted hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-30">
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="min-w-0 flex-1 space-y-3">
+                  <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <div>
+                      <label class="block text-[10px] font-semibold uppercase tracking-wider text-muted">
+                        Criterion name
+                      </label>
+                      <input type="text" required maxlength="200"
+                             [ngModel]="c.name" (ngModelChange)="updateCriterion(i, 'name', $event)" [name]="'crit-name-' + i"
+                             placeholder="e.g. Code quality"
+                             class="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                    </div>
+                    <div class="sm:w-32">
+                      <label class="block text-[10px] font-semibold uppercase tracking-wider text-muted">
+                        Max points
+                      </label>
+                      <input type="number" min="1" max="100" required
+                             [ngModel]="c.maxPoints" (ngModelChange)="updateCriterion(i, 'maxPoints', +$event)" [name]="'crit-pts-' + i"
+                             class="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200">
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-semibold uppercase tracking-wider text-muted">
+                      Description <span class="font-normal lowercase">(optional, what full marks look like)</span>
+                    </label>
+                    <textarea rows="2" maxlength="2000"
+                              [ngModel]="c.description" (ngModelChange)="updateCriterion(i, 'description', $event)" [name]="'crit-desc-' + i"
+                              placeholder="e.g. Clean naming, modular structure, no dead code"
+                              class="mt-1 block w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"></textarea>
+                  </div>
+                </div>
+
+                @if (draft().criteria.length > 1) {
+                  <button type="button" (click)="removeCriterion(i)" title="Remove criterion"
+                          class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-rose-600 transition hover:border-rose-200 hover:bg-rose-50">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (saveError()) {
+        <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+          {{ saveError() }}
+        </div>
+      }
+
+      <div class="flex justify-end gap-2">
+        <a routerLink="/teacher/rubrics"
+           class="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong">
+          Cancel
+        </a>
+        <button type="submit" [disabled]="saving()"
+                class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-60">
+          {{ saving() ? 'Saving...' : (isEdit() ? 'Save changes' : 'Create rubric') }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

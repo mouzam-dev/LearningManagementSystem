@@ -45,6 +45,16 @@ public class TeacherSubmissionDetailDto
 
     /// <summary>For Assignment submissions: the single free-text response (or null).</summary>
     public string? AssignmentResponse { get; set; }
+
+    /// <summary>
+    /// Attached grading rubric (BRD TCH-025). Present only for Assignment-type
+    /// assessments that have a rubric attached. When set, the grader UI
+    /// renders criterion-by-criterion inputs instead of the single score box.
+    /// </summary>
+    public RubricDto? Rubric { get; set; }
+
+    /// <summary>Persisted per-criterion scores from the last grading (CriterionId -> awarded points).</summary>
+    public IReadOnlyDictionary<Guid, int>? CriterionScores { get; set; }
 }
 
 public class SubmissionAnswerDto

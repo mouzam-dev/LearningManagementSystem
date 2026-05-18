@@ -151,6 +151,21 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./teacher/question-bank/question-bank-edit').then((m) => m.TeacherQuestionBankEditPage),
       },
+      {
+        path: 'rubrics',
+        loadComponent: () =>
+          import('./teacher/rubrics/rubrics-list').then((m) => m.TeacherRubricsListPage),
+      },
+      {
+        path: 'rubrics/new',
+        loadComponent: () =>
+          import('./teacher/rubrics/rubric-edit').then((m) => m.TeacherRubricEditPage),
+      },
+      {
+        path: 'rubrics/:id',
+        loadComponent: () =>
+          import('./teacher/rubrics/rubric-edit').then((m) => m.TeacherRubricEditPage),
+      },
     ],
   },
   {

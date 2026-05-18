@@ -24,6 +24,8 @@ public interface IApplicationDbContext
     DbSet<Assessment> Assessments { get; }
     DbSet<Question> Questions { get; }
     DbSet<BankQuestion> BankQuestions { get; }
+    DbSet<Rubric> Rubrics { get; }
+    DbSet<RubricCriterion> RubricCriteria { get; }
     DbSet<Submission> Submissions { get; }
     DbSet<Certificate> Certificates { get; }
     DbSet<Notification> Notifications { get; }

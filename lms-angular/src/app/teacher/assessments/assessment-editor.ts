@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { PagedResult } from '../../student/models/course.models';
 import { BankQuestionListItem } from '../models/bank-question.models';
+import { RubricListItem } from '../models/rubric.models';
 import {
   TeacherAssessment,
   TeacherQuestion,
@@ -26,6 +27,7 @@ type MetaDraft = {
   timeLimit: number | null;
   dueDate: string;
   maxAttempts: number | null;
+  rubricId: string | null;
 };
 
 const EMPTY_QUESTION: QuestionDraft = {
@@ -64,9 +66,10 @@ export class TeacherAssessmentEditorPage {
   // -- Metadata edit modal --------------------------------------------------
   readonly editingMeta = signal(false);
   readonly metaDraft = signal<MetaDraft>({
-    title: '', passingScore: 70, timeLimit: null, dueDate: '', maxAttempts: null,
+    title: '', passingScore: 70, timeLimit: null, dueDate: '', maxAttempts: null, rubricId: null,
   });
   readonly metaErrors = signal<Record<string, string[]>>({});
+  readonly availableRubrics = signal<RubricListItem[]>([]);
 
   // -- New question form ----------------------------------------------------
   readonly addingQuestion = signal(false);
@@ -140,9 +143,19 @@ export class TeacherAssessmentEditorPage {
       timeLimit: a.timeLimit ?? null,
       dueDate: a.dueDate ? this.toLocalDateTimeString(a.dueDate) : '',
       maxAttempts: a.maxAttempts ?? null,
+      rubricId: a.rubricId ?? null,
     });
     this.metaErrors.set({});
     this.editingMeta.set(true);
+
+    // Lazy-load the rubric dropdown options. Only relevant for Assignment-
+    // type assessments; the template hides the field for quizzes anyway.
+    if (a.type === 'Assignment' && this.availableRubrics().length === 0) {
+      this.teacher.getRubrics({ pageSize: 100 }).subscribe({
+        next: (r) => this.availableRubrics.set(r.items),
+        error: () => this.availableRubrics.set([]),
+      });
+    }
   }
 
   cancelMetaEdit(): void {
@@ -161,6 +174,7 @@ export class TeacherAssessmentEditorPage {
       passingScore: draft.passingScore,
       dueDate: draft.dueDate ? new Date(draft.dueDate).toISOString() : null,
       maxAttempts: draft.maxAttempts,
+      rubricId: a.type === 'Assignment' ? (draft.rubricId || null) : null,
     }).subscribe({
       next: (updated) => {
         this.assessment.set(updated);

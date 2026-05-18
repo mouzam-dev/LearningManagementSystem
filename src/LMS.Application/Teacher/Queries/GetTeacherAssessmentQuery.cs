@@ -28,6 +28,7 @@ public class GetTeacherAssessmentQueryHandler
             .AsNoTracking()
             .Include(a => a.Course)
             .Include(a => a.Questions.OrderBy(q => q.Order))
+            .Include(a => a.Rubric!).ThenInclude(r => r.Criteria.OrderBy(c => c.Order))
             .FirstOrDefaultAsync(a => a.Id == request.AssessmentId
                 && (a.Course.TeacherId == teacherId
                     || a.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
@@ -50,6 +51,8 @@ public class GetTeacherAssessmentQueryHandler
             MaxAttempts = assessment.MaxAttempts,
             TotalPoints = assessment.Questions.Sum(q => q.Points),
             SubmissionCount = submissionCount,
+            RubricId = assessment.RubricId,
+            Rubric = assessment.Rubric is null ? null : GetRubricQueryHandler.MapToDto(assessment.Rubric),
             Questions = assessment.Questions
                 .OrderBy(q => q.Order)
                 .Select(q => new TeacherQuestionDto

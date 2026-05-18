@@ -11,6 +11,12 @@ import {
   BankQuestionUpsertBody,
 } from './models/bank-question.models';
 import {
+  Rubric,
+  RubricFilter,
+  RubricListItem,
+  RubricUpsertBody,
+} from './models/rubric.models';
+import {
   CourseAnalytics,
   CourseInstructor,
   CourseStudentDetail,
@@ -274,6 +280,32 @@ export class TeacherService {
     return this.http.post<TeacherAssessment>(
       `${this.baseUrl}/assessments/${assessmentId}/import-bank-questions`,
       { questionIds });
+  }
+
+  // ---------------- Rubrics (BRD TCH-025) ----------------------------------
+
+  getRubrics(filter: RubricFilter = {}): Observable<PagedResult<RubricListItem>> {
+    let params = new HttpParams();
+    if (filter.search?.trim()) params = params.set('search', filter.search.trim());
+    if (filter.page) params = params.set('page', filter.page);
+    if (filter.pageSize) params = params.set('pageSize', filter.pageSize);
+    return this.http.get<PagedResult<RubricListItem>>(`${this.baseUrl}/rubrics`, { params });
+  }
+
+  getRubric(id: string): Observable<Rubric> {
+    return this.http.get<Rubric>(`${this.baseUrl}/rubrics/${id}`);
+  }
+
+  createRubric(body: RubricUpsertBody): Observable<Rubric> {
+    return this.http.post<Rubric>(`${this.baseUrl}/rubrics`, body);
+  }
+
+  updateRubric(id: string, body: RubricUpsertBody): Observable<Rubric> {
+    return this.http.put<Rubric>(`${this.baseUrl}/rubrics/${id}`, body);
+  }
+
+  deleteRubric(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/rubrics/${id}`);
   }
 }
 

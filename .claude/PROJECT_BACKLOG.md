@@ -69,7 +69,11 @@ See the audit produced 2026-05-16 — short summary of the bigger missing bucket
   ~~archive/duplicate courses (TCH-005/006)~~ shipped 2026-05-17;
   ~~question bank (TCH-021)~~ shipped 2026-05-18 (`/teacher/question-bank` +
   copy-on-import from assessment editor; private per teacher);
-  rubric builder (TCH-025), content scheduling (TCH-017)
+  ~~rubric builder (TCH-025)~~ shipped 2026-05-18 (`/teacher/rubrics` +
+  attach on assessment editor for Assignment-type + criterion-by-criterion
+  grading on the submission grader; private per teacher; per-criterion scores
+  persisted as JSON on Submission);
+  content scheduling (TCH-017)
 - **Certificates** — ~~PDF download (STU-061)~~ shipped 2026-05-17 (QuestPDF
   on `GET /api/student/certificates/{id}/pdf`); ~~public verification page
   (STU-062)~~ shipped earlier (`/verify/:code` against anonymous

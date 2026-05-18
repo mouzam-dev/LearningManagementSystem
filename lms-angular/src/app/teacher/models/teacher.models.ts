@@ -225,6 +225,9 @@ export interface TeacherAssessment {
   maxAttempts?: number | null;
   totalPoints: number;
   submissionCount: number;
+  /** TCH-025: attached grading rubric, only set for Assignment-type. */
+  rubricId?: string | null;
+  rubric?: import('./rubric.models').Rubric | null;
   questions: TeacherQuestion[];
 }
 
@@ -243,6 +246,7 @@ export interface UpdateAssessmentBody {
   passingScore: number;
   dueDate?: string | null;
   maxAttempts?: number | null;
+  rubricId?: string | null;
 }
 
 export interface CreateQuestionBody {
@@ -310,11 +314,18 @@ export interface TeacherSubmissionDetail {
   studentEmail: string;
   answers: SubmissionAnswer[];
   assignmentResponse?: string | null;
+  /** TCH-025: rubric attached to the parent assessment (null when single-score grading). */
+  rubric?: import('./rubric.models').Rubric | null;
+  /** TCH-025: per-criterion scores from the last grading (criterionId -> points). */
+  criterionScores?: Record<string, number> | null;
 }
 
 export interface GradeSubmissionBody {
-  score: number;
+  /** Required UNLESS criterionScores is provided. */
+  score?: number | null;
   feedback?: string | null;
+  /** TCH-025: rubric breakdown (criterionId -> points). Server sums + clamps to [0,100]. */
+  criterionScores?: Record<string, number> | null;
 }
 
 // ---------------- Per-course students + analytics -----------------------

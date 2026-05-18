@@ -99,7 +99,8 @@ public record UpdateAssessmentCommand(
     int? TimeLimit,
     int PassingScore,
     DateTime? DueDate,
-    int? MaxAttempts
+    int? MaxAttempts,
+    Guid? RubricId
 ) : IRequest<TeacherAssessmentDto>;
 
 public class UpdateAssessmentCommandValidator : AbstractValidator<UpdateAssessmentCommand>
@@ -142,6 +143,29 @@ public class UpdateAssessmentCommandHandler : IRequestHandler<UpdateAssessmentCo
         assessment.PassingScore = request.PassingScore;
         assessment.DueDate = request.DueDate;
         assessment.MaxAttempts = request.MaxAttempts;
+
+        // Rubric attach: only Assignment-type can have a rubric; silently
+        // clear for Quiz to keep the API tolerant of a stale field from the
+        // UI. When a rubric id is provided, verify the teacher owns it.
+        if (assessment.Type.Equals("Quiz", StringComparison.OrdinalIgnoreCase))
+        {
+            assessment.RubricId = null;
+        }
+        else if (request.RubricId is Guid rubricId)
+        {
+            var ownsRubric = await _db.Rubrics
+                .AnyAsync(r => r.Id == rubricId && r.TeacherId == teacherId, cancellationToken);
+            if (!ownsRubric)
+            {
+                throw new KeyNotFoundException($"Rubric {rubricId} was not found.");
+            }
+            assessment.RubricId = rubricId;
+        }
+        else
+        {
+            assessment.RubricId = null;
+        }
+
         assessment.Course.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);

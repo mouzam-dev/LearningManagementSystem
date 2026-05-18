@@ -33,6 +33,10 @@ public class TeacherAssessmentDto
     public int TotalPoints { get; set; }
     public int SubmissionCount { get; set; }
 
+    /// <summary>Attached grading rubric, if any (BRD TCH-025). Only present for Assignment-type.</summary>
+    public Guid? RubricId { get; set; }
+    public RubricDto? Rubric { get; set; }
+
     public IReadOnlyList<TeacherQuestionDto> Questions { get; set; } = Array.Empty<TeacherQuestionDto>();
 }
 

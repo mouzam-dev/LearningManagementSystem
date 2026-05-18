@@ -400,6 +400,8 @@ public class TeacherController : ControllerBase
         public int PassingScore { get; set; }
         public DateTime? DueDate { get; set; }
         public int? MaxAttempts { get; set; }
+        /// <summary>Optional rubric (TCH-025); ignored for Quiz-type assessments.</summary>
+        public Guid? RubricId { get; set; }
     }
 
     [HttpPut("assessments/{assessmentId:guid}")]
@@ -415,7 +417,7 @@ public class TeacherController : ControllerBase
         {
             var result = await _mediator.Send(new UpdateAssessmentCommand(
                 assessmentId, request.Title, request.TimeLimit, request.PassingScore,
-                request.DueDate, request.MaxAttempts), ct);
+                request.DueDate, request.MaxAttempts, request.RubricId), ct);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -569,14 +571,22 @@ public class TeacherController : ControllerBase
 
     public class GradeSubmissionRequest
     {
-        public int Score { get; set; }
+        /// <summary>Direct score 0-100. Required unless CriterionScores is provided.</summary>
+        public int? Score { get; set; }
         public string? Feedback { get; set; }
+        /// <summary>
+        /// Rubric breakdown (TCH-025) — map of criterionId (string Guid) to points.
+        /// When present, the server sums + clamps to 0-100, persists the breakdown,
+        /// and uses the sum as the submission Score.
+        /// </summary>
+        public Dictionary<string, int>? CriterionScores { get; set; }
     }
 
     [HttpPut("submissions/{submissionId:guid}/grade")]
     [ProducesResponseType(typeof(TeacherSubmissionDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<TeacherSubmissionDetailDto>> GradeSubmission(
         Guid submissionId,
         [FromBody] GradeSubmissionRequest request,
@@ -584,13 +594,26 @@ public class TeacherController : ControllerBase
     {
         try
         {
+            // Parse string-keyed criterion map into Guid keys (the handler validates ownership).
+            IReadOnlyDictionary<Guid, int>? cs = null;
+            if (request.CriterionScores is { Count: > 0 } raw)
+            {
+                cs = raw
+                    .Where(kv => Guid.TryParse(kv.Key, out _))
+                    .ToDictionary(kv => Guid.Parse(kv.Key), kv => kv.Value);
+            }
+
             var result = await _mediator.Send(
-                new GradeSubmissionCommand(submissionId, request.Score, request.Feedback), ct);
+                new GradeSubmissionCommand(submissionId, request.Score, request.Feedback, cs), ct);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
         catch (ValidationException ex)
         {
@@ -1014,5 +1037,84 @@ public class TeacherController : ControllerBase
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
+
+    // -----------------------------------------------------------------------
+    // Rubrics (BRD TCH-025) — private per-teacher grading templates.
+    // -----------------------------------------------------------------------
+
+    [HttpGet("rubrics")]
+    [ProducesResponseType(typeof(PagedResult<RubricListItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<RubricListItemDto>>> GetRubrics(
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetRubricsQuery(search, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpGet("rubrics/{id:guid}")]
+    [ProducesResponseType(typeof(RubricDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RubricDto>> GetRubric(Guid id, CancellationToken ct)
+    {
+        try { return Ok(await _mediator.Send(new GetRubricQuery(id), ct)); }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+    }
+
+    public class RubricUpsertRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public List<RubricCriterionInput> Criteria { get; set; } = new();
+    }
+
+    [HttpPost("rubrics")]
+    [ProducesResponseType(typeof(RubricDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<RubricDto>> CreateRubric(
+        [FromBody] RubricUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new CreateRubricCommand(
+                request.Name, request.Description, request.Criteria), ct);
+            return CreatedAtAction(nameof(GetRubric), new { id = result.Id }, result);
+        }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
+
+    [HttpPut("rubrics/{id:guid}")]
+    [ProducesResponseType(typeof(RubricDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RubricDto>> UpdateRubric(
+        Guid id, [FromBody] RubricUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(new UpdateRubricCommand(
+                id, request.Name, request.Description, request.Criteria), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (ValidationException ex) { return ValidationProblem(BuildModelState(ex)); }
+    }
+
+    [HttpDelete("rubrics/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteRubric(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _mediator.Send(new DeleteRubricCommand(id), ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { message = ex.Message }); }
     }
 }

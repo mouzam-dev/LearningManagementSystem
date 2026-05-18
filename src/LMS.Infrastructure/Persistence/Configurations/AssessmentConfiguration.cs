@@ -20,6 +20,14 @@ public class AssessmentConfiguration : IEntityTypeConfiguration<Assessment>
             .HasForeignKey(x => x.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Rubric is optional. Use Restrict so deleting a rubric that is still
+        // attached to assessments fails loudly rather than silently breaking
+        // grading; teachers must detach (clear RubricId) first.
+        e.HasOne(x => x.Rubric)
+            .WithMany()
+            .HasForeignKey(x => x.RubricId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         e.HasIndex(x => x.CourseId);
         e.HasIndex(x => x.DueDate);
     }

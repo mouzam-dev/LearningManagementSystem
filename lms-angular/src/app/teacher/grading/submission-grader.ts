@@ -24,8 +24,19 @@ export class TeacherSubmissionGraderPage {
   readonly saving = signal(false);
   readonly saveError = signal<string | null>(null);
 
+  // Flat-score mode (used when no rubric is attached).
   readonly draftScore = signal<number>(0);
   readonly draftFeedback = signal<string>('');
+
+  // Rubric mode (TCH-025) — map of criterionId -> awarded points.
+  readonly draftCriterionScores = signal<Record<string, number>>({});
+
+  readonly hasRubric = computed(() => !!this.submission()?.rubric);
+
+  readonly rubricTotal = computed(() => {
+    const cs = this.draftCriterionScores();
+    return Math.min(100, Object.values(cs).reduce((sum, v) => sum + (v || 0), 0));
+  });
 
   readonly isPassed = computed(() => {
     const s = this.submission();
@@ -47,9 +58,21 @@ export class TeacherSubmissionGraderPage {
     this.teacher.getSubmission(id).subscribe({
       next: (s) => {
         this.submission.set(s);
-        // Pre-fill the form with any existing grade.
         this.draftScore.set(s.score ?? 0);
         this.draftFeedback.set(s.feedback ?? '');
+
+        // Seed the rubric inputs: prefer persisted breakdown, else 0 for each
+        // criterion so the form is in a coherent starting state.
+        if (s.rubric) {
+          const seed: Record<string, number> = {};
+          for (const c of s.rubric.criteria) {
+            seed[c.id] = s.criterionScores?.[c.id] ?? 0;
+          }
+          this.draftCriterionScores.set(seed);
+        } else {
+          this.draftCriterionScores.set({});
+        }
+
         this.loading.set(false);
       },
       error: (err: HttpErrorResponse) => {
@@ -64,20 +87,42 @@ export class TeacherSubmissionGraderPage {
     });
   }
 
+  setCriterionScore(criterionId: string, value: number, max: number): void {
+    const clamped = Math.max(0, Math.min(max, Number.isFinite(value) ? value : 0));
+    this.draftCriterionScores.set({
+      ...this.draftCriterionScores(),
+      [criterionId]: clamped,
+    });
+  }
+
   save(): void {
     const s = this.submission();
     if (!s) return;
     this.saving.set(true);
     this.saveError.set(null);
 
-    this.teacher.gradeSubmission(s.submissionId, {
-      score: this.draftScore(),
-      feedback: this.draftFeedback().trim() || null,
-    }).subscribe({
+    const body = this.hasRubric()
+      ? {
+          criterionScores: this.draftCriterionScores(),
+          feedback: this.draftFeedback().trim() || null,
+        }
+      : {
+          score: this.draftScore(),
+          feedback: this.draftFeedback().trim() || null,
+        };
+
+    this.teacher.gradeSubmission(s.submissionId, body).subscribe({
       next: (updated) => {
         this.submission.set(updated);
         this.draftScore.set(updated.score ?? 0);
         this.draftFeedback.set(updated.feedback ?? '');
+        if (updated.rubric) {
+          const seed: Record<string, number> = {};
+          for (const c of updated.rubric.criteria) {
+            seed[c.id] = updated.criterionScores?.[c.id] ?? 0;
+          }
+          this.draftCriterionScores.set(seed);
+        }
         this.saving.set(false);
       },
       error: (err: HttpErrorResponse) => {

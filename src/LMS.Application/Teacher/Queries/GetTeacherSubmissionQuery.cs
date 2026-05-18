@@ -30,6 +30,7 @@ public class GetTeacherSubmissionQueryHandler
             .Include(s => s.Student)
             .Include(s => s.Assessment).ThenInclude(a => a.Course)
             .Include(s => s.Assessment).ThenInclude(a => a.Questions.OrderBy(q => q.Order))
+            .Include(s => s.Assessment).ThenInclude(a => a.Rubric!).ThenInclude(r => r.Criteria.OrderBy(c => c.Order))
             .FirstOrDefaultAsync(s => s.Id == request.SubmissionId
                 && (s.Assessment.Course.TeacherId == teacherId
                     || s.Assessment.Course.CoInstructors.Any(ci => ci.UserId == teacherId)), cancellationToken)
@@ -80,6 +81,23 @@ public class GetTeacherSubmissionQueryHandler
             })
             .ToList();
 
+        // Rubric breakdown — parse the stored JSON map keyed by criterion GUID.
+        Dictionary<Guid, int>? criterionScores = null;
+        if (!string.IsNullOrWhiteSpace(submission.CriterionScoresJson))
+        {
+            try
+            {
+                var raw = JsonSerializer.Deserialize<Dictionary<string, int>>(submission.CriterionScoresJson);
+                if (raw is not null)
+                {
+                    criterionScores = raw
+                        .Where(kv => Guid.TryParse(kv.Key, out _))
+                        .ToDictionary(kv => Guid.Parse(kv.Key), kv => kv.Value);
+                }
+            }
+            catch (JsonException) { /* fall through with null */ }
+        }
+
         return new TeacherSubmissionDetailDto
         {
             SubmissionId = submission.Id,
@@ -99,6 +117,10 @@ public class GetTeacherSubmissionQueryHandler
             StudentEmail = submission.Student.Email,
             Answers = perQuestion,
             AssignmentResponse = assignmentResponse,
+            Rubric = submission.Assessment.Rubric is null
+                ? null
+                : GetRubricQueryHandler.MapToDto(submission.Assessment.Rubric),
+            CriterionScores = criterionScores,
         };
     }
 }
