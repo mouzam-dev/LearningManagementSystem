@@ -65,6 +65,18 @@
       </button>
 
       @if (isAuthed()) {
+        <!-- Support / user manual -->
+        <a routerLink="/support" (click)="closeMenu()"
+           class="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:border-line-strong hover:text-ink"
+           aria-label="Support and user manual">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </a>
+
         <!-- Notification bell -->
         <a routerLink="/notifications" (click)="closeMenu()"
            class="relative flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:border-line-strong hover:text-ink"
@@ -159,6 +171,7 @@
           <a routerLink="/orgadmin/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Courses</a>
         }
         <a routerLink="/profile" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Profile</a>
+        <a routerLink="/support" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Support</a>
       </div>
       <div class="mt-3 flex items-center justify-between border-t border-line pt-3">
         <span class="text-sm text-muted">

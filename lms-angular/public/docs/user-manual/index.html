@@ -1,0 +1,393 @@
+<!doctype html>
+    <html><head>
+      <meta charset="utf-8">
+      <title>LMS — User Manual</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+      <style>
+    @page { size: A4; margin: 22mm 18mm; }
+    * { box-sizing: border-box; }
+    html { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2c3540; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; line-height: 1.55; font-size: 11pt; }
+
+    /* Cover */
+    .cover { page-break-after: always; padding: 18mm 0; }
+    .cover .brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 6rem; }
+    .cover .brand-mark { width: 44px; height: 44px; background: #ee5a1f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; border-radius: 6px; }
+    .cover .brand-name { font-size: 18pt; font-weight: 800; letter-spacing: -0.02em; }
+    .cover h1 { font-size: 42pt; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 1rem; }
+    .cover h1 .accent { color: #ee5a1f; }
+    .cover .lede { font-size: 13pt; color: #475569; max-width: 28em; margin: 0 0 4rem; }
+    .cover .meta { display: flex; gap: 3rem; padding-top: 1.2rem; border-top: 1px solid #e5e7eb; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; }
+    .cover .meta strong { display: block; font-size: 12pt; color: #2c3540; letter-spacing: -0.01em; text-transform: none; margin-top: 0.25rem; font-weight: 700; }
+
+    /* TOC */
+    .toc { page-break-after: always; }
+    .toc h2 { font-size: 22pt; margin: 0 0 2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .toc ol { padding-left: 1.5rem; margin: 0; }
+    .toc ol li { font-size: 12pt; margin-bottom: 0.8rem; font-weight: 600; }
+    .toc ol li small { display: block; color: #6b7280; font-weight: 400; font-size: 10pt; margin-top: 0.15rem; }
+
+    /* Chapter title */
+    .chapter-title { page-break-before: always; padding-top: 1rem; }
+    .chapter-title .eyebrow { display: inline-block; padding: 0.3rem 0.7rem; background: #fff4ee; color: #c04417; font-size: 9pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; }
+    .chapter-title h2 { margin: 1.25rem 0 1rem; font-size: 28pt; font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; }
+    .chapter-title h2 .accent { color: #ee5a1f; }
+    .chapter-title p.intro { font-size: 12pt; color: #475569; max-width: 32em; margin: 0; }
+
+    /* Sections */
+    section.entry { page-break-inside: avoid; margin-top: 1.5rem; padding-top: 1rem; }
+    section.entry:first-of-type { margin-top: 2rem; }
+    section.entry h3 { font-size: 15pt; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 0.5rem; }
+    section.entry h3 .num { color: #c04417; font-weight: 800; margin-right: 0.5rem; }
+    section.entry p { margin: 0 0 1rem; color: #2c3540; }
+    section.entry .frame { border: 1px solid #e5e7eb; padding: 6px; border-radius: 6px; background: #fff; }
+    section.entry .frame img { display: block; max-width: 100%; height: auto; border-radius: 4px; }
+    section.entry .caption { margin-top: 0.5rem; font-size: 9pt; color: #6b7280; font-style: italic; }
+
+    /* Appendix */
+    .appendix { page-break-before: always; }
+    .appendix h2 { font-size: 22pt; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 1rem; }
+    .appendix p { color: #2c3540; }
+    .appendix .kv { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1rem; margin: 1rem 0; }
+    .appendix .kv dt { color: #6b7280; font-size: 9pt; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding-top: 0.15rem; }
+    .appendix .kv dd { margin: 0; font-size: 11pt; font-weight: 500; }
+    .appendix .kv dd code { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 10pt; background: #f6f7f8; padding: 0.15rem 0.4rem; border-radius: 4px; }
+
+    footer.colophon { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-size: 8pt; color: #9ca3af; text-align: center; }
+  </style>
+    </head><body>
+      
+    <div class="cover">
+      <div class="brand">
+        <span class="brand-mark">L</span>
+        <span class="brand-name">LMS</span>
+      </div>
+      <h1>LMS<br/><span class="accent">User Manual</span></h1>
+      <p class="lede">A guided tour of the Learning Management System for students, teachers, organisation admins, and super admins.</p>
+      <div class="meta">
+        <div>Version<strong>1.0</strong></div>
+        <div>Generated<strong>2026-05-18</strong></div>
+        <div>Roles covered<strong>4</strong></div>
+      </div>
+    </div>
+  
+      
+    <div class="toc">
+      <h2>Table of contents</h2>
+      <ol>
+        <li>Getting started<small>5 sections — The LMS is a web-based learning platform that brings students, teachers, organizations, and administrators ont…</small></li><li>For students<small>6 sections — Students discover and enrol in courses, work through lessons, take quizzes and assignments, and collect certif…</small></li><li>For teachers<small>8 sections — Teachers build and run their own courses end-to-end: drafting modules and lessons, attaching assessments, grad…</small></li><li>For org admins<small>5 sections — Organisation admins look after a single tenant: its branches, the teachers who deliver content there, and the …</small></li><li>For super admins<small>8 sections — Super admins operate the whole platform: every organisation, every user, role-permission mappings, audit logs,…</small></li>
+        <li>Appendix<small>Production URL, demo credentials, support pointers</small></li>
+      </ol>
+    </div>
+  
+      
+      <div class="chapter-title">
+        <span class="eyebrow">Chapter</span>
+        <h2><span class="accent">Getting</span> started</h2>
+        <p class="intro">The LMS is a web-based learning platform that brings students, teachers, organizations, and administrators onto one site. Anyone can browse the public catalogue; signing in unlocks the experience tailored to your role.</p>
+      </div>
+      
+          <section class="entry">
+            <h3><span class="num">01.</span>The landing page</h3>
+            <p>When you visit the site, you land on the marketing homepage. It headlines the brand promise, a search bar, the number of courses currently published, and quick "Get started" and "Sign in" actions.</p>
+            <div class="frame"><img src="screenshots/public/01-landing-hero.png" alt="The landing page"></div>
+            <p class="caption">Getting started · The landing page</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">02.</span>Browsing courses without an account</h3>
+            <p>Scroll down to see the most popular courses, each with its category, teacher, enrolled count, and an Enroll now button. Clicking Enroll while signed out takes you to the registration form with a return link, so you finish the sign-up and land on that course's enrolment page.</p>
+            <div class="frame"><img src="screenshots/public/02-landing-courses-grid.png" alt="Browsing courses without an account"></div>
+            <p class="caption">Getting started · Browsing courses without an account</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">03.</span>What you get</h3>
+            <p>Further down the page, the value-prop section summarises the four pillars of the LMS: video-first lessons, quizzes and assessments, verifiable certificates, and tools to teach and run cohorts.</p>
+            <div class="frame"><img src="screenshots/public/03-landing-value-props.png" alt="What you get"></div>
+            <p class="caption">Getting started · What you get</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">04.</span>Creating an account</h3>
+            <p>Tap Register from the header or the hero. Fill in your name, email, password, and pick a role (Student or Teacher). After you submit, a verification email is sent and you're signed straight in.</p>
+            <div class="frame"><img src="screenshots/public/05-register.png" alt="Creating an account"></div>
+            <p class="caption">Getting started · Creating an account</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">05.</span>Signing back in</h3>
+            <p>Already have an account? Click Sign in and enter your email + password. Forgot your password? The Forgot password link below the form starts an email-based reset.</p>
+            <div class="frame"><img src="screenshots/public/04-login.png" alt="Signing back in"></div>
+            <p class="caption">Getting started · Signing back in</p>
+          </section>
+        
+    
+
+      <div class="chapter-title">
+        <span class="eyebrow">Chapter</span>
+        <h2><span class="accent">For</span> students</h2>
+        <p class="intro">Students discover and enrol in courses, work through lessons, take quizzes and assignments, and collect certificates as they complete courses. Everything lives behind the Student dashboard.</p>
+      </div>
+      
+          <section class="entry">
+            <h3><span class="num">01.</span>Your dashboard</h3>
+            <p>Signing in as a student lands you here. The dashboard surfaces your in-progress courses, recent announcements from your enrolled courses, and links to keep learning.</p>
+            <div class="frame"><img src="screenshots/student/01-dashboard.png" alt="Your dashboard"></div>
+            <p class="caption">For students · Your dashboard</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">02.</span>Browse the course catalog</h3>
+            <p>Use the catalog to discover everything published on the platform. Filter by category, search by title or description, and tap Enroll now on any card to join the course in one click.</p>
+            <div class="frame"><img src="screenshots/student/02-catalog.png" alt="Browse the course catalog"></div>
+            <p class="caption">For students · Browse the course catalog</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">03.</span>Inside a course</h3>
+            <p>Opening an enrolled course shows the syllabus (modules and lessons), your overall progress, and the course's announcements and assessments. Tap any lesson to start it.</p>
+            <div class="frame"><img src="screenshots/student/03-course-detail.png" alt="Inside a course"></div>
+            <p class="caption">For students · Inside a course</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">04.</span>Your certificates</h3>
+            <p>Finishing a course awards a certificate. The Certificates page lists every certificate you've earned. From here you can preview it, download a PDF copy, or share the public verification link with anyone (an employer, for example) so they can confirm it's genuine.</p>
+            <div class="frame"><img src="screenshots/student/04-certificates.png" alt="Your certificates"></div>
+            <p class="caption">For students · Your certificates</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">05.</span>Notifications</h3>
+            <p>The bell in the header (and the dedicated Notifications page) collects everything aimed at you: new announcements, grading results, enrolment confirmations. Unread items show a coral badge on the bell.</p>
+            <div class="frame"><img src="screenshots/student/06-notifications.png" alt="Notifications"></div>
+            <p class="caption">For students · Notifications</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">06.</span>Your profile</h3>
+            <p>Manage your name, email, profile picture, and password from the Profile page. Any role can use this page — the change-password flow is shared.</p>
+            <div class="frame"><img src="screenshots/student/05-profile.png" alt="Your profile"></div>
+            <p class="caption">For students · Your profile</p>
+          </section>
+        
+    
+
+      <div class="chapter-title">
+        <span class="eyebrow">Chapter</span>
+        <h2><span class="accent">For</span> teachers</h2>
+        <p class="intro">Teachers build and run their own courses end-to-end: drafting modules and lessons, attaching assessments, grading submissions, and tracking student progress.</p>
+      </div>
+      
+          <section class="entry">
+            <h3><span class="num">01.</span>Teacher dashboard</h3>
+            <p>Your home base. At a glance: courses you teach, recent submissions waiting for grading, and your active cohorts.</p>
+            <div class="frame"><img src="screenshots/teacher/01-dashboard.png" alt="Teacher dashboard"></div>
+            <p class="caption">For teachers · Teacher dashboard</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">02.</span>My courses</h3>
+            <p>Every course you teach (draft, published, or archived) is here. Click any card to open its builder; click New course to start a fresh one.</p>
+            <div class="frame"><img src="screenshots/teacher/02-courses-list.png" alt="My courses"></div>
+            <p class="caption">For teachers · My courses</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">03.</span>Creating a new course</h3>
+            <p>Give the course a title, description, category, optional max student count, and a thumbnail. Once saved, you can keep editing inside the course builder and publish whenever it's ready.</p>
+            <div class="frame"><img src="screenshots/teacher/04-create-course.png" alt="Creating a new course"></div>
+            <p class="caption">For teachers · Creating a new course</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">04.</span>Course builder</h3>
+            <p>This is the workshop. Add modules to structure the syllabus, then add lessons (video, text, or document) inside each module. The right-hand panel collects everything else: Students, Analytics, Edit details, Publish, Archive, Duplicate. The Assessments section below lets you attach quizzes or assignments to the course.</p>
+            <div class="frame"><img src="screenshots/teacher/03-course-builder.png" alt="Course builder"></div>
+            <p class="caption">For teachers · Course builder</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">05.</span>Grading inbox</h3>
+            <p>Submissions from your courses' assessments land here. Click any submission to open the grader — score it against your rubric (if attached), leave feedback, and publish the grade back to the student.</p>
+            <div class="frame"><img src="screenshots/teacher/05-grading-inbox.png" alt="Grading inbox"></div>
+            <p class="caption">For teachers · Grading inbox</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">06.</span>Question bank</h3>
+            <p>Build a reusable library of questions. When you create an assessment, you can import questions from any bank instead of rewriting them every time.</p>
+            <div class="frame"><img src="screenshots/teacher/06-question-bank.png" alt="Question bank"></div>
+            <p class="caption">For teachers · Question bank</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">07.</span>Rubrics</h3>
+            <p>Define criteria and point ranges once, then attach the rubric to any assignment. The grading inbox uses the rubric to drive consistent, structured feedback.</p>
+            <div class="frame"><img src="screenshots/teacher/07-rubrics.png" alt="Rubrics"></div>
+            <p class="caption">For teachers · Rubrics</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">08.</span>Your profile</h3>
+            <p>Same profile page every role uses. Update your name, picture, bio, and password.</p>
+            <div class="frame"><img src="screenshots/teacher/08-profile.png" alt="Your profile"></div>
+            <p class="caption">For teachers · Your profile</p>
+          </section>
+        
+    
+
+      <div class="chapter-title">
+        <span class="eyebrow">Chapter</span>
+        <h2><span class="accent">For</span> org admins</h2>
+        <p class="intro">Organisation admins look after a single tenant: its branches, the teachers who deliver content there, and the courses scoped to the organisation.</p>
+      </div>
+      
+          <section class="entry">
+            <h3><span class="num">01.</span>Org admin dashboard</h3>
+            <p>Top-line metrics for your organisation: branches, teachers, courses, and students.</p>
+            <div class="frame"><img src="screenshots/orgadmin/01-dashboard.png" alt="Org admin dashboard"></div>
+            <p class="caption">For org admins · Org admin dashboard</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">02.</span>Branches</h3>
+            <p>Create branches to mirror your physical locations or business units. Teachers and courses can be attached to a specific branch.</p>
+            <div class="frame"><img src="screenshots/orgadmin/02-branches.png" alt="Branches"></div>
+            <p class="caption">For org admins · Branches</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">03.</span>Teachers</h3>
+            <p>Invite teachers into your organisation and assign them to branches. From here you can also revoke access if a teacher leaves.</p>
+            <div class="frame"><img src="screenshots/orgadmin/03-teachers.png" alt="Teachers"></div>
+            <p class="caption">For org admins · Teachers</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">04.</span>Courses</h3>
+            <p>Every course owned by your organisation. Open any course to inspect its modules, enrolments, and metadata. Use this view to keep your catalogue tidy.</p>
+            <div class="frame"><img src="screenshots/orgadmin/04-courses.png" alt="Courses"></div>
+            <p class="caption">For org admins · Courses</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">05.</span>Your profile</h3>
+            <p>Update your own admin profile and password.</p>
+            <div class="frame"><img src="screenshots/orgadmin/05-profile.png" alt="Your profile"></div>
+            <p class="caption">For org admins · Your profile</p>
+          </section>
+        
+    
+
+      <div class="chapter-title">
+        <span class="eyebrow">Chapter</span>
+        <h2><span class="accent">For</span> super admins</h2>
+        <p class="intro">Super admins operate the whole platform: every organisation, every user, role-permission mappings, audit logs, and reports.</p>
+      </div>
+      
+          <section class="entry">
+            <h3><span class="num">01.</span>Super admin dashboard</h3>
+            <p>Platform-wide KPIs: organisations, users by role, courses, recent activity.</p>
+            <div class="frame"><img src="screenshots/superadmin/01-dashboard.png" alt="Super admin dashboard"></div>
+            <p class="caption">For super admins · Super admin dashboard</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">02.</span>Organisations</h3>
+            <p>Create new tenants, see who runs each one, and drill into an organisation to manage its branches, teachers, and courses.</p>
+            <div class="frame"><img src="screenshots/superadmin/02-organizations.png" alt="Organisations"></div>
+            <p class="caption">For super admins · Organisations</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">03.</span>All users</h3>
+            <p>Search and filter every user on the platform. Filter by role (Students, Teachers, Org admins, Super admins) or status (Active, Suspended). Bulk-import users from CSV with the button top-right.</p>
+            <div class="frame"><img src="screenshots/superadmin/03-users.png" alt="All users"></div>
+            <p class="caption">For super admins · All users</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">04.</span>Roles &amp; permissions</h3>
+            <p>Toggle which permissions each role has. Changes apply platform-wide.</p>
+            <div class="frame"><img src="screenshots/superadmin/04-role-permissions.png" alt="Roles &amp; permissions"></div>
+            <p class="caption">For super admins · Roles &amp; permissions</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">05.</span>All courses</h3>
+            <p>Every course across every organisation. Useful for moderation and platform-wide analytics.</p>
+            <div class="frame"><img src="screenshots/superadmin/05-courses.png" alt="All courses"></div>
+            <p class="caption">For super admins · All courses</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">06.</span>Reports</h3>
+            <p>Built-in reports cover enrolments, completion rates, engagement, and per-organisation breakdowns.</p>
+            <div class="frame"><img src="screenshots/superadmin/06-reports.png" alt="Reports"></div>
+            <p class="caption">For super admins · Reports</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">07.</span>Audit log</h3>
+            <p>Every privileged action on the platform — who did what and when. Use this to investigate incidents or compliance questions.</p>
+            <div class="frame"><img src="screenshots/superadmin/07-audit.png" alt="Audit log"></div>
+            <p class="caption">For super admins · Audit log</p>
+          </section>
+        
+
+          <section class="entry">
+            <h3><span class="num">08.</span>Your profile</h3>
+            <p>Manage your own super-admin account.</p>
+            <div class="frame"><img src="screenshots/superadmin/08-profile.png" alt="Your profile"></div>
+            <p class="caption">For super admins · Your profile</p>
+          </section>
+        
+    
+      
+    <div class="appendix">
+      <h2>Appendix</h2>
+      <p>Quick references and credentials for anyone evaluating the platform.</p>
+      <dl class="kv">
+        <dt>Production URL</dt><dd><code>https://lms-app-3195.azurewebsites.net</code></dd>
+        <dt>Demo student</dt><dd><code>demo.student@lms.dev</code> / <code>Password1!</code></dd>
+        <dt>Demo teacher</dt><dd><code>demo.teacher@lms.dev</code> / <code>Password1!</code></dd>
+        <dt>Demo org admin</dt><dd><code>demo.orgadmin@lms.dev</code> / <code>Password1!</code></dd>
+        <dt>Demo super admin</dt><dd><code>demo.admin@lms.dev</code> / <code>Password1!</code></dd>
+        <dt>API base</dt><dd><code>/api</code> (same-origin in production)</dd>
+        <dt>Tech stack</dt><dd>ASP.NET Core 8 · EF Core 8 · SQL Server · Angular 20 · Tailwind · JWT</dd>
+      </dl>
+      <p>The demo accounts above are intended for evaluation only. Reset them or remove them before going live with real users.</p>
+      <footer class="colophon">LMS user manual · generated 2026-05-18 · screenshots captured against the local development build.</footer>
+    </div>
+  
+    </body></html>

@@ -272,6 +272,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./notifications/notifications-page').then((m) => m.NotificationsPage),
   },
+  // Support / user manual — same: any signed-in role can read the manual
+  // for every role, since the doc covers the whole product.
+  {
+    path: 'support',
+    canActivate: [authGuard],
+    loadComponent: () => import('./support/support-page').then((m) => m.SupportPage),
+  },
   // Public certificate verification — no authGuard, anyone with the code can hit this.
   {
     path: 'verify/:code',

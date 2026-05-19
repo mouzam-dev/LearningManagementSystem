@@ -1,0 +1,9 @@
+{
+  "name": "lms-screenshot-capture",
+  "private": true,
+  "version": "0.0.0",
+  "description": "One-off Playwright runner to capture LMS screenshots for the user manual.",
+  "scripts": {
+    "capture": "node capture.js"
+  }
+}
