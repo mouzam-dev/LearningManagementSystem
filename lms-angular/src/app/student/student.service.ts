@@ -17,6 +17,14 @@ import {
   CertificateSummary,
   VerifyCertificate,
 } from './models/certificate.models';
+import {
+  CourseRating,
+  CourseRatingsPage,
+  SubmitRatingBody,
+  SubmitTeacherRatingBody,
+  TeacherRating,
+  TeacherRatingsPage,
+} from './models/rating.models';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
@@ -116,6 +124,50 @@ export class StudentService {
   getAnnouncements(limit = 5): Observable<StudentAnnouncement[]> {
     return this.http.get<StudentAnnouncement[]>(
       `${this.baseUrl}/announcements?limit=${limit}`);
+  }
+
+  getCourseRatings(
+    courseId: string,
+    page = 1,
+    pageSize = 10,
+  ): Observable<CourseRatingsPage> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<CourseRatingsPage>(
+      `${this.baseUrl}/courses/${courseId}/ratings`,
+      { params },
+    );
+  }
+
+  submitCourseRating(
+    courseId: string,
+    body: SubmitRatingBody,
+  ): Observable<CourseRating> {
+    return this.http.post<CourseRating>(
+      `${this.baseUrl}/courses/${courseId}/ratings`,
+      body,
+    );
+  }
+
+  getTeacherRatings(
+    teacherId: string,
+    page = 1,
+    pageSize = 10,
+  ): Observable<TeacherRatingsPage> {
+    const params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    return this.http.get<TeacherRatingsPage>(
+      `${this.baseUrl}/teachers/${teacherId}/ratings`,
+      { params },
+    );
+  }
+
+  submitTeacherRating(
+    teacherId: string,
+    body: SubmitTeacherRatingBody,
+  ): Observable<TeacherRating> {
+    return this.http.post<TeacherRating>(
+      `${this.baseUrl}/teachers/${teacherId}/ratings`,
+      body,
+    );
   }
 }
 

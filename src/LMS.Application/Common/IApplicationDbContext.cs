@@ -30,6 +30,8 @@ public interface IApplicationDbContext
     DbSet<Certificate> Certificates { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<Announcement> Announcements { get; }
+    DbSet<CourseRating> CourseRatings { get; }
+    DbSet<TeacherRating> TeacherRatings { get; }
     DbSet<UserToken> UserTokens { get; }
     DbSet<AuditLog> AuditLogs { get; }
 

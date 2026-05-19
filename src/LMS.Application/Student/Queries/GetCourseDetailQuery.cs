@@ -90,6 +90,7 @@ public class GetCourseDetailQueryHandler
             Description = course.Description,
             Category = course.Category,
             ThumbnailUrl = course.ThumbnailUrl,
+            TeacherId = course.TeacherId,
             TeacherName = (course.Teacher.FirstName + " " + course.Teacher.LastName).Trim(),
             EnrolledCount = enrolledCount,
             MaxStudents = course.MaxStudents,

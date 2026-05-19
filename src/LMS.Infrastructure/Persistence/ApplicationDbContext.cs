@@ -30,6 +30,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<CourseRating> CourseRatings => Set<CourseRating>();
+    public DbSet<TeacherRating> TeacherRatings => Set<TeacherRating>();
     public DbSet<UserToken> UserTokens => Set<UserToken>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 

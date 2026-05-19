@@ -7,11 +7,13 @@ import { CourseDetail } from '../models/lesson.models';
 import { AssessmentListItem } from '../models/assessment.models';
 import { CertificateSummary } from '../models/certificate.models';
 import { StudentService } from '../student.service';
+import { CourseRatings } from './course-ratings';
+import { ShareMenu } from '../../shared/ratings/share-menu';
 
 @Component({
   selector: 'app-student-course-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, CourseRatings, ShareMenu],
   templateUrl: './course-detail.html',
 })
 export class StudentCourseDetail implements OnInit {

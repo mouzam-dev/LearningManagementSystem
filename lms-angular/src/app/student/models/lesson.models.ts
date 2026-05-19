@@ -24,6 +24,7 @@ export interface CourseDetail {
   description: string;
   category: string;
   thumbnailUrl?: string | null;
+  teacherId: string;
   teacherName: string;
   enrolledCount: number;
   maxStudents?: number | null;

@@ -7,6 +7,7 @@ public class CourseDetailDto
     public string Description { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string? ThumbnailUrl { get; set; }
+    public Guid TeacherId { get; set; }
     public string TeacherName { get; set; } = string.Empty;
     public int EnrolledCount { get; set; }
     public int? MaxStudents { get; set; }

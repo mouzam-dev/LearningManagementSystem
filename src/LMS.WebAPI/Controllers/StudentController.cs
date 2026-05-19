@@ -1,6 +1,9 @@
 using LMS.Application.Announcements.Dtos;
 using LMS.Application.Announcements.Queries;
 using LMS.Application.Common;
+using LMS.Application.Ratings.Commands;
+using LMS.Application.Ratings.Dtos;
+using LMS.Application.Ratings.Queries;
 using LMS.Application.Student.Commands;
 using LMS.Application.Student.Dtos;
 using LMS.Application.Student.Queries;
@@ -298,5 +301,99 @@ public class StudentController : ControllerBase
     {
         var result = await _mediator.Send(new GetMyAnnouncementsQuery(limit), ct);
         return Ok(result);
+    }
+
+    // ---------------- Ratings ----------------
+
+    public class SubmitRatingRequest
+    {
+        public int Rating { get; set; }
+        public string? Review { get; set; }
+    }
+
+    public class SubmitTeacherRatingRequest
+    {
+        public Guid CourseId { get; set; }
+        public int Rating { get; set; }
+        public string? Review { get; set; }
+    }
+
+    [HttpGet("courses/{courseId:guid}/ratings")]
+    [ProducesResponseType(typeof(CourseRatingsPageDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CourseRatingsPageDto>> GetCourseRatings(
+        Guid courseId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetCourseRatingsQuery(courseId, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("courses/{courseId:guid}/ratings")]
+    [ProducesResponseType(typeof(CourseRatingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<CourseRatingDto>> SubmitCourseRating(
+        Guid courseId,
+        [FromBody] SubmitRatingRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new SubmitCourseRatingCommand(courseId, request.Rating, request.Review), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("teachers/{teacherId:guid}/ratings")]
+    [ProducesResponseType(typeof(TeacherRatingsPageDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<TeacherRatingsPageDto>> GetTeacherRatings(
+        Guid teacherId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetTeacherRatingsQuery(teacherId, page, pageSize), ct);
+        return Ok(result);
+    }
+
+    [HttpPost("teachers/{teacherId:guid}/ratings")]
+    [ProducesResponseType(typeof(TeacherRatingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<TeacherRatingDto>> SubmitTeacherRating(
+        Guid teacherId,
+        [FromBody] SubmitTeacherRatingRequest request,
+        CancellationToken ct)
+    {
+        try
+        {
+            var result = await _mediator.Send(
+                new SubmitTeacherRatingCommand(teacherId, request.CourseId, request.Rating, request.Review), ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 }
