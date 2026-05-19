@@ -141,6 +141,9 @@ src/LMS.WebAPI/wwwroot/*.ico
 src/LMS.WebAPI/wwwroot/*.json
 src/LMS.WebAPI/wwwroot/*.txt
 src/LMS.WebAPI/wwwroot/browser/
+# Static docs copied from lms-angular/public/docs/ during the prod build —
+# canonical source lives in lms-angular/public/docs/, never edit here.
+src/LMS.WebAPI/wwwroot/docs/
 
 # =============================================================================
 # Deploy artifacts — produced by ./deploy/build-azure-bundle.ps1 + smoke tests.
