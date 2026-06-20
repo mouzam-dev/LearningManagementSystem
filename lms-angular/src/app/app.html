@@ -9,36 +9,39 @@
       <span
         class="flex h-9 w-9 items-center justify-center bg-primary-500 text-sm font-bold text-white shadow-sm"
         style="border-radius:4px;"
-        aria-hidden="true">L</span>
-      <span class="text-lg font-bold tracking-tight" style="letter-spacing:-0.03em;color:var(--c-ink);">LMS</span>
+        aria-hidden="true">D</span>
+      <span class="text-lg font-bold tracking-tight" style="letter-spacing:-0.03em;color:var(--c-ink);">Duare Shariye</span>
     </a>
 
     <!-- Desktop nav -->
     @if (isAuthed()) {
       <nav class="ml-2 hidden items-center gap-1 md:flex">
-        @if (user()?.role === 'Student') {
-          <a routerLink="/student/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
-          <a routerLink="/student/catalog" routerLinkActive="nav-active" class="nav-pill">Browse courses</a>
-          <a routerLink="/student/certificates" routerLinkActive="nav-active" class="nav-pill">Certificates</a>
-        } @else if (user()?.role === 'Teacher') {
-          <a routerLink="/teacher/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
-          <a routerLink="/teacher/courses" routerLinkActive="nav-active" class="nav-pill">My courses</a>
-          <a routerLink="/teacher/grading" routerLinkActive="nav-active" class="nav-pill">Grading</a>
-          <a routerLink="/teacher/question-bank" routerLinkActive="nav-active" class="nav-pill">Question bank</a>
-          <a routerLink="/teacher/rubrics" routerLinkActive="nav-active" class="nav-pill">Rubrics</a>
-        } @else if (user()?.role === 'SuperAdmin') {
-          <a routerLink="/admin/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
-          <a routerLink="/admin/organizations" routerLinkActive="nav-active" class="nav-pill">Organizations</a>
-          <a routerLink="/admin/users" routerLinkActive="nav-active" class="nav-pill">Users</a>
-          <a routerLink="/admin/role-permissions" routerLinkActive="nav-active" class="nav-pill">Roles &amp; Permissions</a>
-          <a routerLink="/admin/courses" routerLinkActive="nav-active" class="nav-pill">Courses</a>
-          <a routerLink="/admin/reports" routerLinkActive="nav-active" class="nav-pill">Reports</a>
-          <a routerLink="/admin/audit" routerLinkActive="nav-active" class="nav-pill">Audit log</a>
-        } @else if (user()?.role === 'OrgAdmin') {
-          <a routerLink="/orgadmin/dashboard" routerLinkActive="nav-active" class="nav-pill">Dashboard</a>
-          <a routerLink="/orgadmin/branches" routerLinkActive="nav-active" class="nav-pill">Branches</a>
-          <a routerLink="/orgadmin/teachers" routerLinkActive="nav-active" class="nav-pill">Teachers</a>
-          <a routerLink="/orgadmin/courses" routerLinkActive="nav-active" class="nav-pill">Courses</a>
+        @for (entry of navEntries(); track entry.key) {
+          @if (entry.link) {
+            <a [routerLink]="entry.link" routerLinkActive="nav-active" class="nav-pill">{{ entry.label }}</a>
+          } @else {
+            <div class="relative">
+              <button type="button" (click)="toggleDropdown(entry.key, $event)"
+                class="nav-pill flex items-center gap-1"
+                [class.nav-active]="isGroupActive(entry) || openDropdown() === entry.key">
+                {{ entry.label }}
+                <svg class="h-3.5 w-3.5 transition-transform" [class.rotate-180]="openDropdown() === entry.key"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </button>
+              @if (openDropdown() === entry.key) {
+                <div class="absolute left-0 top-full z-40 mt-1.5 min-w-[12rem] overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-lg"
+                     (click)="$event.stopPropagation()">
+                  @for (child of entry.children; track child.link) {
+                    <a [routerLink]="child.link" routerLinkActive="bg-primary-50 text-primary-700" (click)="closeDropdowns()"
+                       class="block px-4 py-2 text-sm font-medium text-ink-soft transition hover:bg-surface-2 hover:text-ink">{{ child.label }}</a>
+                  }
+                </div>
+              }
+            </div>
+          }
         }
       </nav>
     }
@@ -146,29 +149,15 @@
   @if (isAuthed() && menuOpen()) {
     <nav class="border-t border-line bg-surface px-4 py-3 md:hidden">
       <div class="flex flex-col gap-1">
-        @if (user()?.role === 'Student') {
-          <a routerLink="/student/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
-          <a routerLink="/student/catalog" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Browse courses</a>
-          <a routerLink="/student/certificates" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Certificates</a>
-        } @else if (user()?.role === 'Teacher') {
-          <a routerLink="/teacher/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
-          <a routerLink="/teacher/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">My courses</a>
-          <a routerLink="/teacher/grading" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Grading</a>
-          <a routerLink="/teacher/question-bank" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Question bank</a>
-          <a routerLink="/teacher/rubrics" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Rubrics</a>
-        } @else if (user()?.role === 'SuperAdmin') {
-          <a routerLink="/admin/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
-          <a routerLink="/admin/organizations" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Organizations</a>
-          <a routerLink="/admin/users" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Users</a>
-          <a routerLink="/admin/role-permissions" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Roles &amp; Permissions</a>
-          <a routerLink="/admin/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Courses</a>
-          <a routerLink="/admin/reports" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Reports</a>
-          <a routerLink="/admin/audit" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Audit log</a>
-        } @else if (user()?.role === 'OrgAdmin') {
-          <a routerLink="/orgadmin/dashboard" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Dashboard</a>
-          <a routerLink="/orgadmin/branches" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Branches</a>
-          <a routerLink="/orgadmin/teachers" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Teachers</a>
-          <a routerLink="/orgadmin/courses" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Courses</a>
+        @for (entry of navEntries(); track entry.key) {
+          @if (entry.link) {
+            <a [routerLink]="entry.link" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">{{ entry.label }}</a>
+          } @else {
+            <div class="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">{{ entry.label }}</div>
+            @for (child of entry.children; track child.link) {
+              <a [routerLink]="child.link" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">{{ child.label }}</a>
+            }
+          }
         }
         <a routerLink="/profile" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Profile</a>
         <a routerLink="/support" routerLinkActive="nav-active" (click)="closeMenu()" class="nav-pill-mobile">Support</a>

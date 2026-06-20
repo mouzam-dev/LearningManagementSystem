@@ -34,6 +34,11 @@ public interface IApplicationDbContext
     DbSet<TeacherRating> TeacherRatings { get; }
     DbSet<UserToken> UserTokens { get; }
     DbSet<AuditLog> AuditLogs { get; }
+    DbSet<AttendanceSession> AttendanceSessions { get; }
+    DbSet<AttendanceRecord> AttendanceRecords { get; }
+    DbSet<LiveSession> LiveSessions { get; }
+    DbSet<Hadith> Hadiths { get; }
+    DbSet<HadithCollection> HadithCollections { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

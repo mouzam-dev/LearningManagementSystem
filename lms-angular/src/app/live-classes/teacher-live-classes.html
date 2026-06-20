@@ -1,0 +1,103 @@
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher</p>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Live classes</h1>
+    <p class="mt-2 max-w-2xl text-sm text-muted">
+      Schedule live online sessions for your course and start them when it's time. The video room opens in a new tab; students who join are auto-marked Present.
+    </p>
+  </header>
+
+  @if (error()) {
+    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">Loading your courses…</div>
+  } @else if (courses().length === 0) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">You don't own any courses yet.</div>
+  } @else {
+    <!-- Course picker -->
+    <div class="mb-5 flex flex-wrap items-center gap-3">
+      <label class="text-sm font-semibold text-ink-soft">Course</label>
+      <select class="min-w-[16rem] rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink"
+        [value]="selectedCourseId()" (change)="onCourseChange($event)">
+        @for (c of courses(); track c.courseId) { <option [value]="c.courseId">{{ c.title }}</option> }
+      </select>
+    </div>
+
+    <!-- Schedule form -->
+    <div class="mb-6 rounded-2xl border border-line bg-surface p-5">
+      <h2 class="mb-3 text-sm font-bold uppercase tracking-wide text-muted">Schedule a live class</h2>
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="min-w-[14rem] flex-1">
+          <label class="mb-1 block text-xs font-semibold text-muted">Title</label>
+          <input type="text" [value]="title()" (input)="title.set($any($event.target).value)" maxlength="200"
+            placeholder="e.g. Week 3 — Signals deep dive"
+            class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">Starts</label>
+          <input type="datetime-local" [value]="startLocal()" (change)="startLocal.set($any($event.target).value)"
+            class="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">Minutes</label>
+          <input type="number" min="5" max="480" [value]="duration()" (change)="duration.set(+$any($event.target).value)"
+            class="w-24 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink" />
+        </div>
+        <button type="button" (click)="schedule()" [disabled]="busy()"
+          class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 disabled:opacity-50">
+          Schedule
+        </button>
+      </div>
+    </div>
+
+    <!-- Sessions list -->
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface">
+      <div class="border-b border-line px-5 py-3 text-sm font-bold uppercase tracking-wide text-muted">
+        Sessions for {{ selectedCourse()?.title }}
+      </div>
+      @if (sessions().length === 0) {
+        <div class="px-5 py-8 text-center text-sm text-muted">No live classes scheduled yet.</div>
+      } @else {
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs uppercase tracking-wide text-muted">
+            <tr>
+              <th class="px-5 py-2 font-semibold">Class</th>
+              <th class="px-3 py-2 font-semibold">Starts</th>
+              <th class="px-3 py-2 font-semibold">Status</th>
+              <th class="px-5 py-2 font-semibold text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of sessions(); track s.id) {
+              <tr class="border-t border-line">
+                <td class="px-5 py-2.5">
+                  <div class="font-medium text-ink">{{ s.title }}</div>
+                  <div class="text-xs text-muted">{{ s.durationMinutes }} min</div>
+                </td>
+                <td class="px-3 py-2.5 text-muted">{{ s.scheduledStart | date:'MMM d, h:mm a' }}</td>
+                <td class="px-3 py-2.5">
+                  <span class="rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide" [class]="statusBadge(s.status)">{{ s.status }}</span>
+                </td>
+                <td class="px-5 py-2.5">
+                  <div class="flex items-center justify-end gap-2">
+                    @if (s.status === 'Scheduled') {
+                      <button type="button" (click)="setStatus(s, 'Live')" [disabled]="busy()" class="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700">Start</button>
+                      <button type="button" (click)="setStatus(s, 'Cancelled')" [disabled]="busy()" class="rounded-lg border border-line px-3 py-1 text-xs font-semibold text-ink-soft hover:border-line-strong">Cancel</button>
+                    } @else if (s.status === 'Live') {
+                      <button type="button" (click)="openRoom(s)" class="rounded-lg bg-primary-600 px-3 py-1 text-xs font-semibold text-white hover:bg-primary-700">Open room ↗</button>
+                      <button type="button" (click)="setStatus(s, 'Ended')" [disabled]="busy()" class="rounded-lg border border-line px-3 py-1 text-xs font-semibold text-ink-soft hover:border-line-strong">End</button>
+                    } @else {
+                      <span class="text-xs text-muted">—</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</section>

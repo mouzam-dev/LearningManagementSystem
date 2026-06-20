@@ -76,6 +76,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./student/certificates/certificate-detail').then((m) => m.StudentCertificateDetail),
       },
+      {
+        path: 'attendance',
+        loadComponent: () =>
+          import('./attendance/student-attendance').then((m) => m.StudentAttendancePage),
+      },
+      {
+        path: 'live-classes',
+        loadComponent: () =>
+          import('./live-classes/student-live-classes').then((m) => m.StudentLiveClassesPage),
+      },
+      {
+        path: 'quran',
+        loadComponent: () => import('./quran/quran').then((m) => m.StudentQuranPage),
+      },
+      {
+        path: 'hadith',
+        loadComponent: () => import('./hadith/student-hadith').then((m) => m.StudentHadithPage),
+      },
     ],
   },
   {
@@ -168,6 +186,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./teacher/rubrics/rubric-edit').then((m) => m.TeacherRubricEditPage),
       },
+      {
+        path: 'attendance',
+        loadComponent: () =>
+          import('./attendance/teacher-attendance').then((m) => m.TeacherAttendancePage),
+      },
+      {
+        path: 'live-classes',
+        loadComponent: () =>
+          import('./live-classes/teacher-live-classes').then((m) => m.TeacherLiveClassesPage),
+      },
+      {
+        path: 'quran',
+        loadComponent: () => import('./quran/quran').then((m) => m.StudentQuranPage),
+      },
+      {
+        path: 'hadith',
+        loadComponent: () => import('./hadith/student-hadith').then((m) => m.StudentHadithPage),
+      },
     ],
   },
   {
@@ -225,6 +261,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/reports/admin-reports').then((m) => m.AdminReportsPage),
       },
+      {
+        path: 'hadith',
+        loadComponent: () =>
+          import('./admin/hadith/admin-hadith').then((m) => m.AdminHadithPage),
+      },
     ],
   },
   {
@@ -256,6 +297,11 @@ export const routes: Routes = [
         path: 'courses/:courseId',
         loadComponent: () =>
           import('./orgadmin/courses/orgadmin-course-detail').then((m) => m.OrgAdminCourseDetailPage),
+      },
+      {
+        path: 'attendance',
+        loadComponent: () =>
+          import('./attendance/orgadmin-attendance').then((m) => m.OrgAdminAttendancePage),
       },
     ],
   },

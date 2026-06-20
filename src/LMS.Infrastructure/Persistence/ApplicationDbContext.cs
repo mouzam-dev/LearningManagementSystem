@@ -34,6 +34,11 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<TeacherRating> TeacherRatings => Set<TeacherRating>();
     public DbSet<UserToken> UserTokens => Set<UserToken>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<AttendanceSession> AttendanceSessions => Set<AttendanceSession>();
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+    public DbSet<LiveSession> LiveSessions => Set<LiveSession>();
+    public DbSet<Hadith> Hadiths => Set<Hadith>();
+    public DbSet<HadithCollection> HadithCollections => Set<HadithCollection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -17,7 +17,7 @@ namespace LMS.WebAPI.Controllers;
 [ApiController]
 [Route("api/student")]
 [Authorize(Roles = "Student")]
-public class StudentController : ControllerBase
+public partial class StudentController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ICertificatePdfService _certificatePdfService;

@@ -63,6 +63,31 @@ QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 builder.Services.AddSingleton<ICertificatePdfService,
     LMS.Infrastructure.Services.Certificates.CertificatePdfService>();
 
+// Sunnah hadith. Data lives in the local Hadiths/HadithCollections tables, rebuilt
+// from the source APIs by HadithHarvestService (SuperAdmin "Refresh"); reads are
+// served by DbSunnahService. Collection/book lists are cached in-memory.
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<LMS.WebAPI.Services.Sunnah.ISunnahService, LMS.WebAPI.Services.Sunnah.DbSunnahService>();
+
+// Harvest (rebuild from source): background job + status, plus the two upstream
+// clients — Sunnah.com (keyed) for most collections, fawazahmed0's CDN for Malik.
+builder.Services.AddSingleton<LMS.WebAPI.Services.Sunnah.HadithHarvestStatus>();
+builder.Services.AddSingleton<LMS.WebAPI.Services.Sunnah.HadithHarvestService>();
+builder.Services.AddHttpClient("sunnah", c =>
+{
+    var baseUrl = builder.Configuration["Sunnah:BaseUrl"] ?? "https://api.sunnah.com/v1/";
+    if (!baseUrl.EndsWith('/')) baseUrl += "/";
+    c.BaseAddress = new Uri(baseUrl);
+    var key = builder.Configuration["Sunnah:ApiKey"];
+    if (!string.IsNullOrWhiteSpace(key)) c.DefaultRequestHeaders.Add("X-API-Key", key);
+    c.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient("fawaz", c =>
+{
+    c.BaseAddress = new Uri("https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/");
+    c.Timeout = TimeSpan.FromSeconds(90);
+});
+
 // Expose the EF Core ApplicationDbContext to MediatR handlers via the Application
 // abstraction, so Application code never references the concrete type.
 builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
@@ -128,7 +153,11 @@ builder.Services.AddCors(options =>
 // ---------------------------------------------------------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "string", Format = "binary" });
+    c.CustomSchemaIds(type => type.FullName);
+});
 
 var app = builder.Build();
 

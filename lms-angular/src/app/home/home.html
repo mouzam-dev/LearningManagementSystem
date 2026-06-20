@@ -6,15 +6,18 @@
       <div class="lg:col-span-7">
         <span class="hero-eyebrow">
           <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
-          New courses every week
+          Learning the Deen
         </span>
         <h1 class="hero-title">
-          Learn the skills the world needs —
-          <span class="hero-accent">at your own pace.</span>
+          &ldquo;And say: My Lord,
+          <span class="hero-accent">increase me in knowledge.&rdquo;</span>
         </h1>
         <p class="hero-sub">
-          Browse {{ totalCount() || 'hundreds of' }} expert-led courses, track your progress, and
-          earn verifiable certificates. Join the LMS community today.
+          <span class="block">&ldquo;Whoever Allah wishes good for, He grants understanding of the deen.&rdquo;</span>
+          <span class="mt-2 block">&ldquo;Seeking knowledge is an obligation upon every Muslim.&rdquo;</span>
+        </p>
+        <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-subtle">
+          Qur'an 20:114 &middot; Bukh&#257;r&#299; &amp; Muslim &middot; Ibn M&#257;jah
         </p>
 
         <form class="hero-search" (submit)="$event.preventDefault(); search()">
@@ -85,6 +88,49 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== LEARNING THE DEEN ===================== -->
+<section class="bg-surface-2">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+    <div class="mb-10 text-center">
+      <span class="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-700">
+        <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
+        Learning the Deen
+      </span>
+      <h2 class="section-title mt-4">Knowledge is an act of worship</h2>
+      <p class="section-sub mx-auto max-w-xl">
+        A few words from the Qur'an and the Sunnah on the virtue of seeking sacred knowledge.
+      </p>
+    </div>
+
+    <!-- Featured ayah -->
+    <figure class="mx-auto mb-6 max-w-3xl rounded-2xl border border-line bg-surface p-8 text-center shadow-sm sm:p-10">
+      <p dir="rtl" lang="ar" class="text-3xl text-ink sm:text-4xl" style="line-height: 2.2;">وَقُل رَّبِّ زِدْنِي عِلْمًا</p>
+      <figcaption class="mt-5">
+        <p class="text-base font-medium text-ink-soft sm:text-lg">&ldquo;And say: My Lord, increase me in knowledge.&rdquo;</p>
+        <p class="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary-600">Qur'an 20:114 &middot; Surah Ta-Ha</p>
+      </figcaption>
+    </figure>
+
+    <!-- Two hadith -->
+    <div class="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2">
+      <figure class="rounded-2xl border border-line bg-surface p-6 text-center">
+        <p dir="rtl" lang="ar" class="text-2xl text-ink" style="line-height: 2.1;">مَنْ يُرِدِ اللَّهُ بِهِ خَيْرًا يُفَقِّهْهُ فِي الدِّينِ</p>
+        <figcaption class="mt-4">
+          <p class="text-sm text-ink-soft">&ldquo;Whoever Allah wishes good for, He grants understanding of the deen.&rdquo;</p>
+          <p class="mt-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Sahih al-Bukhari 71 &middot; Sahih Muslim 1037</p>
+        </figcaption>
+      </figure>
+      <figure class="rounded-2xl border border-line bg-surface p-6 text-center">
+        <p dir="rtl" lang="ar" class="text-2xl text-ink" style="line-height: 2.1;">طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ</p>
+        <figcaption class="mt-4">
+          <p class="text-sm text-ink-soft">&ldquo;Seeking knowledge is an obligation upon every Muslim.&rdquo;</p>
+          <p class="mt-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Sunan Ibn Majah 224</p>
+        </figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -230,7 +276,7 @@
 <section class="bg-surface">
   <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
     <div class="mb-12 text-center">
-      <h2 class="section-title">Why learners choose LMS</h2>
+      <h2 class="section-title">Why learners choose Duare Shariye</h2>
       <p class="section-sub mx-auto max-w-xl">
         A modern platform built for outcomes — not just videos. Everything you need to learn,
         practice, and prove your skills.
@@ -315,8 +361,8 @@
 <footer class="border-t border-line bg-surface">
   <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-muted sm:flex-row sm:px-6 lg:px-8">
     <div class="flex items-center gap-2">
-      <span class="flex h-7 w-7 items-center justify-center rounded bg-primary-500 text-xs font-bold text-white">L</span>
-      <span class="font-semibold text-ink">LMS</span>
+      <span class="flex h-7 w-7 items-center justify-center rounded bg-primary-500 text-xs font-bold text-white">D</span>
+      <span class="font-semibold text-ink">Duare Shariye</span>
       <span>· Learn. Teach. Grow.</span>
     </div>
     <div class="flex items-center gap-4">

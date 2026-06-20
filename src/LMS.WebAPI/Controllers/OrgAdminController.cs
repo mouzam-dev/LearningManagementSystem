@@ -18,7 +18,7 @@ namespace LMS.WebAPI.Controllers;
 [ApiController]
 [Route("api/orgadmin")]
 [Authorize(Roles = Roles.OrgAdmin)]
-public class OrgAdminController : ControllerBase
+public partial class OrgAdminController : ControllerBase
 {
     private readonly IMediator _mediator;
 
@@ -52,7 +52,7 @@ public class OrgAdminController : ControllerBase
         catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
     }
 
-    public class CreateBranchRequest
+    public class OrgAdminCreateBranchRequest
     {
         public string Name { get; set; } = string.Empty;
         public string? Code { get; set; }
@@ -65,7 +65,7 @@ public class OrgAdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BranchListItemDto>> CreateBranch(
-        [FromBody] CreateBranchRequest request, CancellationToken ct)
+        [FromBody] OrgAdminCreateBranchRequest request, CancellationToken ct)
     {
         try
         {
@@ -78,7 +78,7 @@ public class OrgAdminController : ControllerBase
         catch (ValidationException ex) { return ValidationErrors(ex); }
     }
 
-    public class UpdateBranchRequest : CreateBranchRequest
+    public class OrgAdminUpdateBranchRequest : OrgAdminCreateBranchRequest
     {
         public bool IsActive { get; set; } = true;
     }
@@ -90,7 +90,7 @@ public class OrgAdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BranchListItemDto>> UpdateBranch(
         Guid branchId,
-        [FromBody] UpdateBranchRequest request,
+        [FromBody] OrgAdminUpdateBranchRequest request,
         CancellationToken ct)
     {
         try
@@ -218,7 +218,7 @@ public class OrgAdminController : ControllerBase
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
     }
 
-    public class SetCoursePublishedRequest
+    public class OrgAdminSetCoursePublishedRequest
     {
         public bool IsPublished { get; set; }
     }
@@ -229,7 +229,7 @@ public class OrgAdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<OrgAdminCourseDetailDto>> SetCoursePublished(
         Guid courseId,
-        [FromBody] SetCoursePublishedRequest request,
+        [FromBody] OrgAdminSetCoursePublishedRequest request,
         CancellationToken ct)
     {
         try

@@ -15,7 +15,7 @@ namespace LMS.WebAPI.Controllers;
 [ApiController]
 [Route("api/teacher")]
 [Authorize(Roles = "Teacher")]
-public class TeacherController : ControllerBase
+public partial class TeacherController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IFileStorage _fileStorage;
@@ -818,11 +818,12 @@ public class TeacherController : ControllerBase
     private const long MaxDocBytes = 20 * 1024 * 1024; // 20 MB
 
     [HttpPost("uploads/document")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(DocumentUploadResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [RequestSizeLimit(MaxDocBytes + 1024 * 1024)] // a little headroom over the app check
+    [RequestSizeLimit(MaxDocBytes + 1024 * 1024)]
     public async Task<ActionResult<DocumentUploadResult>> UploadDocument(
-        [FromForm] IFormFile? file,
+        IFormFile? file,
         CancellationToken ct)
     {
         if (file is null || file.Length == 0)

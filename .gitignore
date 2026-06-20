@@ -16,6 +16,9 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Published deploy artifact (assembled API + Angular SPA) — do not commit
+/publish/
+
 # Visual Studio
 .vs/
 *.user
@@ -117,6 +120,11 @@ coverage*/
 # =============================================================================
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+# Sunnah.com hadith dump (~94 MB) — imported into SQL Server via tools/HadithImporter.
+# Reference data, not source; never commit (would bloat history permanently).
+.claude/HadithTable.sql
+# API keys / secrets dropped into .claude/ — never commit.
+.claude/apikey.txt
 
 # =============================================================================
 # Runtime upload storage — never commit user-supplied images / documents.

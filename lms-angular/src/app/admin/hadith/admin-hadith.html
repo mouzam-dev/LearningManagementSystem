@@ -1,0 +1,71 @@
+<section class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-5">
+    <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Admin</p>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Hadith data</h1>
+    <p class="mt-2 max-w-2xl text-sm text-muted">
+      Rebuild the hadith library from the source APIs (Sunnah.com + fawazahmed0 for Malik).
+      The reader stays available while a refresh runs.
+    </p>
+  </header>
+
+  @if (error()) {
+    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted">Loading…</div>
+  } @else if (status(); as s) {
+    <div class="rounded-2xl border border-line bg-surface p-6">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-semibold text-ink">Status</span>
+          <span class="rounded-md px-2 py-0.5 text-xs font-semibold" [class]="badge(s.state)">{{ s.state }}</span>
+        </div>
+        <button type="button" (click)="refresh()" [disabled]="running() || starting()"
+          class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-50">
+          {{ running() ? 'Refreshing…' : (starting() ? 'Starting…' : 'Refresh from source') }}
+        </button>
+      </div>
+
+      <!-- Progress -->
+      @if (running()) {
+        <div class="mt-4">
+          <div class="mb-1 flex items-center justify-between text-xs text-muted">
+            <span>{{ s.currentCollection ? 'Harvesting ' + s.currentCollection + '…' : 'Working…' }}</span>
+            <span>{{ s.collectionsDone }} / {{ s.totalCollections }} collections</span>
+          </div>
+          <div class="h-2 w-full overflow-hidden rounded-full bg-surface-2">
+            <div class="h-full rounded-full bg-primary-600 transition-all" [style.width.%]="pct()"></div>
+          </div>
+        </div>
+      }
+
+      <!-- Stats -->
+      <dl class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div class="rounded-xl border border-line bg-surface-2 p-3">
+          <dt class="text-xs text-muted">Hadith written</dt>
+          <dd class="mt-0.5 text-lg font-bold text-ink">{{ s.hadithsWritten | number }}</dd>
+        </div>
+        <div class="rounded-xl border border-line bg-surface-2 p-3">
+          <dt class="text-xs text-muted">Collections</dt>
+          <dd class="mt-0.5 text-lg font-bold text-ink">{{ s.collectionsDone }}<span class="text-sm text-muted"> / {{ s.totalCollections || '—' }}</span></dd>
+        </div>
+        <div class="rounded-xl border border-line bg-surface-2 p-3">
+          <dt class="text-xs text-muted">Last run</dt>
+          <dd class="mt-0.5 text-sm font-semibold text-ink">{{ (s.finishedAt || s.startedAt) ? ((s.finishedAt || s.startedAt) | date:'short') : '—' }}</dd>
+        </div>
+      </dl>
+
+      @if (s.state === 'Failed' && s.error) {
+        <div class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <span class="font-semibold">Last refresh failed:</span> {{ s.error }}
+        </div>
+      }
+
+      <p class="mt-4 text-xs text-muted">
+        A full refresh fetches every collection in scope and replaces them one at a time. It can take several
+        minutes because Sunnah.com is rate-limited.
+      </p>
+    </div>
+  }
+</section>

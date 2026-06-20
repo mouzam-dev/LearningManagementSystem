@@ -45,11 +45,12 @@ public class UploadsController : ControllerBase
     private const long MaxImageBytes = 5 * 1024 * 1024; // 5 MB
 
     [HttpPost("image")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ImageUploadResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [RequestSizeLimit(MaxImageBytes + 1024 * 1024)]
     public async Task<ActionResult<ImageUploadResult>> UploadImage(
-        [FromForm] IFormFile? file,
+        IFormFile? file,
         [FromQuery] string? kind,
         CancellationToken ct)
     {

@@ -1,0 +1,136 @@
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Org admin</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Branch attendance</h1>
+      <p class="mt-2 max-w-2xl text-sm text-muted">
+        Attendance across every branch in your organization. Filter by date, drill into a branch, or export to CSV.
+      </p>
+    </div>
+    <button type="button" (click)="exportCsv()"
+      class="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong">
+      Export CSV
+    </button>
+  </header>
+
+  @if (error()) {
+    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+
+  <!-- Date filter -->
+  <div class="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-line bg-surface p-4">
+    <div>
+      <label class="mb-1 block text-xs font-semibold text-muted">From</label>
+      <input type="date" [value]="fromDate()" (change)="fromDate.set($any($event.target).value)"
+        class="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink" />
+    </div>
+    <div>
+      <label class="mb-1 block text-xs font-semibold text-muted">To</label>
+      <input type="date" [value]="toDate()" (change)="toDate.set($any($event.target).value)"
+        class="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink" />
+    </div>
+    <button type="button" (click)="load()"
+      class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">Apply</button>
+    @if (fromDate() || toDate()) {
+      <button type="button" (click)="fromDate.set(''); toDate.set(''); load()"
+        class="rounded-xl px-3 py-2.5 text-sm font-semibold text-muted hover:text-ink">Clear</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">Loading attendance…</div>
+  } @else if (overview(); as ov) {
+    <!-- Org totals -->
+    <div class="mb-5 grid gap-4 sm:grid-cols-3">
+      <div class="rounded-2xl border border-line bg-surface px-5 py-4">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">Overall attendance</div>
+        <div class="mt-1 text-3xl font-bold" [class]="rateClass(ov.overallPercent)">{{ ov.overallPercent | number:'1.0-1' }}%</div>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface px-5 py-4">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">Sessions</div>
+        <div class="mt-1 text-3xl font-bold text-ink">{{ ov.totalSessions }}</div>
+      </div>
+      <div class="rounded-2xl border border-line bg-surface px-5 py-4">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted">Marks recorded</div>
+        <div class="mt-1 text-3xl font-bold text-ink">{{ ov.totalRecords }}</div>
+      </div>
+    </div>
+
+    <!-- Branch table -->
+    <div class="overflow-hidden rounded-2xl border border-line bg-surface">
+      <div class="border-b border-line px-5 py-3 text-sm font-bold uppercase tracking-wide text-muted">Branches</div>
+      @if (ov.branches.length === 0) {
+        <div class="px-5 py-8 text-center text-sm text-muted">No attendance has been taken yet.</div>
+      } @else {
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs uppercase tracking-wide text-muted">
+            <tr>
+              <th class="px-5 py-2 font-semibold">Branch</th>
+              <th class="px-3 py-2 font-semibold">Courses</th>
+              <th class="px-3 py-2 font-semibold">Sessions</th>
+              <th class="px-3 py-2 font-semibold">Students</th>
+              <th class="px-3 py-2 font-semibold">Marks</th>
+              <th class="px-3 py-2 font-semibold">Rate</th>
+              <th class="px-5 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of ov.branches; track b.branchId || b.branchName) {
+              <tr class="border-t border-line hover:bg-surface-2">
+                <td class="px-5 py-2.5 font-medium text-ink">{{ b.branchName }}</td>
+                <td class="px-3 py-2.5 text-muted">{{ b.courseCount }}</td>
+                <td class="px-3 py-2.5 text-muted">{{ b.sessionCount }}</td>
+                <td class="px-3 py-2.5 text-muted">{{ b.studentCount }}</td>
+                <td class="px-3 py-2.5 text-muted">{{ b.recordCount }}</td>
+                <td class="px-3 py-2.5 font-bold" [class]="rateClass(b.attendancePercent)">{{ b.attendancePercent | number:'1.0-1' }}%</td>
+                <td class="px-5 py-2.5 text-right">
+                  @if (b.branchId) {
+                    <button type="button" (click)="openBranch(b.branchId)" class="rounded-lg border border-line px-3 py-1 text-xs font-semibold text-primary-700 hover:border-primary-300">View courses</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Branch drill-down -->
+    @if (detail(); as d) {
+      <div class="mt-6 overflow-hidden rounded-2xl border border-primary-200 bg-surface shadow-sm">
+        <div class="flex items-center gap-3 border-b border-line bg-surface-2 px-5 py-3">
+          <div>
+            <div class="text-sm font-bold text-ink">{{ d.branchName }}</div>
+            <div class="text-xs text-muted">Overall {{ d.overallPercent | number:'1.0-1' }}%</div>
+          </div>
+          <button type="button" (click)="closeDetail()" class="ml-auto rounded-lg px-3 py-1 text-sm font-semibold text-muted hover:text-ink">Close</button>
+        </div>
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs uppercase tracking-wide text-muted">
+            <tr>
+              <th class="px-5 py-2 font-semibold">Course</th>
+              <th class="px-5 py-2 font-semibold">Teacher</th>
+              <th class="px-3 py-2 font-semibold">Sessions</th>
+              <th class="px-3 py-2 font-semibold">Students</th>
+              <th class="px-3 py-2 font-semibold">Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of d.courses; track c.courseId) {
+              <tr class="border-t border-line">
+                <td class="px-5 py-2.5 font-medium text-ink">{{ c.courseTitle }}</td>
+                <td class="px-5 py-2.5 text-muted">{{ c.teacherName }}</td>
+                <td class="px-3 py-2.5 text-muted">{{ c.sessionCount }}</td>
+                <td class="px-3 py-2.5 text-muted">{{ c.studentCount }}</td>
+                <td class="px-3 py-2.5 font-semibold" [class]="rateClass(c.attendancePercent)">{{ c.attendancePercent | number:'1.0-1' }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (d.courses.length === 0) {
+          <div class="px-5 py-8 text-center text-sm text-muted">No attendance for this branch in the selected range.</div>
+        }
+      </div>
+    }
+  }
+</section>

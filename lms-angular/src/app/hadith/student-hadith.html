@@ -1,0 +1,194 @@
+<section class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-5">
+    <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Deen</p>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Hadith</h1>
+    <p class="mt-2 max-w-2xl text-sm text-muted">
+      The major hadith collections — narration, Arabic, and grading — side by side.
+    </p>
+  </header>
+
+  <!-- ===== Search + filters ===== -->
+  <div class="mb-6 rounded-2xl border border-line bg-surface-2 p-4">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+      <div class="min-w-0 flex-1">
+        <label class="mb-1 block text-xs font-semibold text-muted">Search</label>
+        <input type="search" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+          (keyup.enter)="runSearch()" placeholder="Search English or Arabic text, or a hadith number…"
+          class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">Collection</label>
+        <select [ngModel]="filterCollection()" (ngModelChange)="filterCollection.set($event)"
+          class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400 lg:w-44">
+          <option value="">All collections</option>
+          @for (c of collections(); track c.name) { <option [value]="c.name">{{ c.titleEn }}</option> }
+        </select>
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-semibold text-muted">Grade</label>
+        <select [ngModel]="filterGrade()" (ngModelChange)="filterGrade.set($event)"
+          class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400 lg:w-36">
+          <option value="">Any grade</option>
+          @for (g of gradeOptions; track g) { <option [value]="g">{{ g }}</option> }
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" (click)="runSearch()"
+          class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">Search</button>
+        @if (view() === 'search') {
+          <button type="button" (click)="clearSearch()"
+            class="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong">Clear</button>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ error() }}</div>
+  }
+
+  <!-- ===== Search results ===== -->
+  @if (view() === 'search') {
+    @if (searching()) {
+      <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted">Searching…</div>
+    } @else {
+      <p class="mb-3 text-sm text-muted">{{ searchTotal() }} result{{ searchTotal() === 1 ? '' : 's' }}</p>
+      <div class="space-y-4">
+        @for (h of searchResults(); track $index) {
+          <article class="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <span class="text-sm font-bold text-ink">{{ collectionTitle(h.collection) }} {{ h.hadithNumber }}</span>
+              @if (h.grade) {
+                <span class="rounded-md px-2 py-0.5 text-xs font-semibold" [class]="gradeBadge(h.gradeCategory || h.grade)">{{ h.grade }}</span>
+              }
+            </div>
+            @if (h.bookNameEn) {
+              <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-primary-600">{{ h.bookNameEn }}@if (h.chapterEn) { <span> · {{ h.chapterEn }}</span> }</div>
+            }
+            <div class="grid gap-5 lg:grid-cols-2">
+              <div class="hadith-en order-2 text-[15px] leading-relaxed text-ink lg:order-1 lg:border-r lg:border-line lg:pr-5" [innerHTML]="h.bodyEn"></div>
+              <div class="hadith-ar order-1 text-xl text-ink lg:order-2" dir="rtl" lang="ar" style="line-height: 2.1;" [style.fontFamily]="amiri" [innerHTML]="h.bodyAr"></div>
+            </div>
+          </article>
+        }
+        @if (searchResults().length === 0) {
+          <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted">No hadith match your search.</div>
+        }
+      </div>
+      @if (searchResults().length > 0) {
+        <div class="mt-5 flex items-center justify-center gap-3">
+          <button type="button" (click)="searchPrev()" [disabled]="searchPage() <= 1"
+            class="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">← Prev</button>
+          <span class="text-sm font-medium text-muted">Page {{ searchPage() }}</span>
+          <button type="button" (click)="searchNext()" [disabled]="!searchHasNext()"
+            class="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">Next →</button>
+        </div>
+      }
+    }
+  } @else {
+
+    <!-- ===== Browse ===== -->
+    <nav class="mb-4 flex flex-wrap items-center gap-1 text-sm">
+      <button type="button" (click)="backToCollections()" class="font-semibold text-primary-700 hover:underline">Collections</button>
+      @if (selectedCollection(); as c) {
+        <span class="text-subtle">/</span>
+        <button type="button" (click)="backToBooks()" class="font-semibold text-primary-700 hover:underline">{{ c.titleEn }}</button>
+      }
+      @if (selectedBook(); as b) {
+        <span class="text-subtle">/</span>
+        <span class="text-muted">{{ b.nameEn }}</span>
+      }
+    </nav>
+
+    @if (loading()) {
+      <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted">Loading…</div>
+    } @else {
+
+      <!-- Collections -->
+      @if (view() === 'collections') {
+        <div class="grid gap-3 sm:grid-cols-2">
+          @for (c of collections(); track c.name) {
+            <button type="button" (click)="openCollection(c)"
+              class="rounded-2xl border border-line bg-surface p-5 text-left transition hover:border-primary-300 hover:shadow-sm">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="font-bold text-ink">{{ c.titleEn }}</div>
+                  @if (c.totalHadith > 0) { <div class="mt-0.5 text-xs text-muted">{{ c.totalHadith }} hadith</div> }
+                </div>
+                <div dir="rtl" lang="ar" class="shrink-0 text-xl text-ink-soft" [style.fontFamily]="amiri">{{ c.titleAr }}</div>
+              </div>
+            </button>
+          }
+          @if (collections().length === 0) {
+            <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted sm:col-span-2">No collections available yet.</div>
+          }
+        </div>
+      }
+
+      <!-- Books -->
+      @if (view() === 'books') {
+        @if (selectedCollection()?.shortIntroEn; as intro) {
+          <div class="mb-4 rounded-2xl border border-line bg-surface-2 p-4 text-sm text-ink-soft" [innerHTML]="intro"></div>
+        }
+        <div class="overflow-hidden rounded-2xl border border-line bg-surface">
+          @for (b of books(); track b.bookNumber) {
+            <button type="button" (click)="openBook(b)"
+              class="flex w-full items-center gap-3 border-b border-line px-5 py-3 text-left transition last:border-0 hover:bg-surface-2">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs font-bold text-muted">{{ b.bookNumber }}</span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-semibold text-ink">{{ b.nameEn }}</span>
+                <span class="block text-xs text-muted">{{ b.numberOfHadith }} hadith</span>
+              </span>
+              <span dir="rtl" lang="ar" class="shrink-0 text-base text-ink-soft" [style.fontFamily]="amiri">{{ b.nameAr }}</span>
+            </button>
+          }
+          @if (books().length === 0) {
+            <div class="px-5 py-8 text-center text-sm text-muted">No books in this collection.</div>
+          }
+        </div>
+      }
+
+      <!-- Hadiths (side by side) -->
+      @if (view() === 'hadiths') {
+        <div class="space-y-4">
+          @for (h of hadiths(); track h.hadithNumber) {
+            <article class="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+              <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <span class="text-sm font-bold text-ink">{{ selectedCollection()?.titleEn }} {{ h.hadithNumber }}</span>
+                @if (h.grade) {
+                  <span class="rounded-md px-2 py-0.5 text-xs font-semibold" [class]="gradeBadge(h.gradeCategory || h.grade)">{{ h.grade }}</span>
+                }
+              </div>
+              @if (h.chapterEn) {
+                <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-primary-600">{{ h.chapterEn }}</div>
+              }
+              <div class="grid gap-5 lg:grid-cols-2">
+                <div class="hadith-en order-2 text-[15px] leading-relaxed text-ink lg:order-1 lg:border-r lg:border-line lg:pr-5" [innerHTML]="h.bodyEn"></div>
+                @if (h.bodyAr) {
+                  <div class="hadith-ar order-1 text-xl text-ink lg:order-2" dir="rtl" lang="ar"
+                       style="line-height: 2.1;" [style.fontFamily]="amiri" [innerHTML]="h.bodyAr"></div>
+                }
+              </div>
+              <div class="mt-4 border-t border-line pt-3 text-xs text-muted">
+                Reference: {{ selectedCollection()?.titleEn }} {{ h.hadithNumber }} &middot; Book {{ h.bookNumber }}
+              </div>
+            </article>
+          }
+          @if (hadiths().length === 0) {
+            <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted">No hadiths to show.</div>
+          }
+        </div>
+
+        @if (hadiths().length > 0) {
+          <div class="mt-5 flex items-center justify-center gap-3">
+            <button type="button" (click)="prevPage()" [disabled]="page() <= 1"
+              class="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">← Prev</button>
+            <span class="text-sm font-medium text-muted">Page {{ page() }}</span>
+            <button type="button" (click)="nextPage()" [disabled]="!hasNext()"
+              class="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">Next →</button>
+          </div>
+        }
+      }
+    }
+  }
+</section>

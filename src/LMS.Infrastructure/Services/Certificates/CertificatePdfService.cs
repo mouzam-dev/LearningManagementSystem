@@ -64,7 +64,7 @@ public class CertificatePdfService : ICertificatePdfService
                             // Brand row + seal
                             col.Item().Row(row =>
                             {
-                                row.RelativeItem().AlignLeft().Text("LMS  ·  CERTIFICATE")
+                                row.RelativeItem().AlignLeft().Text("DUARE SHARIYE  ·  CERTIFICATE")
                                     .FontSize(10).Bold().FontColor(ColorIndigo).LetterSpacing(2.5f);
 
                                 row.ConstantItem(64)
