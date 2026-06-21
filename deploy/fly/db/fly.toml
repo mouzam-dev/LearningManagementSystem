@@ -1,0 +1,30 @@
+# Fly.io app: SQL Server 2022 for Duare Shariye — PRIVATE (no public service).
+# Reached by the web app over Fly's 6PN private network at <app>.internal:1433.
+#
+# Deploy (see deploy/fly/README.md for the full flow):
+#   fly apps create duare-shariye-db
+#   fly volume create mssql_data --size 3 --region bom -a duare-shariye-db
+#   fly secrets set MSSQL_SA_PASSWORD='<StrongPassword!>'  -a duare-shariye-db
+#   fly deploy -c deploy/fly/db/fly.toml                   -a duare-shariye-db
+
+app = "duare-shariye-db"
+primary_region = "bom"            # keep the SAME region as the web app
+
+[build]
+  image = "mcr.microsoft.com/mssql/server:2022-latest"
+
+[env]
+  ACCEPT_EULA = "Y"
+  # Express = free AND production-licensed (10 GB DB limit; the LMS + 46k hadith
+  # are well under that). MSSQL_SA_PASSWORD comes from `fly secrets`, never here.
+  MSSQL_PID = "Express"
+
+# Persistent storage for the database files — survives restarts/redeploys.
+[mounts]
+  source = "mssql_data"
+  destination = "/var/opt/mssql"
+
+# SQL Server needs ~2 GB RAM. No [http_service] — it's private-only, always on.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "2048"

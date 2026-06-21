@@ -20,8 +20,13 @@
 .github/
 .claude/
 
-# Frontend build context (Angular has its own image)
-lms-angular/
+# Heavy generated artefacts — the Fly image rebuilds the Angular SPA from source,
+# so node_modules / caches / prior dist are excluded (but the source is NOT, unlike
+# the dev API image). Keeps the build context small and never ships local secrets.
+**/node_modules/
+**/.angular/
+**/dist/
+.env
 
 # Compose / docker artefacts that should not be copied into images
 docker-compose*.yml

@@ -1,0 +1,48 @@
+# Fly.io deployment for Duare Shariye (LMS) — single container: Angular SPA + .NET API.
+#
+# One-time setup (you run these — needs flyctl + a Fly account):
+#   fly launch --no-deploy --copy-config --name <your-unique-app-name>
+#   fly secrets set ConnectionStrings__DefaultConnection="<your SQL connection string>"
+#   fly secrets set Jwt__Key="<random 32+ char string>"
+#   fly secrets set Sunnah__ApiKey="<your sunnah.com key>"        # only needed for the hadith refresh
+#   fly secrets set App__PublicWebUrl="https://<your-app-name>.fly.dev"
+#   fly deploy
+#
+# The app auto-applies EF migrations on boot, so a fresh DB schemas itself.
+# After first deploy, sign in as a SuperAdmin and click "Refresh from source" to
+# load the ~46k hadith (the container can reach api.sunnah.com / jsdelivr).
+
+app = "duare-shariye"            # must be globally unique — change if taken
+primary_region = "bom"           # Mumbai; pick the region nearest your users
+
+[build]
+  dockerfile = "fly.Dockerfile"
+
+[env]
+  ASPNETCORE_ENVIRONMENT = "Production"
+  ASPNETCORE_URLS = "http://+:8080"
+  # Trust Fly's edge TLS termination (X-Forwarded-Proto) so the app doesn't
+  # redirect-loop behind the proxy. Avoids any Program.cs change.
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED = "true"
+  # Start with an empty production DB (no demo users). Set "true" to seed sample data.
+  LMS_SEED_SAMPLE = "false"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "get"
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "40s"
+
+# 1 GB gives headroom for boot-time migrate + seed and the hadith harvest.
+# Drop to 512mb to save cost once it's settled.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
