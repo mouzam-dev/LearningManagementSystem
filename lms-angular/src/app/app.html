@@ -6,11 +6,8 @@
       [routerLink]="user()?.role === 'Student' ? '/student/dashboard' : user()?.role === 'Teacher' ? '/teacher/dashboard' : user()?.role === 'SuperAdmin' ? '/admin/dashboard' : user()?.role === 'OrgAdmin' ? '/orgadmin/dashboard' : '/home'"
       (click)="closeMenu()"
       class="flex shrink-0 items-center gap-2 text-ink transition hover:opacity-80">
-      <span
-        class="flex h-9 w-9 items-center justify-center bg-primary-500 text-sm font-bold text-white shadow-sm"
-        style="border-radius:4px;"
-        aria-hidden="true">D</span>
-      <span class="text-lg font-bold tracking-tight" style="letter-spacing:-0.03em;color:var(--c-ink);">Duare Shariye</span>
+      <img src="/logo.jpg" alt="Daura-e-Ilmiyah Shariyah" class="h-12 w-auto" />
+      <span class="sr-only">Daura-e-Ilmiyah Shariyah</span>
     </a>
 
     <!-- Desktop nav -->

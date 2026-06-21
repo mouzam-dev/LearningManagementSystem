@@ -8,10 +8,171 @@
   background: var(--c-canvas);
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero (cream + gold, Daura-e-Ilmiyah brand) ---------- */
 .hero-section {
-  background: var(--c-surface);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(1100px 480px at 82% -8%, rgba(189, 142, 38, 0.12), transparent 60%),
+    radial-gradient(820px 460px at 6% 108%, rgba(31, 100, 56, 0.08), transparent 60%),
+    linear-gradient(180deg, #fcf9f1 0%, #f6efe0 100%);
   border-bottom: 1px solid var(--c-line);
+}
+.dark .hero-section {
+  background:
+    radial-gradient(1100px 480px at 82% -8%, rgba(189, 142, 38, 0.18), transparent 60%),
+    radial-gradient(820px 460px at 6% 108%, rgba(31, 100, 56, 0.14), transparent 60%),
+    linear-gradient(180deg, #16120a 0%, #0f130e 100%);
+}
+
+/* Faint gold dot-grid watermark, fading toward the bottom. */
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(162, 118, 28, 0.06) 1px, transparent 1.6px);
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+  mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+}
+
+/* Gold gradient tagline (like the screenshot's "Learn the Basics of Islam"). */
+.hero-tagline {
+  margin-top: 0.5rem;
+  font-size: clamp(1.3rem, 2.5vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background: linear-gradient(90deg, var(--color-primary-700), var(--color-primary-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Floating app-window screenshot. */
+.hero-shot-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.hero-shot-glow {
+  position: absolute;
+  inset: -8% -4% 0 -4%;
+  background:
+    radial-gradient(closest-side, rgba(189, 142, 38, 0.22), transparent 70%),
+    radial-gradient(closest-side, rgba(31, 100, 56, 0.16), transparent 70%);
+  filter: blur(22px);
+  z-index: 0;
+}
+.hero-shot {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  width: 100%;
+  max-width: 560px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px -32px rgba(20, 24, 33, 0.45),
+    0 12px 30px -14px rgba(162, 118, 28, 0.30);
+  transform: rotate(-1.2deg);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+.hero-shot:hover {
+  transform: rotate(0deg) translateY(-4px);
+}
+.hero-shot-bar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border-bottom: 1px solid var(--c-line);
+}
+.hero-shot-bar span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--c-line-strong);
+}
+.hero-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Bottom stats bar — floats over the next section, like the screenshot. */
+.hero-statsbar {
+  position: relative;
+  z-index: 3;
+  margin-bottom: -2.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.25rem;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 14px;
+  box-shadow: 0 26px 50px -26px rgba(20, 24, 33, 0.28);
+}
+@media (min-width: 880px) {
+  .hero-statsbar {
+    grid-template-columns: repeat(4, 1fr) auto;
+    gap: 1.5rem;
+  }
+}
+.hero-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.hero-stat-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+.hero-stat-ic svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+.hero-stat-val {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--c-ink);
+}
+.hero-stat-lbl {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--c-muted);
+}
+.hero-statsbar-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  background: linear-gradient(180deg, var(--color-primary-500), var(--color-primary-700));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  text-decoration: none;
+  box-shadow: 0 12px 24px -12px rgba(162, 118, 28, 0.75);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.hero-statsbar-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px -12px rgba(162, 118, 28, 0.9);
 }
 
 .hero-eyebrow {

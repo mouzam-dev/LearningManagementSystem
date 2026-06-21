@@ -15,29 +15,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* -- Brand: coral orange (primary action color) ------------------------- */
-  --color-primary-50:  #fff4ee;
-  --color-primary-100: #ffe1cf;
-  --color-primary-200: #ffbf99;
-  --color-primary-300: #ff9d63;
-  --color-primary-400: #ff7d3a;
-  --color-primary-500: #ff6b35;
-  --color-primary-600: #ee5a1f;
-  --color-primary-700: #c04417;
-  --color-primary-800: #983618;
-  --color-primary-900: #7a2f17;
+  /* -- Brand: gold (primary action color, from the Daura-e-Ilmiyah logo) --- */
+  --color-primary-50:  #fbf7eb;
+  --color-primary-100: #f5ead0;
+  --color-primary-200: #ebd6a1;
+  --color-primary-300: #dcbb6b;
+  --color-primary-400: #cda33f;
+  --color-primary-500: #bd8e26;
+  --color-primary-600: #a2761c;
+  --color-primary-700: #835d18;
+  --color-primary-800: #6b4c18;
+  --color-primary-900: #5a4017;
 
-  /* -- Accent: navy ink (paired with the coral primary) -------------------- */
-  --color-accent-50:  #f3f5f7;
-  --color-accent-100: #e2e6ea;
-  --color-accent-200: #c0c8d1;
-  --color-accent-300: #93a0af;
-  --color-accent-400: #67768a;
-  --color-accent-500: #475569;
-  --color-accent-600: #34404f;
-  --color-accent-700: #2c3540;
-  --color-accent-800: #1f2630;
-  --color-accent-900: #131820;
+  /* -- Accent: deep green (the logo's calligraphy green) ------------------- */
+  --color-accent-50:  #eef7f0;
+  --color-accent-100: #d4ebd9;
+  --color-accent-200: #a9d6b4;
+  --color-accent-300: #74ba87;
+  --color-accent-400: #469a60;
+  --color-accent-500: #2f7d49;
+  --color-accent-600: #1f6438;
+  --color-accent-700: #1a4f2e;
+  --color-accent-800: #173f26;
+  --color-accent-900: #133420;
 
   /* -- Semantic surface + text tokens (var-backed, flip under .dark) ------ */
   --color-canvas:        var(--c-canvas);
@@ -109,17 +109,17 @@
 .dark .text-primary-600,
 .dark .hover\:text-primary-600:hover,
 .dark .group:hover .group-hover\:text-primary-600 {
-  color: #ff9d63;
+  color: #dcbb6b;
 }
 .dark .text-primary-700,
 .dark .hover\:text-primary-700:hover,
 .dark .group:hover .group-hover\:text-primary-700 {
-  color: #ffbf99;
+  color: #ebd6a1;
 }
-.dark .bg-primary-50  { background-color: rgba(255, 107, 53, 0.10); }
-.dark .bg-primary-100 { background-color: rgba(255, 107, 53, 0.18); }
-.dark .hover\:bg-primary-50:hover { background-color: rgba(255, 107, 53, 0.10); }
-.dark .hover\:border-primary-300:hover { border-color: #ff7d3a; }
+.dark .bg-primary-50  { background-color: rgba(189, 142, 38, 0.10); }
+.dark .bg-primary-100 { background-color: rgba(189, 142, 38, 0.18); }
+.dark .hover\:bg-primary-50:hover { background-color: rgba(189, 142, 38, 0.10); }
+.dark .hover\:border-primary-300:hover { border-color: #cda33f; }
 
 /* ===========================================================================
    Page chrome — flat white background. No gradient, no blobs.
@@ -216,7 +216,7 @@ h1, h2, h3, .display {
   text-decoration: underline;
 }
 .dark .auth-card a {
-  color: #ff9d63;
+  color: #dcbb6b;
 }
 
 .field {
@@ -304,7 +304,7 @@ h1, h2, h3, .display {
   box-shadow: none;
 }
 .dark .auth-card button[disabled] {
-  background: rgba(255, 107, 53, 0.30);
+  background: rgba(189, 142, 38, 0.30);
   color: var(--c-subtle);
 }
 

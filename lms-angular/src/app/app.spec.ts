@@ -22,6 +22,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.brand')?.textContent).toContain('Duare Shariye');
+    expect(compiled.querySelector('.brand')?.textContent).toContain('Daura-e-Ilmiyah Shariyah');
   });
 });

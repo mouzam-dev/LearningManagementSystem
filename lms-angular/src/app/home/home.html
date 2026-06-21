@@ -1,37 +1,24 @@
 <!-- ============================ HERO ============================ -->
 <section class="hero-section">
-  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-    <div class="grid items-center gap-12 lg:grid-cols-12">
-      <!-- Copy + search -->
-      <div class="lg:col-span-7">
+  <div class="hero-pattern" aria-hidden="true"></div>
+  <div class="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2 lg:py-20">
+      <!-- Copy -->
+      <div>
         <span class="hero-eyebrow">
           <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
           Learning the Deen
         </span>
         <h1 class="hero-title">
-          &ldquo;And say: My Lord,
+          &ldquo;My Lord,
           <span class="hero-accent">increase me in knowledge.&rdquo;</span>
         </h1>
+        <p class="hero-tagline">Study the sciences of the Deen</p>
         <p class="hero-sub">
-          <span class="block">&ldquo;Whoever Allah wishes good for, He grants understanding of the deen.&rdquo;</span>
-          <span class="mt-2 block">&ldquo;Seeking knowledge is an obligation upon every Muslim.&rdquo;</span>
+          Daura-e-Ilmiyah Shariyah is a place to learn the core principles, beliefs and
+          teachings of Islam — with a free, public library of the Qur'an and 46,000+ hadith,
+          open to everyone, no account needed.
         </p>
-        <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-subtle">
-          Qur'an 20:114 &middot; Bukh&#257;r&#299; &amp; Muslim &middot; Ibn M&#257;jah
-        </p>
-
-        <form class="hero-search" (submit)="$event.preventDefault(); search()">
-          <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <path d="m20 20-3.5-3.5"></path>
-          </svg>
-          <input type="search" [formControl]="searchControl"
-                 placeholder="What do you want to learn today?"
-                 class="hero-search-input"
-                 aria-label="Search courses" />
-          <button type="submit" class="hero-search-button">Search</button>
-        </form>
 
         <div class="hero-ctas">
           <a routerLink="/register" class="btn-primary">
@@ -66,51 +53,51 @@
             Read Hadith
           </a>
         </div>
-
-        <dl class="hero-stats">
-          <div>
-            <dt>Courses</dt>
-            <dd>{{ totalCount() || '—' }}</dd>
-          </div>
-          <div>
-            <dt>Categories</dt>
-            <dd>{{ categories().length || '—' }}</dd>
-          </div>
-          <div>
-            <dt>Certificates</dt>
-            <dd>verified</dd>
-          </div>
-        </dl>
       </div>
 
-      <!-- Hero visual card -->
-      <div class="lg:col-span-5">
-        <div class="hero-visual">
-          <div class="hero-visual-badge">
-            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-            Live cohorts
+      <!-- Floating app screenshot -->
+      <div class="hero-shot-wrap">
+        <div class="hero-shot-glow" aria-hidden="true"></div>
+        <figure class="hero-shot">
+          <div class="hero-shot-bar" aria-hidden="true">
+            <span></span><span></span><span></span>
           </div>
-          <div class="hero-visual-stack">
-            <div class="hero-visual-row">
-              <span class="hv-pill hv-pill-primary">React</span>
-              <span class="hv-pill">Beginner → Pro</span>
-            </div>
-            <h3 class="hero-visual-title">Modern React with Signals &amp; Suspense</h3>
-            <p class="hero-visual-meta">12 modules · 48 lessons · 8h video</p>
-            <div class="hero-visual-progress">
-              <div class="hero-visual-progress-fill" style="width:62%"></div>
-            </div>
-            <div class="hero-visual-footer">
-              <div class="hv-avatars">
-                <span class="hv-avatar" style="background:#ff6b35">A</span>
-                <span class="hv-avatar" style="background:#3b82f6">M</span>
-                <span class="hv-avatar" style="background:#22c55e">T</span>
-              </div>
-              <span class="text-xs font-medium text-muted">+ 2,134 enrolled</span>
-            </div>
-          </div>
-        </div>
+          <img src="/docs/user-manual/screenshots/student/01-dashboard.png"
+               alt="Daura-e-Ilmiyah Shariyah — student dashboard" loading="eager" />
+        </figure>
       </div>
+    </div>
+
+    <!-- Bottom stats bar -->
+    <div class="hero-statsbar">
+      <div class="hero-stat">
+        <span class="hero-stat-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span>
+        <span><span class="hero-stat-val">{{ totalCount() || '—' }}</span><span class="hero-stat-lbl">Courses</span></span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        </span>
+        <span><span class="hero-stat-val">{{ categories().length || '—' }}</span><span class="hero-stat-lbl">Categories</span></span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </span>
+        <span><span class="hero-stat-val">46,000+</span><span class="hero-stat-lbl">Hadith</span></span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+        <span><span class="hero-stat-val">Free</span><span class="hero-stat-lbl">Qur'an &amp; Hadith</span></span>
+      </div>
+      <a routerLink="/register" class="hero-statsbar-cta">
+        Register Now
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 5 7 7-7 7"/></svg>
+      </a>
     </div>
   </div>
 </section>
@@ -299,7 +286,7 @@
 <section class="bg-surface">
   <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
     <div class="mb-12 text-center">
-      <h2 class="section-title">Why learners choose Duare Shariye</h2>
+      <h2 class="section-title">Why learners choose Daura-e-Ilmiyah Shariyah</h2>
       <p class="section-sub mx-auto max-w-xl">
         A modern platform built for outcomes — not just videos. Everything you need to learn,
         practice, and prove your skills.
@@ -383,9 +370,8 @@
 <!-- ============================ FOOTER ============================ -->
 <footer class="border-t border-line bg-surface">
   <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-muted sm:flex-row sm:px-6 lg:px-8">
-    <div class="flex items-center gap-2">
-      <span class="flex h-7 w-7 items-center justify-center rounded bg-primary-500 text-xs font-bold text-white">D</span>
-      <span class="font-semibold text-ink">Duare Shariye</span>
+    <div class="flex items-center gap-2.5">
+      <img src="/logo.jpg" alt="Daura-e-Ilmiyah Shariyah" class="h-9 w-auto" />
       <span>· Learn. Teach. Grow.</span>
     </div>
     <div class="flex items-center gap-4">
