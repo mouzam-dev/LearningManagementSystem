@@ -28,6 +28,13 @@ RUN dotnet publish "src/LMS.WebAPI/LMS.WebAPI.csproj" \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# QuestPDF/SkiaSharp (certificate PDFs) need native font libraries on Linux; the
+# slim runtime image ships none, so PDF generation would otherwise fail. Install
+# fontconfig + a base font set. Runs as root before dropping to the app user.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libfontconfig1 fontconfig fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 # Run as the non-root user that the base image ships with.
 USER $APP_UID
 

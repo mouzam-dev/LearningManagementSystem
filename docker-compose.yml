@@ -68,6 +68,9 @@ services:
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=LmsDb;User Id=sa;Password=YourPassword123!;TrustServerCertificate=True;MultipleActiveResultSets=true"
       # Allow both the Angular container's exposed port and the host dev server.
       Cors__AllowedOrigins__0: "http://localhost:4200"
+      # Sunnah.com API key for the hadith "Refresh from source" harvest (read from
+      # the gitignored .env; empty if unset — runtime reading still works without it).
+      Sunnah__ApiKey: "${SUNNAH_API_KEY:-}"
     depends_on:
       sqlserver:
         condition: service_healthy
