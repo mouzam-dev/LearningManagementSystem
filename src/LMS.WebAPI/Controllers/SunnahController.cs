@@ -5,13 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace LMS.WebAPI.Controllers;
 
 /// <summary>
-/// Thin proxy to the Sunnah.com API (collections -> books -> hadiths). The API key
-/// lives server-side; the SPA only ever talks to this controller. Any authenticated
-/// user may read.
+/// Read API for the hadith reader (collections -> books -> hadiths + search),
+/// served from the local DB by <see cref="ISunnahService"/>. Public/anonymous so
+/// the hadith reader works on the landing page without signing in. (Rebuilding the
+/// data is SuperAdmin-only — see <see cref="AdminHadithController"/>.)
 /// </summary>
 [ApiController]
 [Route("api/sunnah")]
-[Authorize]
+[AllowAnonymous]
 public class SunnahController : ControllerBase
 {
     private readonly ISunnahService _sunnah;

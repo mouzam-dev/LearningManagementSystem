@@ -42,9 +42,11 @@ export class QuranService {
   }
 
   getVerses(chapterId: number, translationId: number): Observable<QuranVerse[]> {
+    // translationId 0 / falsy = "None" → fetch plain Arabic with no translation.
+    const tr = translationId && translationId > 0 ? `&translations=${translationId}` : '';
     const url =
       `${this.base}/verses/by_chapter/${chapterId}` +
-      `?language=en&fields=text_uthmani,text_indopak&translations=${translationId}&per_page=300`;
+      `?language=en&fields=text_uthmani,text_indopak${tr}&per_page=300`;
     return this.http.get<{ verses: any[] }>(url).pipe(
       map((r) =>
         r.verses.map((v) => ({

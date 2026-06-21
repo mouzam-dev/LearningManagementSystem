@@ -36,6 +36,15 @@ export const routes: Routes = [
     canActivate: [publicLandingGuard],
     loadComponent: () => import('./home/home').then((m) => m.Home),
   },
+  // Public Deen readers — no auth, so anyone (signed in or not) can read.
+  {
+    path: 'quran',
+    loadComponent: () => import('./quran/quran').then((m) => m.StudentQuranPage),
+  },
+  {
+    path: 'hadith',
+    loadComponent: () => import('./hadith/student-hadith').then((m) => m.StudentHadithPage),
+  },
   {
     path: 'student',
     canActivate: [authGuard],

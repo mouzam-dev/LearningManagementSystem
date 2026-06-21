@@ -44,6 +44,12 @@
           }
         }
       </nav>
+    } @else {
+      <!-- Anonymous visitors: public Deen readers, no sign-in needed. -->
+      <nav class="ml-2 hidden items-center gap-1 sm:flex">
+        <a routerLink="/quran" routerLinkActive="nav-active" class="nav-pill">Qur'an</a>
+        <a routerLink="/hadith" routerLinkActive="nav-active" class="nav-pill">Hadith</a>
+      </nav>
     }
 
     <div class="ml-auto flex items-center gap-2">

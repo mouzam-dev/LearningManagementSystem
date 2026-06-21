@@ -1,4 +1,4 @@
-<section class="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
   <header class="mb-5">
     <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Deen</p>
     <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Hadith</h1>
@@ -106,7 +106,7 @@
 
       <!-- Collections -->
       @if (view() === 'collections') {
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           @for (c of collections(); track c.name) {
             <button type="button" (click)="openCollection(c)"
               class="rounded-2xl border border-line bg-surface p-5 text-left transition hover:border-primary-300 hover:shadow-sm">
@@ -120,7 +120,7 @@
             </button>
           }
           @if (collections().length === 0) {
-            <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted sm:col-span-2">No collections available yet.</div>
+            <div class="rounded-2xl border border-line bg-surface p-8 text-center text-sm text-muted col-span-full">No collections available yet.</div>
           }
         </div>
       }

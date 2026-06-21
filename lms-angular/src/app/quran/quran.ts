@@ -6,8 +6,6 @@ import { FormsModule } from '@angular/forms';
 import {
   ARABIC_FONTS,
   DEFAULT_RECITER,
-  DEFAULT_TAFSIR,
-  DEFAULT_TRANSLATION,
   QURAN_SCRIPTS,
   QURAN_TAFSIRS,
   QURAN_TRANSLATIONS,
@@ -74,8 +72,9 @@ export class StudentQuranPage {
   readonly search = signal(''); // sūrah-list filter
 
   readonly selectedId = signal<number>(this.num(LS.chapter, 1, 114));
-  readonly translationId = signal<number>(this.allowed(LS.translation, QURAN_TRANSLATIONS, DEFAULT_TRANSLATION));
-  readonly tafsirId = signal<number>(this.allowed(LS.tafsir, QURAN_TAFSIRS, DEFAULT_TAFSIR));
+  // 0 = "None" (plain Arabic) — also the default until the reader opts into one.
+  readonly translationId = signal<number>(this.allowed(LS.translation, QURAN_TRANSLATIONS, 0));
+  readonly tafsirId = signal<number>(this.allowed(LS.tafsir, QURAN_TAFSIRS, 0));
   readonly reciterId = signal<number>(this.num(LS.reciter, DEFAULT_RECITER));
   readonly fontFamily = signal<string>(localStorage.getItem(LS.font) ?? ARABIC_FONTS[0].family);
   readonly scriptKey = signal<'uthmani' | 'indopak'>(
