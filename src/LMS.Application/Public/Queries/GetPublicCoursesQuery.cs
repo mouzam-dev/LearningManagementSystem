@@ -12,6 +12,7 @@ namespace LMS.Application.Public.Queries;
 public record GetPublicCoursesQuery(
     string? Search = null,
     string? Category = null,
+    Guid? TeacherId = null,
     int Page = 1,
     int PageSize = 12
 ) : IRequest<PagedResult<PublicCourseListItemDto>>;
@@ -50,6 +51,11 @@ public class GetPublicCoursesQueryHandler
         {
             var category = request.Category.Trim();
             query = query.Where(c => c.Category == category);
+        }
+
+        if (request.TeacherId is { } teacherId && teacherId != Guid.Empty)
+        {
+            query = query.Where(c => c.TeacherId == teacherId);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

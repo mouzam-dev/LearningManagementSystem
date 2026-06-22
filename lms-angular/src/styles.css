@@ -136,6 +136,12 @@
 html, body {
   min-height: 100%;
 }
+/* Slightly larger base type for more comfortable reading across the app. The UI
+   is built on rem-based Tailwind utilities, so this scales text (and spacing)
+   proportionally everywhere — header, content, forms — without breaking layout. */
+html {
+  font-size: 17px;
+}
 body {
   background: var(--c-canvas);
   color: var(--c-ink);

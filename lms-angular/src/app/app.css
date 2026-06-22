@@ -6,9 +6,9 @@
 
 /* Desktop nav pill — clean, with a peach active state (Multikart-style). */
 .nav-pill {
-  padding: 0.5rem 0.9rem;
+  padding: 0.55rem 1rem;
   border-radius: 4px;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--c-muted);
   text-decoration: none;
@@ -31,9 +31,9 @@
 /* Mobile drawer link. */
 .nav-pill-mobile {
   display: block;
-  padding: 0.7rem 0.9rem;
+  padding: 0.75rem 0.95rem;
   border-radius: 4px;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 500;
   color: var(--c-ink-soft);
   text-decoration: none;

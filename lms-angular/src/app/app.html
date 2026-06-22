@@ -1,12 +1,12 @@
 <header
   class="sticky top-0 z-30 border-b border-line bg-surface">
-  <div class="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:h-20 sm:px-6 lg:px-8">
+  <div class="mx-auto flex h-20 w-full max-w-7xl items-center gap-3 px-4 sm:h-24 sm:px-6 lg:px-8">
     <!-- Brand -->
     <a
       [routerLink]="user()?.role === 'Student' ? '/student/dashboard' : user()?.role === 'Teacher' ? '/teacher/dashboard' : user()?.role === 'SuperAdmin' ? '/admin/dashboard' : user()?.role === 'OrgAdmin' ? '/orgadmin/dashboard' : '/home'"
       (click)="closeMenu()"
       class="flex shrink-0 items-center gap-2 text-ink transition hover:opacity-80">
-      <img src="/logo.png" alt="Daura-e-Ilmiyah Shariyah" class="h-12 w-auto sm:h-16" />
+      <img src="/logo.png" alt="Daura-e-Ilmiyah Shariyah" class="h-16 w-auto sm:h-20" />
       <span class="sr-only">Daura-e-Ilmiyah Shariyah</span>
     </a>
 
@@ -44,6 +44,7 @@
     } @else {
       <!-- Anonymous visitors: public Deen readers, no sign-in needed. -->
       <nav class="ml-2 hidden items-center gap-1 sm:flex">
+        <a routerLink="/courses" routerLinkActive="nav-active" class="nav-pill">Courses</a>
         <a routerLink="/quran" routerLinkActive="nav-active" class="nav-pill">Qur'an</a>
         <a routerLink="/hadith" routerLinkActive="nav-active" class="nav-pill">Hadith</a>
       </nav>

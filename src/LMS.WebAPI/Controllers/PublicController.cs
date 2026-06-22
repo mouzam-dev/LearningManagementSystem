@@ -29,12 +29,13 @@ public class PublicController : ControllerBase
     public async Task<ActionResult<PagedResult<PublicCourseListItemDto>>> GetCourses(
         [FromQuery] string? search,
         [FromQuery] string? category,
+        [FromQuery] Guid? teacherId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12,
         CancellationToken ct = default)
     {
         var result = await _mediator.Send(
-            new GetPublicCoursesQuery(search, category, page, pageSize), ct);
+            new GetPublicCoursesQuery(search, category, teacherId, page, pageSize), ct);
         return Ok(result);
     }
 
@@ -44,5 +45,13 @@ public class PublicController : ControllerBase
     {
         var categories = await _mediator.Send(new GetPublicCategoriesQuery(), ct);
         return Ok(categories);
+    }
+
+    [HttpGet("teachers")]
+    [ProducesResponseType(typeof(IReadOnlyList<PublicTeacherDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<PublicTeacherDto>>> GetTeachers(CancellationToken ct)
+    {
+        var teachers = await _mediator.Send(new GetPublicTeachersQuery(), ct);
+        return Ok(teachers);
     }
 }

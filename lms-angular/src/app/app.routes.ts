@@ -36,6 +36,12 @@ export const routes: Routes = [
     canActivate: [publicLandingGuard],
     loadComponent: () => import('./home/home').then((m) => m.Home),
   },
+  // Public course catalog — anyone can browse all published courses with
+  // category + teacher filters; enrolling still requires an account.
+  {
+    path: 'courses',
+    loadComponent: () => import('./courses/public-courses').then((m) => m.PublicCoursesPage),
+  },
   // Public Deen readers — no auth, so anyone (signed in or not) can read.
   {
     path: 'quran',
