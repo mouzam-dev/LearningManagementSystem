@@ -63,97 +63,6 @@
   filter: blur(22px);
   z-index: 0;
 }
-.hero-shot {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  width: 100%;
-  max-width: 560px;
-  background: var(--c-surface);
-  border: 1px solid var(--c-line);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow:
-    0 40px 80px -32px rgba(20, 24, 33, 0.45),
-    0 12px 30px -14px rgba(162, 118, 28, 0.30);
-  transform: rotate(-1.2deg);
-  transition: transform 220ms ease, box-shadow 220ms ease;
-}
-.hero-shot:hover {
-  transform: rotate(0deg) translateY(-4px);
-}
-.hero-shot-bar {
-  display: flex;
-  gap: 6px;
-  padding: 10px 12px;
-  background: var(--c-surface-2);
-  border-bottom: 1px solid var(--c-line);
-}
-.hero-shot-bar span {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--c-line-strong);
-}
-.hero-shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.hero-shot-body {
-  padding: 1.5rem 1.6rem 1.4rem;
-}
-.hsb-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-.hsb-eyebrow {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-primary-700);
-}
-.hsb-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  background: var(--color-primary-50);
-  color: var(--color-primary-700);
-}
-.hsb-ayah {
-  margin: 0.7rem 0 0.35rem;
-  text-align: right;
-  font-family: 'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', serif;
-  font-size: 1.7rem;
-  line-height: 2;
-  color: var(--c-ink);
-}
-.hsb-trans {
-  margin: 0 0 0.85rem;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--c-muted);
-}
-.hsb-foot {
-  margin-top: 0.6rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--c-line);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.78rem;
-  color: var(--c-muted);
-}
-.hsb-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--color-accent-500);
-}
 
 /* Brand logo card (hero) — always white so the gold/green logo reads in any theme. */
 .hero-logo-card {
@@ -184,11 +93,11 @@
   height: auto;
 }
 
-/* Bottom stats bar — floats over the next section, like the screenshot. */
+/* Bottom stats bar — sits inside the hero, clearly separated from the sections below. */
 .hero-statsbar {
   position: relative;
   z-index: 3;
-  margin-bottom: -2.5rem;
+  margin-top: 2.5rem;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem 1.25rem;
