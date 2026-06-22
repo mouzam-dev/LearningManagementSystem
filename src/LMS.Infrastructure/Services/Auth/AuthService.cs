@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using Google.Apis.Auth;
 using LMS.Application.Auth;
 using LMS.Application.Auth.Dtos;
 using LMS.Domain.Entities;
@@ -124,6 +125,124 @@ public class AuthService : IAuthService
             RefreshToken = refresh,
             User = _mapper.Map<UserDto>(user)
         };
+    }
+
+    public async Task<AuthResponse> GoogleLoginAsync(GoogleLoginRequest request, CancellationToken ct = default)
+    {
+        var clientId = _config["Google:ClientId"];
+        if (string.IsNullOrWhiteSpace(clientId))
+        {
+            return new AuthResponse { Success = false, Message = "Google sign-in is not configured on the server." };
+        }
+        if (string.IsNullOrWhiteSpace(request.IdToken))
+        {
+            return new AuthResponse { Success = false, Message = "Missing Google credential." };
+        }
+
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            // Validates signature against Google's public keys + checks the token's
+            // audience is our OAuth client id, the issuer is Google, and it hasn't expired.
+            payload = await GoogleJsonWebSignature.ValidateAsync(
+                request.IdToken,
+                new GoogleJsonWebSignature.ValidationSettings { Audience = new[] { clientId } });
+        }
+        catch (InvalidJwtException ex)
+        {
+            _logger.LogWarning(ex, "Rejected Google sign-in: invalid token.");
+            return new AuthResponse { Success = false, Message = "Google sign-in failed: the token was invalid or has expired." };
+        }
+
+        if (string.IsNullOrWhiteSpace(payload.Email) || payload.EmailVerified != true)
+        {
+            return new AuthResponse { Success = false, Message = "Your Google account does not have a verified email." };
+        }
+
+        var email = payload.Email.Trim();
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        var now = DateTime.UtcNow;
+        var isNew = false;
+
+        if (user is null)
+        {
+            isNew = true;
+            user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                FirstName = FirstNonEmpty(payload.GivenName, FirstWord(payload.Name), LocalPart(email)),
+                LastName = FirstNonEmpty(payload.FamilyName, RestWords(payload.Name)),
+                Role = "Student",
+                // Google users authenticate via Google; store an unusable random local
+                // password so the column is non-null. They can set one via "forgot password".
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(
+                    Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"), workFactor: 12),
+                ProfilePictureUrl = string.IsNullOrWhiteSpace(payload.Picture) ? null : payload.Picture,
+                IsVerified = true, // Google has already verified the email
+                IsActive = true,
+                // Public sign-ups land in the Default tenant (same as RegisterAsync).
+                OrganizationId = TenancySeeder.DefaultOrganizationId,
+                BranchId = TenancySeeder.DefaultBranchId,
+                CreatedAt = now,
+                UpdatedAt = now,
+            };
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync(ct);
+        }
+        else
+        {
+            if (!user.IsActive)
+            {
+                return new AuthResponse { Success = false, Message = "Account is inactive." };
+            }
+            // Linking Google to an existing email/password account: mark verified and
+            // backfill the avatar if we don't have one yet.
+            var changed = false;
+            if (!user.IsVerified) { user.IsVerified = true; changed = true; }
+            if (string.IsNullOrWhiteSpace(user.ProfilePictureUrl) && !string.IsNullOrWhiteSpace(payload.Picture))
+            {
+                user.ProfilePictureUrl = payload.Picture;
+                changed = true;
+            }
+            if (changed)
+            {
+                user.UpdatedAt = now;
+                await _db.SaveChangesAsync(ct);
+            }
+        }
+
+        var permissions = await LoadPermissionsAsync(user.Role, ct);
+        var (access, refresh) = GenerateTokens(user, permissions);
+
+        return new AuthResponse
+        {
+            Success = true,
+            Message = isNew ? "Welcome! Your account was created with Google." : "Login successful.",
+            AccessToken = access,
+            RefreshToken = refresh,
+            User = _mapper.Map<UserDto>(user)
+        };
+    }
+
+    // -- Google profile name helpers ----------------------------------------
+    private static string FirstNonEmpty(params string?[] values)
+        => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v))?.Trim() ?? string.Empty;
+
+    private static string LocalPart(string email)
+    {
+        var at = email.IndexOf('@');
+        return at > 0 ? email[..at] : email;
+    }
+
+    private static string? FirstWord(string? name)
+        => string.IsNullOrWhiteSpace(name) ? null : name.Trim().Split(' ', 2)[0];
+
+    private static string? RestWords(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var parts = name.Trim().Split(' ', 2);
+        return parts.Length > 1 ? parts[1] : null;
     }
 
     private async Task<List<string>> LoadPermissionsAsync(string role, CancellationToken ct)

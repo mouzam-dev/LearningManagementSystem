@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import {
@@ -36,6 +36,20 @@ export class AuthService {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/login`, data)
       .pipe(tap((res) => this.handleAuthResponse(res)));
+  }
+
+  /** Exchange a Google ID token for an app session (signs up on first use). */
+  loginWithGoogle(idToken: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/google`, { idToken })
+      .pipe(tap((res) => this.handleAuthResponse(res)));
+  }
+
+  /** The public Google OAuth client id — empty string when Google sign-in is unconfigured. */
+  googleClientId(): Observable<string> {
+    return this.http
+      .get<{ clientId: string }>(`${this.baseUrl}/google-config`)
+      .pipe(map((r) => r.clientId ?? ''));
   }
 
   me(): Observable<MeResponse> {

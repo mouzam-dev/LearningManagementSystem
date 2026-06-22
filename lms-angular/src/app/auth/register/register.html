@@ -54,6 +54,8 @@
     </button>
   </form>
 
+  <app-google-button (authError)="errorMessage.set($event)" />
+
   <p class="muted small">
     Already have an account? <a routerLink="/login">Sign in</a>.
   </p>

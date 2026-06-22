@@ -28,6 +28,8 @@
     </button>
   </form>
 
+  <app-google-button (authError)="errorMessage.set($event)" />
+
   <p class="muted small">
     <a routerLink="/auth/forgot-password">Forgot password?</a>
   </p>

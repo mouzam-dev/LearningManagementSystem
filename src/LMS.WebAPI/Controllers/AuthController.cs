@@ -4,6 +4,7 @@ using LMS.Application.Auth.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 
 namespace LMS.WebAPI.Controllers;
@@ -16,17 +17,20 @@ public class AuthController : ControllerBase
     private readonly IAccountLifecycleService _lifecycle;
     private readonly IValidator<RegisterRequest> _registerValidator;
     private readonly IValidator<LoginRequest> _loginValidator;
+    private readonly IConfiguration _configuration;
 
     public AuthController(
         IAuthService auth,
         IAccountLifecycleService lifecycle,
         IValidator<RegisterRequest> registerValidator,
-        IValidator<LoginRequest> loginValidator)
+        IValidator<LoginRequest> loginValidator,
+        IConfiguration configuration)
     {
         _auth = auth;
         _lifecycle = lifecycle;
         _registerValidator = registerValidator;
         _loginValidator = loginValidator;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -53,6 +57,32 @@ public class AuthController : ControllerBase
 
         var result = await _auth.LoginAsync(request, ct);
         return result.Success ? Ok(result) : Unauthorized(result);
+    }
+
+    /// <summary>
+    /// Sign in (or sign up) with a Google ID token from Google Identity Services.
+    /// </summary>
+    [HttpPost("google")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Google([FromBody] GoogleLoginRequest request, CancellationToken ct)
+    {
+        var result = await _auth.GoogleLoginAsync(request, ct);
+        return result.Success ? Ok(result) : Unauthorized(result);
+    }
+
+    /// <summary>
+    /// Public client config for Google Sign-In: returns the OAuth client id (safe to
+    /// expose) so the SPA can render the Google button, or an empty string when Google
+    /// sign-in hasn't been configured on the server.
+    /// </summary>
+    [HttpGet("google-config")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GoogleConfig()
+    {
+        return Ok(new { clientId = _configuration["Google:ClientId"] ?? string.Empty });
     }
 
     [Authorize]

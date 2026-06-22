@@ -7,11 +7,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../auth.service';
 import { ValidationProblem } from '../models/auth.models';
 import { landingPathForRole } from '../../core/guards/auth.guard';
+import { GoogleButton } from '../google-button/google-button';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, GoogleButton],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
