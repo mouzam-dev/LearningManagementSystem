@@ -57,9 +57,10 @@ export const QURAN_SCRIPTS: ScriptOption[] = [
   { label: 'IndoPak', key: 'indopak' },
 ];
 
-// The only translations the LMS offers: Saheeh International (English) + Junagarhi (Urdu).
+// Translations the LMS offers: Saheeh International + Al-Hilali & Khan (English) + Junagarhi (Urdu).
 export const QURAN_TRANSLATIONS: ResourceOption[] = [
   { id: 20, label: 'Saheeh International (English)' },
+  { id: 203, label: 'Al-Hilali & Khan (English)' },
   { id: 54, label: 'Muhammad Junagarhi (Urdu)', rtl: true },
 ];
 
