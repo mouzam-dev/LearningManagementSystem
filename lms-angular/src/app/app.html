@@ -178,6 +178,6 @@
   }
 </header>
 
-<main class="mx-auto w-full max-w-7xl">
+<main class="mx-auto w-full" [class.max-w-7xl]="!fullWidthMain()">
   <router-outlet />
 </main>

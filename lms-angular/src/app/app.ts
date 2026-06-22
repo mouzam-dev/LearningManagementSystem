@@ -124,6 +124,14 @@ export class App implements OnDestroy {
     }
   });
 
+  /** The public landing page renders full-width so its hero / section
+   *  backgrounds bleed edge-to-edge. Every other route stays inside the
+   *  centered max-w-7xl column (each landing section centers its own content). */
+  readonly fullWidthMain = computed(() => {
+    const u = this.currentUrl();
+    return u === '/' || u.startsWith('/home');
+  });
+
   private notificationsActive = false;
 
   constructor() {
