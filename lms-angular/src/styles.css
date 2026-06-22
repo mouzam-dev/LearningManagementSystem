@@ -11,6 +11,15 @@
    =========================================================================== */
 @import 'tailwindcss';
 
+/* Explicitly register template sources for Tailwind's content scanning.
+   Without this, Tailwind v4 relies on automatic detection, which walks up to
+   the repo's `.git` folder to find files. That works on the host but breaks in
+   the Docker dev container (only `src/`+`public/` are mounted, no `.git`),
+   producing a utility-less stylesheet and an unstyled UI. The path is relative
+   to this file (`src/`), so it covers all component templates and TS files
+   (inline templates) in every environment, including production `ng build`. */
+@source './**/*.{html,ts}';
+
 /* Enable class-based dark mode (Tailwind v4). `.dark` on <html> activates it. */
 @custom-variant dark (&:where(.dark, .dark *));
 
