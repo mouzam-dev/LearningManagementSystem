@@ -98,140 +98,105 @@
   </div>
 </section>
 
-<!-- ============================ CATEGORIES ============================ -->
-@if (categories().length > 0) {
-  <section class="bg-surface">
-    <div class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="mr-2 text-sm font-semibold text-ink">Browse by category:</span>
-        <button type="button" (click)="selectCategory('')"
-                [class.chip-active]="selectedCategory() === ''"
-                class="chip">All</button>
-        @for (cat of categories(); track cat) {
-          <button type="button" (click)="selectCategory(cat)"
-                  [class.chip-active]="selectedCategory() === cat"
-                  class="chip">{{ cat }}</button>
-        }
-      </div>
-    </div>
-  </section>
-}
-
-<!-- ============================ COURSE GRID ============================ -->
-<section id="courses" class="bg-canvas">
-  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-    <header class="mb-8 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 class="section-title">
-          @if (selectedCategory()) {
-            {{ selectedCategory() }} courses
-          } @else if (searchControl.value) {
-            Results for "{{ searchControl.value }}"
-          } @else {
-            Popular courses right now
-          }
-        </h2>
-        <p class="section-sub">
-          Hand-picked by our community — fresh, practical, and ready to learn.
-        </p>
-      </div>
+<!-- ============================ LEARNING PATH ============================ -->
+<section class="bg-surface-2">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+    <div class="mb-12 text-center">
+      <span class="hero-eyebrow">
+        <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
+        Learning Path
+      </span>
+      <h2 class="section-title mt-4">Your journey to a certificate</h2>
+      <p class="section-sub mx-auto max-w-2xl">
+        Five simple steps — from sign-up to a verifiable Certificate of Completion.
+        Begin whenever you're ready.
+      </p>
       <a routerLink="/register"
-         class="hidden text-sm font-semibold text-primary-600 hover:text-primary-700 sm:inline">
-        Sign up to see all courses →
+         class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700">
+        Get started — it's free
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
+        </svg>
       </a>
-    </header>
+    </div>
 
-    @if (error()) {
-      <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-           role="alert">{{ error() }}</div>
-    }
-
-    @if (loading()) {
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        @for (n of [0,1,2,3,4,5,6,7]; track n) {
-          <div class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
-            <div class="aspect-[16/9] animate-pulse bg-surface-3"></div>
-            <div class="space-y-3 p-5">
-              <div class="h-4 w-20 animate-pulse rounded bg-surface-3"></div>
-              <div class="h-5 w-3/4 animate-pulse rounded bg-surface-3"></div>
-              <div class="h-3 w-full animate-pulse rounded bg-surface-3"></div>
-              <div class="h-9 w-full animate-pulse rounded-xl bg-surface-3"></div>
-            </div>
+    <ol class="lp-list">
+      <!-- 1. Register -->
+      <li class="lp-row lp-left">
+        <div class="lp-card">
+          <span class="lp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+          </span>
+          <div class="lp-body">
+            <h3 class="lp-title">Register</h3>
+            <p class="lp-desc">Create your free account in under a minute to get started.</p>
           </div>
-        }
-      </div>
-    } @else if (courses().length === 0) {
-      <div class="rounded-2xl border-2 border-dashed border-line bg-surface py-16 text-center">
-        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-600">
-          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <path d="m20 20-3.5-3.5"></path>
-          </svg>
+          <span class="lp-divider" aria-hidden="true"></span>
+          <span class="lp-num">01</span>
         </div>
-        <h3 class="mt-4 text-base font-semibold text-ink">No courses match your search</h3>
-        <p class="mt-1 text-sm text-muted">Try a different category or clear your search.</p>
-      </div>
-    } @else {
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        @for (course of courses(); track course.courseId) {
-          <article class="group flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-1 hover:ring-primary-200">
-            <div class="relative aspect-[16/9] overflow-hidden">
-              @if (course.thumbnailUrl) {
-                <img [src]="course.thumbnailUrl" [alt]="course.title"
-                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-              } @else {
-                <div class="flex h-full w-full items-center justify-center bg-linear-to-br text-5xl font-bold text-white"
-                     [ngClass]="gradientFor(course.courseId)">
-                  {{ initial(course.title) }}
-                </div>
-              }
-              <span class="absolute left-3 top-3 inline-flex items-center rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold text-ink-soft shadow-sm ring-1 ring-slate-900/10">
-                {{ course.category }}
-              </span>
-            </div>
+      </li>
 
-            <div class="flex flex-1 flex-col p-5">
-              <h3 class="line-clamp-2 text-base font-semibold text-ink" [title]="course.title">
-                {{ course.title }}
-              </h3>
-              <p class="mt-2 line-clamp-2 text-sm text-muted">{{ course.description }}</p>
-
-              <div class="mt-auto pt-4">
-                <div class="flex items-center gap-2 text-xs text-muted">
-                  <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700"
-                        aria-hidden="true">{{ initial(course.teacherName) }}</span>
-                  <span class="truncate">{{ course.teacherName }}</span>
-                  <span aria-hidden="true">·</span>
-                  <span class="whitespace-nowrap">{{ course.enrolledCount }} enrolled</span>
-                </div>
-                <button type="button" (click)="goEnroll(course)"
-                        class="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
-                  Enroll now
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                       stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </article>
-        }
-      </div>
-
-      @if (totalCount() > courses().length) {
-        <div class="mt-10 text-center">
-          <a routerLink="/register"
-             class="inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-ink-soft">
-            See all {{ totalCount() }} courses
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12h14"></path><path d="m13 5 7 7-7 7"></path>
-            </svg>
-          </a>
+      <!-- 2. Enroll -->
+      <li class="lp-row lp-right">
+        <div class="lp-card lp-card-dashed">
+          <span class="lp-num">02</span>
+          <span class="lp-divider" aria-hidden="true"></span>
+          <span class="lp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </span>
+          <div class="lp-body">
+            <h3 class="lp-title">Enroll in a course</h3>
+            <p class="lp-desc">Browse the catalog and enroll in the courses you want to study.</p>
+          </div>
         </div>
-      }
-    }
+      </li>
+
+      <!-- 3. Participate -->
+      <li class="lp-row lp-left">
+        <div class="lp-card">
+          <span class="lp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m12 16-4 5M12 16l4 5"/></svg>
+          </span>
+          <div class="lp-body">
+            <h3 class="lp-title">Participate in lectures &amp; assessments</h3>
+            <p class="lp-desc">Join the lectures, take part in discussions, and complete weekly assessments.</p>
+          </div>
+          <span class="lp-divider" aria-hidden="true"></span>
+          <span class="lp-num">03</span>
+        </div>
+      </li>
+
+      <!-- 4. Final exam -->
+      <li class="lp-row lp-right">
+        <div class="lp-card lp-card-dashed">
+          <span class="lp-num">04</span>
+          <span class="lp-divider" aria-hidden="true"></span>
+          <span class="lp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><path d="m9 14 2 2 4-4"/></svg>
+          </span>
+          <div class="lp-body">
+            <h3 class="lp-title">Take the final exam</h3>
+            <p class="lp-desc">Sit the final exam at the end of the course to test what you've learned.</p>
+          </div>
+        </div>
+      </li>
+
+      <!-- 5. Certificate -->
+      <li class="lp-row lp-left">
+        <div class="lp-card">
+          <span class="lp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/></svg>
+          </span>
+          <div class="lp-body">
+            <h3 class="lp-title">Get the certificate</h3>
+            <p class="lp-desc">Earn your verifiable Certificate of Completion once you pass.</p>
+          </div>
+          <span class="lp-divider" aria-hidden="true"></span>
+          <span class="lp-num">05</span>
+        </div>
+      </li>
+    </ol>
   </div>
 </section>
 

@@ -543,3 +543,101 @@
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.3);
 }
+
+/* ---------- Learning Path (alternating numbered steps) ---------- */
+.lp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.lp-row {
+  display: flex;
+}
+.lp-row.lp-right {
+  justify-content: flex-end;
+}
+.lp-card {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  width: 100%;
+  padding: 1.35rem 1.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary-500) 7%, var(--c-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary-500) 14%, transparent);
+  box-shadow: var(--shadow-sm);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.lp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+/* Alternating (right) cards get the dotted gold outline from the reference. */
+.lp-card-dashed {
+  background: color-mix(in srgb, var(--color-primary-500) 4%, var(--c-surface));
+  border: 2px dashed var(--color-primary-300);
+}
+.lp-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--color-accent-50);
+  color: var(--color-accent-600);
+}
+.lp-icon svg { width: 1.5rem; height: 1.5rem; }
+.dark .lp-icon {
+  background: rgba(47, 125, 73, 0.16);
+  color: #74ba87;
+}
+.lp-body { flex: 1; min-width: 0; }
+.lp-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--c-ink);
+}
+.lp-desc {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--c-muted);
+}
+.lp-divider {
+  align-self: stretch;
+  width: 1px;
+  flex-shrink: 0;
+  margin: 0.2rem 0;
+  background: color-mix(in srgb, var(--color-primary-500) 28%, transparent);
+}
+.lp-num {
+  flex-shrink: 0;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-primary-600);
+  font-variant-numeric: tabular-nums;
+}
+.dark .lp-num { color: var(--color-primary-300); }
+
+/* Zigzag on wider screens; stacked + full-width on phones. */
+@media (min-width: 768px) {
+  .lp-card { width: 60%; }
+}
+@media (max-width: 767px) {
+  .lp-card {
+    gap: 0.9rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: 26px;
+  }
+  .lp-num { font-size: 2rem; }
+  .lp-icon { width: 2.75rem; height: 2.75rem; }
+}
