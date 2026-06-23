@@ -47,12 +47,18 @@ public class GradeSubmissionCommandHandler
     private readonly IApplicationDbContext _db;
     private readonly ICurrentUserService _currentUser;
     private readonly IMediator _mediator;
+    private readonly ICertificateIssuanceService _certificates;
 
-    public GradeSubmissionCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser, IMediator mediator)
+    public GradeSubmissionCommandHandler(
+        IApplicationDbContext db,
+        ICurrentUserService currentUser,
+        IMediator mediator,
+        ICertificateIssuanceService certificates)
     {
         _db = db;
         _currentUser = currentUser;
         _mediator = mediator;
+        _certificates = certificates;
     }
 
     public async Task<TeacherSubmissionDetailDto> Handle(GradeSubmissionCommand request, CancellationToken cancellationToken)
@@ -105,6 +111,12 @@ public class GradeSubmissionCommandHandler
         submission.GradedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);
+
+        // Grading is what "conducting the exam" comes down to — once this grade
+        // means the student has passed every assessment in the course, unlock
+        // their certificate.
+        await _certificates.TryIssueForCourseAsync(
+            submission.StudentId, submission.Assessment.CourseId, cancellationToken);
 
         return await _mediator.Send(new GetTeacherSubmissionQuery(submission.Id), cancellationToken);
     }

@@ -18,11 +18,16 @@ public class SubmitAssessmentCommandHandler
 {
     private readonly IApplicationDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly ICertificateIssuanceService _certificates;
 
-    public SubmitAssessmentCommandHandler(IApplicationDbContext db, ICurrentUserService currentUser)
+    public SubmitAssessmentCommandHandler(
+        IApplicationDbContext db,
+        ICurrentUserService currentUser,
+        ICertificateIssuanceService certificates)
     {
         _db = db;
         _currentUser = currentUser;
+        _certificates = certificates;
     }
 
     public async Task<SubmissionResultDto> Handle(SubmitAssessmentCommand request, CancellationToken cancellationToken)
@@ -105,6 +110,13 @@ public class SubmitAssessmentCommandHandler
         };
         _db.Submissions.Add(submission);
         await _db.SaveChangesAsync(cancellationToken);
+
+        // An auto-graded quiz can itself be the passing grade that unlocks the
+        // certificate (teacher-graded assignments do this from GradeSubmission).
+        if (gradedAt is not null)
+        {
+            await _certificates.TryIssueForCourseAsync(userId, assessment.CourseId, cancellationToken);
+        }
 
         return new SubmissionResultDto
         {

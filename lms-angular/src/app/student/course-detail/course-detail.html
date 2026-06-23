@@ -91,8 +91,8 @@
             </svg>
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">Course complete</p>
-            <h2 class="mt-0.5 text-lg font-bold text-ink">You earned a certificate</h2>
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">Certificate unlocked</p>
+            <h2 class="mt-0.5 text-lg font-bold text-ink">You passed — here's your certificate</h2>
             <p class="mt-1 text-sm text-muted">
               Verify code <span class="font-mono font-semibold tracking-wider">{{ cert.verifyCode }}</span> · issued {{ cert.issuedAt | date: 'mediumDate' }}
             </p>
@@ -105,6 +105,27 @@
               <path d="m9 18 6-6-6-6"></path>
             </svg>
           </a>
+        </div>
+      </div>
+    } @else if (c.totalLessons > 0 && c.completedLessons === c.totalLessons) {
+      <!-- Lessons finished, but the teacher's exam hasn't been passed yet. -->
+      <div class="mb-8 flex flex-wrap items-center gap-5 rounded-3xl border border-amber-200 bg-amber-50 px-6 py-5 sm:px-8">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700"
+             aria-hidden="true">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"></path>
+            <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"></path>
+            <path d="m9 14 2 2 4-4"></path>
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700">Almost there</p>
+          <h2 class="mt-0.5 text-lg font-bold text-ink">Pass the exam to unlock your certificate</h2>
+          <p class="mt-1 text-sm text-muted">
+            You've finished every lesson. Once you pass the course exam set by your teacher,
+            your Certificate of Completion will be available to download here.
+          </p>
         </div>
       </div>
     }

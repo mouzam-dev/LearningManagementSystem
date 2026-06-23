@@ -50,6 +50,7 @@ builder.Services.AddTransient(
 
 // Application services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICertificateIssuanceService, CertificateIssuanceService>();
 builder.Services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 builder.Services.AddScoped<INotificationService, LMS.Infrastructure.Services.Notifications.NotificationService>();
 builder.Services.Configure<LMS.Infrastructure.Services.Email.SmtpOptions>(builder.Configuration.GetSection("Smtp"));
