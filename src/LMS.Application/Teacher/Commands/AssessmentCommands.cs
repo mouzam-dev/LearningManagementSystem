@@ -28,7 +28,8 @@ public record CreateAssessmentCommand(
     int? TimeLimit,
     int PassingScore,
     DateTime? DueDate,
-    int? MaxAttempts
+    int? MaxAttempts,
+    bool IsFinalExam = false
 ) : IRequest<TeacherAssessmentDto>;
 
 public class CreateAssessmentCommandValidator : AbstractValidator<CreateAssessmentCommand>
@@ -80,9 +81,19 @@ public class CreateAssessmentCommandHandler : IRequestHandler<CreateAssessmentCo
             PassingScore = request.PassingScore,
             DueDate = request.DueDate,
             MaxAttempts = request.MaxAttempts,
+            IsFinalExam = request.IsFinalExam,
             CreatedAt = DateTime.UtcNow,
         };
         _db.Assessments.Add(assessment);
+
+        // At most one final exam per course — demote any existing one.
+        if (request.IsFinalExam)
+        {
+            var others = await _db.Assessments
+                .Where(a => a.CourseId == course.Id && a.IsFinalExam)
+                .ToListAsync(cancellationToken);
+            foreach (var o in others) o.IsFinalExam = false;
+        }
 
         course.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken);
@@ -100,7 +111,8 @@ public record UpdateAssessmentCommand(
     int PassingScore,
     DateTime? DueDate,
     int? MaxAttempts,
-    Guid? RubricId
+    Guid? RubricId,
+    bool IsFinalExam = false
 ) : IRequest<TeacherAssessmentDto>;
 
 public class UpdateAssessmentCommandValidator : AbstractValidator<UpdateAssessmentCommand>
@@ -164,6 +176,16 @@ public class UpdateAssessmentCommandHandler : IRequestHandler<UpdateAssessmentCo
         else
         {
             assessment.RubricId = null;
+        }
+
+        assessment.IsFinalExam = request.IsFinalExam;
+        // At most one final exam per course — demote any other one.
+        if (request.IsFinalExam)
+        {
+            var others = await _db.Assessments
+                .Where(a => a.CourseId == assessment.CourseId && a.IsFinalExam && a.Id != assessment.Id)
+                .ToListAsync(cancellationToken);
+            foreach (var o in others) o.IsFinalExam = false;
         }
 
         assessment.Course.UpdatedAt = DateTime.UtcNow;

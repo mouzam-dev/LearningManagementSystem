@@ -35,23 +35,23 @@ public class CertificateIssuanceService : ICertificateIssuanceService
             .AnyAsync(c => c.UserId == userId && c.CourseId == courseId, ct);
         if (alreadyIssued) return false;
 
-        // No exam to pass → no certificate. (Course completion alone never issues one.)
-        var totalAssessments = await _db.Assessments
-            .CountAsync(a => a.CourseId == courseId, ct);
-        if (totalAssessments == 0) return false;
+        // The certificate is unlocked by passing the course's designated final
+        // exam. No final exam set → nothing can unlock it. (Course completion
+        // alone never issues a certificate.)
+        var finalExam = await _db.Assessments
+            .Where(a => a.CourseId == courseId && a.IsFinalExam)
+            .Select(a => new { a.Id, a.PassingScore })
+            .FirstOrDefaultAsync(ct);
+        if (finalExam is null) return false;
 
-        // An assessment counts as "passed" once the student has any graded
-        // submission scoring at or above its passing mark. The certificate is
-        // only unlocked when every assessment in the course is passed.
-        var passedAssessments = await _db.Assessments
-            .Where(a => a.CourseId == courseId)
-            .CountAsync(a => a.Submissions.Any(s =>
-                s.StudentId == userId
-                && s.GradedAt != null
-                && s.Score != null
-                && s.Score >= a.PassingScore), ct);
-
-        if (passedAssessments < totalAssessments) return false;
+        // "Passed" = any graded submission scoring at or above the passing mark.
+        var passed = await _db.Submissions.AnyAsync(s =>
+            s.AssessmentId == finalExam.Id
+            && s.StudentId == userId
+            && s.GradedAt != null
+            && s.Score != null
+            && s.Score >= finalExam.PassingScore, ct);
+        if (!passed) return false;
 
         _db.Certificates.Add(new Certificate
         {

@@ -12,6 +12,7 @@ public class TeacherAssessmentListItemDto
     public int PassingScore { get; set; }
     public DateTime? DueDate { get; set; }
     public int? MaxAttempts { get; set; }
+    public bool IsFinalExam { get; set; }
     public int QuestionCount { get; set; }
     public int TotalPoints { get; set; }
     public int SubmissionCount { get; set; }
@@ -30,6 +31,7 @@ public class TeacherAssessmentDto
     public int PassingScore { get; set; }
     public DateTime? DueDate { get; set; }
     public int? MaxAttempts { get; set; }
+    public bool IsFinalExam { get; set; }
     public int TotalPoints { get; set; }
     public int SubmissionCount { get; set; }
 

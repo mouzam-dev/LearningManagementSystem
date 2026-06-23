@@ -19,6 +19,7 @@ interface CreateAssessmentControls {
   passingScore: FormControl<number>;
   dueDate: FormControl<string>;
   maxAttempts: FormControl<number | null>;
+  isFinalExam: FormControl<boolean>;
 }
 
 /**
@@ -49,6 +50,7 @@ export class TeacherCreateAssessmentPage {
     passingScore: this.fb.nonNullable.control(70, [Validators.required, Validators.min(0), Validators.max(100)]),
     dueDate: this.fb.nonNullable.control(''),
     maxAttempts: this.fb.control<number | null>(null, [Validators.min(1)]),
+    isFinalExam: this.fb.nonNullable.control(false),
   });
 
   submit(): void {
@@ -71,6 +73,7 @@ export class TeacherCreateAssessmentPage {
         passingScore: raw.passingScore,
         dueDate: raw.dueDate ? new Date(raw.dueDate).toISOString() : null,
         maxAttempts: raw.maxAttempts,
+        isFinalExam: raw.isFinalExam,
       })
       .subscribe({
         next: (a) => {

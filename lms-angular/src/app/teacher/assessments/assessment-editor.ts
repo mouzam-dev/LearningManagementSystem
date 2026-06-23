@@ -28,6 +28,7 @@ type MetaDraft = {
   dueDate: string;
   maxAttempts: number | null;
   rubricId: string | null;
+  isFinalExam: boolean;
 };
 
 const EMPTY_QUESTION: QuestionDraft = {
@@ -66,7 +67,7 @@ export class TeacherAssessmentEditorPage {
   // -- Metadata edit modal --------------------------------------------------
   readonly editingMeta = signal(false);
   readonly metaDraft = signal<MetaDraft>({
-    title: '', passingScore: 70, timeLimit: null, dueDate: '', maxAttempts: null, rubricId: null,
+    title: '', passingScore: 70, timeLimit: null, dueDate: '', maxAttempts: null, rubricId: null, isFinalExam: false,
   });
   readonly metaErrors = signal<Record<string, string[]>>({});
   readonly availableRubrics = signal<RubricListItem[]>([]);
@@ -144,6 +145,7 @@ export class TeacherAssessmentEditorPage {
       dueDate: a.dueDate ? this.toLocalDateTimeString(a.dueDate) : '',
       maxAttempts: a.maxAttempts ?? null,
       rubricId: a.rubricId ?? null,
+      isFinalExam: a.isFinalExam ?? false,
     });
     this.metaErrors.set({});
     this.editingMeta.set(true);
@@ -175,6 +177,7 @@ export class TeacherAssessmentEditorPage {
       dueDate: draft.dueDate ? new Date(draft.dueDate).toISOString() : null,
       maxAttempts: draft.maxAttempts,
       rubricId: a.type === 'Assignment' ? (draft.rubricId || null) : null,
+      isFinalExam: draft.isFinalExam,
     }).subscribe({
       next: (updated) => {
         this.assessment.set(updated);

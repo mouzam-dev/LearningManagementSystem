@@ -49,6 +49,7 @@ public class GetTeacherAssessmentQueryHandler
             PassingScore = assessment.PassingScore,
             DueDate = assessment.DueDate,
             MaxAttempts = assessment.MaxAttempts,
+            IsFinalExam = assessment.IsFinalExam,
             TotalPoints = assessment.Questions.Sum(q => q.Points),
             SubmissionCount = submissionCount,
             RubricId = assessment.RubricId,

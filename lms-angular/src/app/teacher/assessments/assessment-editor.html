@@ -29,6 +29,12 @@
           <span class="text-[10px] font-semibold uppercase tracking-wider"
                 [class.text-primary-600]="a.type === 'Quiz'"
                 [class.text-amber-600]="a.type !== 'Quiz'">{{ a.type }}</span>
+          @if (a.isFinalExam) {
+            <span class="ml-2 inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-700">
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/></svg>
+              Final exam
+            </span>
+          }
           <h1 class="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ a.title }}</h1>
           <dl class="mt-4 grid max-w-md grid-cols-3 gap-3">
             <div class="rounded-xl bg-surface-2 px-3 py-2 text-center">
@@ -405,6 +411,23 @@
                 </div>
               }
             }
+
+            <!-- Final exam toggle -->
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition"
+                   [class.border-primary-500]="metaDraft().isFinalExam"
+                   [class.bg-primary-50]="metaDraft().isFinalExam"
+                   [class.border-line]="!metaDraft().isFinalExam"
+                   [class.hover:bg-surface-2]="!metaDraft().isFinalExam">
+              <input type="checkbox" [ngModel]="metaDraft().isFinalExam" name="metaFinalExam"
+                     (ngModelChange)="updateDraft(metaDraft, 'isFinalExam', $event)"
+                     class="mt-0.5 h-4 w-4 accent-primary-600" />
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-ink">Course final exam</p>
+                <p class="mt-0.5 text-[11px] text-muted">
+                  Passing this unlocks the student's Certificate of Completion. Only one final exam per course.
+                </p>
+              </div>
+            </label>
           </div>
           <footer class="flex justify-end gap-2 border-t border-line bg-surface-2 px-6 py-3">
             <button type="button" (click)="cancelMetaEdit()"

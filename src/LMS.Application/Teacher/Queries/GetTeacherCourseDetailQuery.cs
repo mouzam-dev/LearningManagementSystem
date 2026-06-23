@@ -51,6 +51,7 @@ public class GetTeacherCourseDetailQueryHandler
                 PassingScore = a.PassingScore,
                 DueDate = a.DueDate,
                 MaxAttempts = a.MaxAttempts,
+                IsFinalExam = a.IsFinalExam,
                 QuestionCount = a.Questions.Count,
                 TotalPoints = a.Questions.Sum(q => q.Points),
                 SubmissionCount = a.Submissions.Count,

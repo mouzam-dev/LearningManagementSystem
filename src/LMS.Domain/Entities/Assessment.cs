@@ -13,6 +13,13 @@ public class Assessment
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
+    /// Marks this assessment as the course's final exam. At most one per course.
+    /// Passing it (a graded submission at/above <see cref="PassingScore"/>) is what
+    /// unlocks the student's Certificate of Completion.
+    /// </summary>
+    public bool IsFinalExam { get; set; }
+
+    /// <summary>
     /// Optional grading rubric (BRD TCH-025). Only meaningful for Assignment-
     /// type assessments; quizzes auto-grade and ignore this. Nullable; null
     /// means single-score grading (the existing behavior).

@@ -195,6 +195,7 @@ export interface TeacherAssessmentListItem {
   passingScore: number;
   dueDate?: string | null;
   maxAttempts?: number | null;
+  isFinalExam?: boolean;
   questionCount: number;
   totalPoints: number;
   submissionCount: number;
@@ -223,6 +224,7 @@ export interface TeacherAssessment {
   passingScore: number;
   dueDate?: string | null;
   maxAttempts?: number | null;
+  isFinalExam?: boolean;
   totalPoints: number;
   submissionCount: number;
   /** TCH-025: attached grading rubric, only set for Assignment-type. */
@@ -238,6 +240,7 @@ export interface CreateAssessmentBody {
   passingScore: number;
   dueDate?: string | null;
   maxAttempts?: number | null;
+  isFinalExam?: boolean;
 }
 
 export interface UpdateAssessmentBody {
@@ -247,6 +250,7 @@ export interface UpdateAssessmentBody {
   dueDate?: string | null;
   maxAttempts?: number | null;
   rubricId?: string | null;
+  isFinalExam?: boolean;
 }
 
 export interface CreateQuestionBody {

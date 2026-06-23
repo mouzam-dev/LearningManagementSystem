@@ -365,6 +365,7 @@ public partial class TeacherController : ControllerBase
         public int PassingScore { get; set; } = 70;
         public DateTime? DueDate { get; set; }
         public int? MaxAttempts { get; set; }
+        public bool IsFinalExam { get; set; }
     }
 
     [HttpPost("courses/{courseId:guid}/assessments")]
@@ -380,7 +381,7 @@ public partial class TeacherController : ControllerBase
         {
             var result = await _mediator.Send(new CreateAssessmentCommand(
                 courseId, request.Title, request.Type, request.TimeLimit,
-                request.PassingScore, request.DueDate, request.MaxAttempts), ct);
+                request.PassingScore, request.DueDate, request.MaxAttempts, request.IsFinalExam), ct);
             return Created(string.Empty, result);
         }
         catch (KeyNotFoundException ex)
@@ -402,6 +403,7 @@ public partial class TeacherController : ControllerBase
         public int? MaxAttempts { get; set; }
         /// <summary>Optional rubric (TCH-025); ignored for Quiz-type assessments.</summary>
         public Guid? RubricId { get; set; }
+        public bool IsFinalExam { get; set; }
     }
 
     [HttpPut("assessments/{assessmentId:guid}")]
@@ -417,7 +419,7 @@ public partial class TeacherController : ControllerBase
         {
             var result = await _mediator.Send(new UpdateAssessmentCommand(
                 assessmentId, request.Title, request.TimeLimit, request.PassingScore,
-                request.DueDate, request.MaxAttempts, request.RubricId), ct);
+                request.DueDate, request.MaxAttempts, request.RubricId, request.IsFinalExam), ct);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
