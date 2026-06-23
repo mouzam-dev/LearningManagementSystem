@@ -65,32 +65,31 @@
 }
 
 /* Brand logo card (hero) — always white so the gold/green logo reads in any theme. */
-.hero-logo-card {
+.hero-photo-card {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 100%;
-  max-width: 520px;
-  padding: 2.5rem 2.25rem;
+  max-width: 560px;
+  padding: 0.5rem;
   background: #ffffff;
   border: 1px solid var(--c-line);
-  border-radius: 18px;
+  border-radius: 20px;
+  overflow: hidden;
   box-shadow:
     0 40px 80px -32px rgba(20, 24, 33, 0.45),
     0 12px 30px -14px rgba(162, 118, 28, 0.30);
   transform: rotate(-1.2deg);
   transition: transform 220ms ease;
 }
-.hero-logo-card:hover {
+.hero-photo-card:hover {
   transform: rotate(0deg) translateY(-4px);
 }
-.hero-logo-card img {
+.hero-photo-card img {
   display: block;
   width: 100%;
-  max-width: 430px;
   height: auto;
+  border-radius: 14px;
 }
 
 /* Bottom stats bar — sits inside the hero, clearly separated from the sections below. */
