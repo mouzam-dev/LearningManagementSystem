@@ -15,12 +15,12 @@ public class BranchConfiguration : IEntityTypeConfiguration<Branch>
         e.Property(x => x.Code).HasMaxLength(40);
         e.Property(x => x.Location).HasMaxLength(200);
         e.Property(x => x.ContactEmail).HasMaxLength(256);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasIndex(x => x.OrganizationId);
         e.HasIndex(x => new { x.OrganizationId, x.Code })
             .IsUnique()
-            .HasFilter("[Code] IS NOT NULL");
+            .HasFilter("\"Code\" IS NOT NULL");
     }
 }

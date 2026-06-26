@@ -11,9 +11,9 @@ public class SubmissionConfiguration : IEntityTypeConfiguration<Submission>
         e.ToTable("Submissions");
         e.HasKey(x => x.Id);
 
-        e.Property(x => x.Answers).IsRequired().HasColumnType("nvarchar(max)");
-        e.Property(x => x.Feedback).HasColumnType("nvarchar(max)");
-        e.Property(x => x.SubmittedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.Answers).IsRequired().HasColumnType("text");
+        e.Property(x => x.Feedback).HasColumnType("text");
+        e.Property(x => x.SubmittedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.Student)
             .WithMany(u => u.Submissions)

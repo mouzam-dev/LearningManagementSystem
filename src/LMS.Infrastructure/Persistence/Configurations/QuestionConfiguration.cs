@@ -11,10 +11,10 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
         e.ToTable("Questions");
         e.HasKey(x => x.Id);
 
-        e.Property(x => x.QuestionText).IsRequired().HasColumnType("nvarchar(max)");
+        e.Property(x => x.QuestionText).IsRequired().HasColumnType("text");
         e.Property(x => x.Type).IsRequired().HasMaxLength(20);
-        e.Property(x => x.Options).HasColumnType("nvarchar(max)");
-        e.Property(x => x.CorrectAnswer).HasColumnType("nvarchar(max)");
+        e.Property(x => x.Options).HasColumnType("text");
+        e.Property(x => x.CorrectAnswer).HasColumnType("text");
 
         e.HasOne(x => x.Assessment)
             .WithMany(a => a.Questions)

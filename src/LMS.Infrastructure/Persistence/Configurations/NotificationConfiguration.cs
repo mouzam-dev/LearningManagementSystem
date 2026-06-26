@@ -13,8 +13,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 
         e.Property(x => x.Type).IsRequired().HasMaxLength(50);
         e.Property(x => x.Title).IsRequired().HasMaxLength(200);
-        e.Property(x => x.Message).IsRequired().HasColumnType("nvarchar(max)");
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.Message).IsRequired().HasColumnType("text");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.User)
             .WithMany(u => u.Notifications)

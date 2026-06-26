@@ -17,8 +17,8 @@ public class LiveSessionConfiguration : IEntityTypeConfiguration<LiveSession>
         e.Property(x => x.Provider).IsRequired().HasMaxLength(32);
         e.Property(x => x.RoomName).IsRequired().HasMaxLength(120);
         e.Property(x => x.DurationMinutes).HasDefaultValue(60);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasIndex(x => new { x.CourseId, x.ScheduledStart });
         e.HasIndex(x => new { x.BranchId, x.ScheduledStart });

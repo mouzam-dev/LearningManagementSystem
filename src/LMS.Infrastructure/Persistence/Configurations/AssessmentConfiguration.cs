@@ -13,7 +13,7 @@ public class AssessmentConfiguration : IEntityTypeConfiguration<Assessment>
 
         e.Property(x => x.Title).IsRequired().HasMaxLength(200);
         e.Property(x => x.Type).IsRequired().HasMaxLength(20);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.Course)
             .WithMany(c => c.Assessments)

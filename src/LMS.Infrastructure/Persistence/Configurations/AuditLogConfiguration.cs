@@ -13,8 +13,8 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 
         e.Property(x => x.Action).IsRequired().HasMaxLength(100);
         e.Property(x => x.Entity).IsRequired().HasMaxLength(100);
-        e.Property(x => x.Changes).HasColumnType("nvarchar(max)");
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.Changes).HasColumnType("text");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasIndex(x => x.UserId);
         e.HasIndex(x => x.Entity);

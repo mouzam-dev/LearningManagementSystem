@@ -43,9 +43,9 @@ public class GetCoursesQueryHandler
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var term = $"%{request.Search.Trim()}%";
-            query = query.Where(c => EF.Functions.Like(c.Title, term)
-                                  || EF.Functions.Like(c.Description, term));
+            var term = $"%{request.Search.Trim().ToLower()}%";
+            query = query.Where(c => EF.Functions.Like(c.Title.ToLower(), term)
+                                  || EF.Functions.Like(c.Description.ToLower(), term));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Category))

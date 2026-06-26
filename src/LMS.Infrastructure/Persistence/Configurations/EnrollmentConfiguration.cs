@@ -12,7 +12,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
         e.HasKey(x => x.Id);
 
         e.Property(x => x.ProgressPercentage).HasColumnType("decimal(5,2)").HasDefaultValue(0);
-        e.Property(x => x.EnrolledAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.EnrolledAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.Student)
             .WithMany(u => u.Enrollments)

@@ -27,13 +27,17 @@ builder.Host.UseSerilog((context, services, config) =>
           .Enrich.FromLogContext());
 
 // ---------------------------------------------------------------------------
-// Persistence — SQL Server via EF Core
-// Migrations live in LMS.Infrastructure.
+// Persistence — PostgreSQL via EF Core (Npgsql). Migrations live in
+// LMS.Infrastructure. The legacy-timestamp switch makes Npgsql store DateTime
+// as `timestamp without time zone` and ignore DateTimeKind — matching the SQL
+// Server datetime2 semantics the app was written against (everything is
+// DateTime.UtcNow by convention). It MUST be set before the first connection.
 // ---------------------------------------------------------------------------
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+        npgsql => npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
 // ---------------------------------------------------------------------------
 // MediatR / AutoMapper / FluentValidation — all scan the Application assembly

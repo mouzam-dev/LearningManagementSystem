@@ -13,7 +13,7 @@ public class ModuleConfiguration : IEntityTypeConfiguration<Module>
 
         e.Property(x => x.Title).IsRequired().HasMaxLength(200);
         e.Property(x => x.Description).HasMaxLength(1000);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.Course)
             .WithMany(c => c.Modules)

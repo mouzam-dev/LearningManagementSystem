@@ -101,10 +101,10 @@ public class DbSunnahService : ISunnahService
         if (!string.IsNullOrWhiteSpace(query))
         {
             var term = query.Trim();
-            var like = $"%{term}%";
+            var like = $"%{term.ToLower()}%";
             q = q.Where(h =>
-                EF.Functions.Like(h.BodyEn!, like) ||
-                EF.Functions.Like(h.BodyAr!, like) ||
+                EF.Functions.Like(h.BodyEn!.ToLower(), like) ||
+                EF.Functions.Like(h.BodyAr!.ToLower(), like) ||
                 h.HadithNumber == term);
         }
 

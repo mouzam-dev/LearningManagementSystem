@@ -18,8 +18,8 @@ public class AttendanceRecordConfiguration : IEntityTypeConfiguration<Attendance
             .IsRequired();
 
         e.Property(x => x.Remark).HasMaxLength(500);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         // Exactly one record per (session, student).
         e.HasIndex(x => new { x.AttendanceSessionId, x.StudentId }).IsUnique();

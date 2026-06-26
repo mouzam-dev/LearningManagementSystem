@@ -23,7 +23,7 @@ public class HadithConfiguration : IEntityTypeConfiguration<Hadith>
         e.Property(x => x.GradeCategory).HasMaxLength(20);
         e.Property(x => x.BookNameEn).HasMaxLength(300);
         e.Property(x => x.BookNameAr).HasMaxLength(300);
-        // ChapterEn/Ar and BodyEn/Ar are left as nvarchar(max) — chapter names and
+        // ChapterEn/Ar and BodyEn/Ar are left as text — chapter names and
         // narrations (with raw markup) vary widely and must not truncate on import.
 
         // Book page query + canonical ordering within the book.

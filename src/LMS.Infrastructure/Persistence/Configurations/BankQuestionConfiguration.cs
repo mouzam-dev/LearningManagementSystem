@@ -11,10 +11,10 @@ public class BankQuestionConfiguration : IEntityTypeConfiguration<BankQuestion>
         e.ToTable("BankQuestions");
         e.HasKey(x => x.Id);
 
-        e.Property(x => x.QuestionText).IsRequired().HasColumnType("nvarchar(max)");
+        e.Property(x => x.QuestionText).IsRequired().HasColumnType("text");
         e.Property(x => x.Type).IsRequired().HasMaxLength(20);
-        e.Property(x => x.Options).HasColumnType("nvarchar(max)");
-        e.Property(x => x.CorrectAnswer).HasColumnType("nvarchar(max)");
+        e.Property(x => x.Options).HasColumnType("text");
+        e.Property(x => x.CorrectAnswer).HasColumnType("text");
         e.Property(x => x.Tag).HasMaxLength(80);
 
         e.HasOne(x => x.Teacher)

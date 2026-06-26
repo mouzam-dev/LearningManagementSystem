@@ -9,14 +9,14 @@ public class TeacherRatingConfiguration : IEntityTypeConfiguration<TeacherRating
     public void Configure(EntityTypeBuilder<TeacherRating> e)
     {
         e.ToTable("TeacherRatings", t => t.HasCheckConstraint(
-            "CK_TeacherRatings_Rating_Range", "[Rating] BETWEEN 1 AND 5"));
+            "CK_TeacherRatings_Rating_Range", "\"Rating\" BETWEEN 1 AND 5"));
 
         e.HasKey(x => x.Id);
 
         e.Property(x => x.Rating).IsRequired();
         e.Property(x => x.Review).IsRequired().HasMaxLength(2000);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         // One rating per (teacher, student, course). A student can leave a
         // teacher rating for each course they take with that teacher — letting

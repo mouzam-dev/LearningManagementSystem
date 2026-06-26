@@ -13,7 +13,7 @@ public class CourseCoInstructorConfiguration : IEntityTypeConfiguration<CourseCo
         // Composite key — one row per (course, user) pair.
         e.HasKey(x => new { x.CourseId, x.UserId });
 
-        e.Property(x => x.AddedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.AddedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.Course)
             .WithMany(c => c.CoInstructors)

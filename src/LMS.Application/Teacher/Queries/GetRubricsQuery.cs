@@ -30,8 +30,8 @@ public class GetRubricsQueryHandler : IRequestHandler<GetRubricsQuery, PagedResu
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var s = request.Search.Trim();
-            query = query.Where(r => EF.Functions.Like(r.Name, $"%{s}%"));
+            var s = request.Search.Trim().ToLower();
+            query = query.Where(r => EF.Functions.Like(r.Name.ToLower(), $"%{s}%"));
         }
 
         var total = await query.CountAsync(cancellationToken);

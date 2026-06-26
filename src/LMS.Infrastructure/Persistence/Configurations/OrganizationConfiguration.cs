@@ -16,10 +16,10 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
         e.Property(x => x.Description).HasMaxLength(2000);
         e.Property(x => x.ContactEmail).HasMaxLength(256);
         e.Property(x => x.LogoUrl).HasMaxLength(500);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
-        e.HasIndex(x => x.Slug).IsUnique().HasFilter("[Slug] IS NOT NULL");
+        e.HasIndex(x => x.Slug).IsUnique().HasFilter("\"Slug\" IS NOT NULL");
         e.HasIndex(x => x.Name);
 
         e.HasMany(x => x.Branches)

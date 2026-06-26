@@ -9,7 +9,7 @@ public class AttendanceSessionConfiguration : IEntityTypeConfiguration<Attendanc
     public void Configure(EntityTypeBuilder<AttendanceSession> e)
     {
         e.ToTable("AttendanceSessions", t => t.HasCheckConstraint(
-            "CK_AttendanceSessions_Slot_Positive", "[Slot] >= 1"));
+            "CK_AttendanceSessions_Slot_Positive", "\"Slot\" >= 1"));
 
         e.HasKey(x => x.Id);
 
@@ -21,8 +21,8 @@ public class AttendanceSessionConfiguration : IEntityTypeConfiguration<Attendanc
 
         e.Property(x => x.Topic).HasMaxLength(200);
         e.Property(x => x.Slot).HasDefaultValue(1);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         // One session per (course, date, slot). Slot supports multiple batches/day.
         e.HasIndex(x => new { x.CourseId, x.SessionDate, x.Slot }).IsUnique();

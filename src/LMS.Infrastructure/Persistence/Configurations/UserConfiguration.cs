@@ -18,8 +18,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         e.Property(x => x.Role).IsRequired().HasMaxLength(40);
         e.Property(x => x.ProfilePictureUrl).HasMaxLength(500);
         e.Property(x => x.Bio).HasMaxLength(1000);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasIndex(x => x.Email).IsUnique();
         e.HasIndex(x => x.Role);

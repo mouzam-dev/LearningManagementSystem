@@ -12,7 +12,7 @@ public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
         e.HasKey(x => x.Id);
 
         e.Property(x => x.VerifyCode).IsRequired().HasMaxLength(50);
-        e.Property(x => x.IssuedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.IssuedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.User)
             .WithMany(u => u.Certificates)

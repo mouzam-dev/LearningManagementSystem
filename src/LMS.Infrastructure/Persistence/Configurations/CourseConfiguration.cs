@@ -15,8 +15,8 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         e.Property(x => x.Description).IsRequired();
         e.Property(x => x.Category).IsRequired().HasMaxLength(100);
         e.Property(x => x.ThumbnailUrl).HasMaxLength(500);
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasOne(x => x.Teacher)
             .WithMany()

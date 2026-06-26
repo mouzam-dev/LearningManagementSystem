@@ -41,8 +41,8 @@ public class GetBankQuestionsQueryHandler
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var s = request.Search.Trim();
-            query = query.Where(q => EF.Functions.Like(q.QuestionText, $"%{s}%"));
+            var s = request.Search.Trim().ToLower();
+            query = query.Where(q => EF.Functions.Like(q.QuestionText.ToLower(), $"%{s}%"));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Tag))

@@ -12,9 +12,9 @@ public class AnnouncementConfiguration : IEntityTypeConfiguration<Announcement>
         e.HasKey(x => x.Id);
 
         e.Property(x => x.Title).IsRequired().HasMaxLength(200);
-        e.Property(x => x.Body).IsRequired().HasColumnType("nvarchar(max)");
-        e.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
-        e.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+        e.Property(x => x.Body).IsRequired().HasColumnType("text");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now() at time zone 'utc'");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now() at time zone 'utc'");
 
         e.HasIndex(x => new { x.CourseId, x.CreatedAt });
 
