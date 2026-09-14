@@ -1,4 +1,4 @@
-# CareBridge — Continuous Care & Recovery-Support Platform
+# AwesomeCure — Continuous Care & Recovery-Support Platform
 
 > **Positioning:** "A continuous care and recovery-support platform working alongside your primary doctor." Not a telemedicine app, not an AI doctor, not a replacement for the primary consultant. Hyderabad, India pilot first.
 
@@ -18,5 +18,5 @@ Patient visits their primary doctor → uploads the prescription/treatment plan 
 ## Next steps
 
 1. Show the prototype to 2–3 doctors and a few target patients/families; iterate on the flows before writing backend code.
-2. Phase 1 scaffold: `CareBridge.sln` (.NET 8, clean architecture) + `carebridge-angular` in a new repository.
+2. Phase 1 scaffold: `AwesomeCure.sln` (.NET 8, clean architecture) + `awesomecure-angular` in a new repository.
 3. Legal counsel review (TPG 2020, DPDP 2023) before any real patient data.

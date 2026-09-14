@@ -1,4 +1,4 @@
-# CareBridge — Architecture
+# AwesomeCure — Architecture
 
 Same proven stack and layering as the LMS project, so patterns, tooling, and muscle memory carry over directly. Deviations from the LMS are called out explicitly.
 
@@ -27,15 +27,15 @@ Same proven stack and layering as the LMS project, so patterns, tooling, and mus
 
 ```
 src/
-├── CareBridge.Domain/           # Entities, enums, domain events. No project references.
-├── CareBridge.Application/      # DTOs, MediatR handlers, validators, service interfaces. → Domain
-├── CareBridge.Infrastructure/   # DbContext, repositories, migrations, Stripe, storage,
+├── AwesomeCure.Domain/           # Entities, enums, domain events. No project references.
+├── AwesomeCure.Application/      # DTOs, MediatR handlers, validators, service interfaces. → Domain
+├── AwesomeCure.Infrastructure/   # DbContext, repositories, migrations, Stripe, storage,
 │                                # notification channels, Hangfire jobs. → Application + Domain
-└── CareBridge.WebAPI/           # Controllers, SignalR hubs, middleware, Program.cs. → Application + Infrastructure
+└── AwesomeCure.WebAPI/           # Controllers, SignalR hubs, middleware, Program.cs. → Application + Infrastructure
 tests/
-└── CareBridge.Tests/            # xUnit + Moq
+└── AwesomeCure.Tests/            # xUnit + Moq
 
-carebridge-angular/src/app/
+awesomecure-angular/src/app/
 ├── core/        # auth/JWT/error interceptors, guards, SignalR service, notification service
 ├── shared/      # UI kit: charts, badges, empty states, confirm dialogs, date/timezone pipes
 ├── auth/        # login, register, verify, reset, 2FA

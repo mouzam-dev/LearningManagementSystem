@@ -1,6 +1,6 @@
-# CareBridge — Business Requirements Document (BRD)
+# AwesomeCure — Business Requirements Document (BRD)
 
-> **Working name:** CareBridge (placeholder — rename freely).
+> **Working name:** AwesomeCure (placeholder — rename freely).
 > **Product:** A secure UI + API healthcare support platform connecting patients with **supporting doctors** for continuous, day-to-day recovery care alongside — never instead of — the patient's primary consultant.
 > **Version:** 0.1 (initial draft) · **Date:** 2026-09-02
 
