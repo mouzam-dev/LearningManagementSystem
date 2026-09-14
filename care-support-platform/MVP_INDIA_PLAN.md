@@ -70,7 +70,6 @@ Per the initial requirement — **UI first**:
 
 ## 6. Open Decisions (need founder input, not blocking Phase 0–1)
 
-- Working name — "AwesomeCure" is a placeholder.
 - Supporting doctors: employed/contracted by us vs. marketplace (pilot: contracted, fixed per-patient stipend keeps incentives clean).
 - Pricing point and who pays (patient vs. family plan).
 - Legal counsel review of TPG/DPDP posture before real patient data (required before pilot, not before prototype).
