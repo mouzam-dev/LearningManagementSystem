@@ -1,0 +1,96 @@
+<section class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+  <header class="mb-6">
+    <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Teacher · Deen</p>
+    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Students' Arabic progress</h1>
+    <p class="mt-2 max-w-2xl text-sm text-muted">
+      Learn Arabic progress of everyone enrolled in your courses, most recently active first.
+      A lesson counts as done once its quiz has been taken.
+    </p>
+  </header>
+
+  <form class="mb-4 flex gap-2" (submit)="$event.preventDefault(); runSearch(q.value)">
+    <input #q type="search" [value]="search()" placeholder="Search by name or email" aria-label="Search students"
+           class="w-full max-w-sm rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100" />
+    <button type="submit" class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700">Search</button>
+  </form>
+
+  @if (loading()) {
+    <div class="space-y-2">
+      @for (i of [0, 1, 2, 3, 4]; track i) {
+        <div class="h-14 animate-pulse rounded-xl bg-surface-3"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">
+      <p class="text-base font-semibold">{{ error() }}</p>
+    </div>
+  } @else if (totalCount() === 0) {
+    <div class="rounded-3xl border-2 border-dashed border-line bg-surface px-6 py-16 text-center">
+      <h2 class="text-lg font-semibold text-ink">{{ search() ? 'No students match your search' : 'No students yet' }}</h2>
+      <p class="mt-1 text-sm text-muted">Students enrolled in your courses appear here.</p>
+    </div>
+  } @else {
+    <p class="mb-3 text-xs text-muted">{{ totalCount() }} students · {{ started() }} on this page have started</p>
+
+    <div class="overflow-x-auto rounded-2xl border border-line bg-surface shadow-sm">
+      <table class="w-full min-w-[760px] text-left text-sm">
+        <thead class="border-b border-line text-[11px] font-semibold uppercase tracking-wider text-muted">
+          <tr>
+            <th class="px-4 py-3">Student</th>
+            <th class="px-4 py-3">Progress</th>
+            <th class="px-4 py-3 text-right">Unit tests</th>
+            <th class="px-4 py-3 text-right">Avg score</th>
+            <th class="px-4 py-3 text-right">Attempts</th>
+            <th class="px-4 py-3">Current position</th>
+            <th class="px-4 py-3">Last active</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          @for (s of students(); track s.studentId) {
+            <tr>
+              <td class="px-4 py-3">
+                <p class="font-semibold text-ink">{{ s.name }}</p>
+                <p class="text-xs text-muted">{{ s.email }}</p>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <div class="h-2 w-24 overflow-hidden rounded-full bg-surface-3"
+                       role="progressbar" [attr.aria-valuenow]="pct(s)" aria-valuemin="0" aria-valuemax="100"
+                       [attr.aria-label]="'Lessons done by ' + s.name">
+                    <div class="h-full rounded-full bg-accent-600" [style.width.%]="pct(s)"></div>
+                  </div>
+                  <span class="whitespace-nowrap text-xs text-ink-soft">{{ s.lessonsDone }} / {{ totalLessons() }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-right text-ink-soft">{{ s.unitTestsDone }} / {{ totalUnits() }}</td>
+              <td class="px-4 py-3 text-right font-semibold"
+                  [class.text-accent-700]="(s.averageScore ?? 0) >= 80"
+                  [class.text-amber-600]="s.averageScore != null && s.averageScore < 60"
+                  [class.text-ink]="s.averageScore != null && s.averageScore >= 60 && s.averageScore < 80"
+                  [class.text-subtle]="s.averageScore == null">
+                {{ s.averageScore != null ? s.averageScore + '%' : '—' }}
+              </td>
+              <td class="px-4 py-3 text-right text-ink-soft">{{ s.attempts }}</td>
+              <td class="px-4 py-3 text-ink-soft" [class.text-subtle]="!s.lastActivity">{{ position(s) }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-ink-soft">{{ s.lastActivity ? (s.lastActivity | date: 'mediumDate') : '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <button type="button" (click)="goTo(page() - 1)" [disabled]="page() <= 1"
+                class="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-40">
+          Previous
+        </button>
+        <span class="text-xs font-semibold text-muted">Page {{ page() }} / {{ totalPages() }}</span>
+        <button type="button" (click)="goTo(page() + 1)" [disabled]="page() >= totalPages()"
+                class="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-40">
+          Next
+        </button>
+      </div>
+    }
+  }
+</section>

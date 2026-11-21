@@ -82,6 +82,27 @@ export const BOOK_AR = ['', 'الكِتابُ الأَوَّل', 'الكِتاب
 export const UNIT_TEST = 0;
 
 /** 90%+ = 3 stars, 60%+ = 2, any attempt = 1, never tried = 0. */
+/** One student's Learn Arabic standing, as the teacher sees it. */
+export interface TeacherArabicStudent {
+  studentId: string;
+  name: string;
+  email: string;
+  lessonsDone: number;
+  unitTestsDone: number;
+  averageScore: number | null;
+  attempts: number;
+  lastActivity: string | null;
+  lastBook: number | null;
+  lastUnit: number | null;
+  lastLesson: number | null;
+}
+
+export interface TeacherArabicProgress {
+  totalLessons: number;
+  totalUnits: number;
+  students: { items: TeacherArabicStudent[]; page: number; pageSize: number; totalCount: number; totalPages: number };
+}
+
 export const starCount = (pct: number | undefined): number =>
   pct == null ? 0 : pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
 

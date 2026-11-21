@@ -38,6 +38,46 @@ public class ArabicTests
     }
 
     [Fact]
+    public async Task TeacherProgress_lists_only_own_students_with_their_totals()
+    {
+        await using var db = NewDb();
+        User NewUser(string first, string role) => new() { Id = Guid.NewGuid(), FirstName = first, LastName = "X", Email = $"{first}@t.dev", Role = role };
+        var teacher = NewUser("teach", "Teacher");
+        var other = NewUser("other", "Teacher");
+        var active = NewUser("active", "Student");
+        var idle = NewUser("idle", "Student");
+        var stranger = NewUser("stranger", "Student"); // enrolled only with the other teacher
+        db.Users.AddRange(teacher, other, active, idle, stranger);
+        var mine = new Course { Id = Guid.NewGuid(), Title = "Mine", TeacherId = teacher.Id };
+        var theirs = new Course { Id = Guid.NewGuid(), Title = "Theirs", TeacherId = other.Id };
+        db.Courses.AddRange(mine, theirs);
+        db.Enrollments.AddRange(
+            new Enrollment { Id = Guid.NewGuid(), CourseId = mine.Id, StudentId = active.Id },
+            new Enrollment { Id = Guid.NewGuid(), CourseId = mine.Id, StudentId = idle.Id },
+            new Enrollment { Id = Guid.NewGuid(), CourseId = theirs.Id, StudentId = stranger.Id });
+        db.ArabicUnits.Add(new ArabicUnit { Id = "b1u02", BookNumber = 1, UnitNumber = 2,
+            Lessons = { new ArabicLesson { Number = 1 }, new ArabicLesson { Number = 2 } } });
+        db.ArabicProgress.AddRange(
+            new ArabicProgress { UserId = active.Id, UnitId = "b1u02", LessonNumber = 1, BestScore = 100, Attempts = 2, UpdatedAt = DateTime.UtcNow.AddDays(-1) },
+            new ArabicProgress { UserId = active.Id, UnitId = "b1u02", LessonNumber = 2, BestScore = 50, Attempts = 1, UpdatedAt = DateTime.UtcNow },
+            new ArabicProgress { UserId = active.Id, UnitId = "b1u02", LessonNumber = 0, BestScore = 80, Attempts = 1, UpdatedAt = DateTime.UtcNow.AddDays(-2) },
+            new ArabicProgress { UserId = stranger.Id, UnitId = "b1u02", LessonNumber = 1, BestScore = 90, Attempts = 1, UpdatedAt = DateTime.UtcNow });
+        await db.SaveChangesAsync();
+        var user = new Mock<ICurrentUserService>();
+        user.Setup(u => u.GetUserId()).Returns(teacher.Id);
+
+        var r = await new GetTeacherArabicProgressQueryHandler(db, user.Object).Handle(new GetTeacherArabicProgressQuery(null), default);
+
+        r.TotalLessons.Should().Be(2);
+        r.Students.TotalCount.Should().Be(2);
+        r.Students.Items.Select(s => s.Email).Should().Equal("active@t.dev", "idle@t.dev"); // active first, stranger excluded
+        var a = r.Students.Items[0];
+        (a.LessonsDone, a.UnitTestsDone, a.AverageScore, a.Attempts).Should().Be((2, 1, 75, 4));
+        (a.LastBook, a.LastUnit, a.LastLesson).Should().Be((1, 2, 2));
+        r.Students.Items[1].LastActivity.Should().BeNull();
+    }
+
+    [Fact]
     public void Seeder_maps_unit_json_and_skips_invalid_questions()
     {
         const string json = """

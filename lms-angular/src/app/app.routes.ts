@@ -220,6 +220,11 @@ export const routes: Routes = [
           import('./attendance/teacher-attendance').then((m) => m.TeacherAttendancePage),
       },
       {
+        path: 'arabic-progress',
+        loadComponent: () =>
+          import('./teacher/arabic-progress/arabic-progress').then((m) => m.TeacherArabicProgressPage),
+      },
+      {
         path: 'live-classes',
         loadComponent: () =>
           import('./live-classes/teacher-live-classes').then((m) => m.TeacherLiveClassesPage),

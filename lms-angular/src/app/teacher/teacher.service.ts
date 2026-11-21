@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { PagedResult } from '../student/models/course.models';
+import { TeacherArabicProgress } from '../arabic/arabic.models';
 import {
   BankQuestion,
   BankQuestionFilter,
@@ -211,6 +212,12 @@ export class TeacherService {
   }
 
   // ---- Per-course students + analytics ---------------------------------
+
+  /** Learn Arabic progress of the students enrolled in this teacher's courses. */
+  getArabicProgress(search: string, page: number, pageSize: number): Observable<TeacherArabicProgress> {
+    const params = new HttpParams().set('search', search).set('page', page).set('pageSize', pageSize);
+    return this.http.get<TeacherArabicProgress>(`${this.baseUrl}/arabic-progress`, { params });
+  }
 
   getCourseStudents(courseId: string): Observable<CourseStudentListItem[]> {
     return this.http.get<CourseStudentListItem[]>(`${this.baseUrl}/courses/${courseId}/students`);

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LMS.Application.Arabic;
 
-/// <summary>All books with their units (titles + lesson counts). Anonymous; small, fixed-size list.</summary>
+/// <summary>All books with their units (titles + lesson counts). Small, fixed-size list.</summary>
 public record GetArabicBooksQuery() : IRequest<IReadOnlyList<ArabicBookDto>>;
 
 public class GetArabicBooksQueryHandler(IApplicationDbContext db) : IRequestHandler<GetArabicBooksQuery, IReadOnlyList<ArabicBookDto>>

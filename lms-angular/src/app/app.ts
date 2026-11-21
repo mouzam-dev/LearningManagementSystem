@@ -60,6 +60,7 @@ const TEACHER_NAV: NavEntry[] = [
       { label: "Qur'an", link: '/teacher/quran' },
       { label: 'Hadith', link: '/teacher/hadith' },
       { label: 'Learn Arabic', link: '/arabic' },
+      { label: "Students' Arabic progress", link: '/teacher/arabic-progress' },
     ],
   },
 ];
