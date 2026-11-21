@@ -60,13 +60,11 @@ public class AccountLifecycleService : IAccountLifecycleService
         await _db.SaveChangesAsync(ct);
 
         var url = $"{WebUrl()}/auth/verify-email?token={Uri.EscapeDataString(raw)}";
-        var subject = "Verify your LMS email";
-        var body = $@"
-            <p>Hi {Html(user.FirstName)},</p>
-            <p>Confirm your email so your LMS account is fully set up:</p>
-            <p><a href=""{url}"">Verify my email</a></p>
-            <p>This link expires in {EmailVerificationLifetime.TotalHours:0} hours.
-               If you didn't sign up, you can safely ignore this message.</p>";
+        var subject = $"Verify your {SiteName} email";
+        var body = Layout(user.FirstName,
+            $"Please confirm your email address so your {SiteName} account is fully set up.",
+            "Verify my email", url,
+            $"This link expires in {EmailVerificationLifetime.TotalHours:0} hours. If you didn't sign up, you can safely ignore this email.");
         await _email.SendAsync(user.Email, subject, body, ct);
     }
 
@@ -112,15 +110,11 @@ public class AccountLifecycleService : IAccountLifecycleService
         await _db.SaveChangesAsync(ct);
 
         var url = $"{WebUrl()}/auth/reset-password?token={Uri.EscapeDataString(raw)}";
-        var subject = "Reset your LMS password";
-        var body = $@"
-            <p>Hi {Html(user.FirstName)},</p>
-            <p>Someone asked to reset the password on your LMS account.
-               If that was you, follow the link below to choose a new password:</p>
-            <p><a href=""{url}"">Reset my password</a></p>
-            <p>This link expires in {PasswordResetLifetime.TotalMinutes:0} minutes.
-               If you didn't request this, you can ignore the email — your password
-               will stay the same.</p>";
+        var subject = $"Reset your {SiteName} password";
+        var body = Layout(user.FirstName,
+            $"We received a request to reset the password for your {SiteName} account. If that was you, choose a new password below.",
+            "Reset my password", url,
+            $"This link expires in {PasswordResetLifetime.TotalMinutes:0} minutes and can be used once. If you didn't ask for this, ignore this email and your password will stay the same.");
         await _email.SendAsync(user.Email, subject, body, ct);
     }
 
@@ -175,6 +169,23 @@ public class AccountLifecycleService : IAccountLifecycleService
         var digest = SHA256.HashData(bytes);
         return Convert.ToHexString(digest); // upper-case hex, 64 chars
     }
+
+    private const string SiteName = "Daura-e-Ilmiyah Shariyah";
+
+    /// <summary>Branded HTML email: inline styles only, since email clients drop &lt;style&gt; blocks.</summary>
+    private static string Layout(string firstName, string intro, string button, string url, string note) => $@"
+<div style=""background:#f6f7f8;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:#2c3540"">
+  <div style=""max-width:520px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb"">
+    <div style=""background:#1f6438;color:#ffffff;padding:18px 24px;font-size:18px;font-weight:bold"">{SiteName}</div>
+    <div style=""padding:24px;font-size:15px;line-height:1.6"">
+      <p style=""margin:0 0 12px"">Assalamu alaikum {Html(firstName)},</p>
+      <p style=""margin:0 0 20px"">{Html(intro)}</p>
+      <p style=""margin:0 0 20px""><a href=""{url}"" style=""display:inline-block;background:#a2761c;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 22px;border-radius:10px"">{button}</a></p>
+      <p style=""margin:0 0 12px;font-size:13px;color:#6b7280"">{Html(note)}</p>
+      <p style=""margin:0;font-size:12px;color:#9ca3af;word-break:break-all"">If the button doesn't work, copy this link into your browser:<br>{url}</p>
+    </div>
+  </div>
+</div>";
 
     private string WebUrl() => _config["App:PublicWebUrl"]?.TrimEnd('/') ?? "http://localhost:4201";
 
