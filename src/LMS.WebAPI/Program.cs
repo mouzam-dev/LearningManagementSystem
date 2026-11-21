@@ -191,6 +191,15 @@ if (!skipAutoMigrate)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    // On Fly the app can boot before Postgres answers (cold start / pg restart); wait instead of
+    // crashing on the first timeout. If it is still down after ~2 min, Migrate() throws as before.
+    var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    for (var attempt = 1; attempt <= 6 && !await db.Database.CanConnectAsync(); attempt++)
+    {
+        startupLogger.LogWarning("Database not reachable yet (attempt {Attempt}/6); retrying in 5s", attempt);
+        await Task.Delay(TimeSpan.FromSeconds(5));
+    }
     db.Database.Migrate();
 
     // Tenancy bootstrap: seeds Permissions + RolePermissions, ensures the Default
