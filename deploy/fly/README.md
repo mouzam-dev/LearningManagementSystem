@@ -40,7 +40,18 @@ fly deploy -c fly.toml -a $APP
 On first boot the app **creates `LmsDb`, applies every migration**, and starts. Watch it: `fly logs -a $APP`.
 
 ## 3 — Load the hadith
-Open `https://<app>.fly.dev`, sign in as a **SuperAdmin**, then **Admin → Hadith → Refresh from source**. The container harvests ~46k hadith from sunnah.com + jsdelivr (this works on Fly; it was blocked on the old free Windows host).
+Don't use **Refresh from source** on Fly: it takes ~17 min and Fly's auto-stop can kill the
+machine halfway, leaving a collection half-written. Instead refresh **locally** (SuperAdmin →
+Hadith → Refresh from source on `localhost`), then copy the result up:
+
+```powershell
+./deploy/fly/restore-hadith.ps1          # asks before replacing; -Yes to skip the prompt
+```
+
+It backs up the two hadith tables from the local Docker Postgres (~18 MB), checks the Fly
+database is on the same migration, replaces them on Fly in one transaction (all or nothing),
+and restarts the app. Nothing else in the Fly database is touched. Defaults: local container
+`nbs-postgres` / db `lmsdb`, Fly apps `duare-shariye-pg` and `duare-shariye` (see `-?` for parameters).
 
 ## Notes
 - Keep both apps in the **same `primary_region`**.

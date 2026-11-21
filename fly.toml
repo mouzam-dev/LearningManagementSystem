@@ -9,8 +9,8 @@
 #   fly deploy
 #
 # The app auto-applies EF migrations on boot, so a fresh DB schemas itself.
-# After first deploy, sign in as a SuperAdmin and click "Refresh from source" to
-# load the ~46k hadith (the container can reach api.sunnah.com / jsdelivr).
+# After first deploy, load the hadith with ./deploy/fly/restore-hadith.ps1 (copies the
+# locally refreshed tables up). The in-app "Refresh from source" can be cut off by auto-stop.
 
 app = "duare-shariye"            # must be globally unique — change if taken
 primary_region = "bom"           # Mumbai; pick the region nearest your users
