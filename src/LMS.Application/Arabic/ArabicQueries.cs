@@ -44,7 +44,7 @@ public class GetArabicUnitQueryHandler(IApplicationDbContext db) : IRequestHandl
         return new ArabicUnitDto(u.Id, u.BookNumber, u.UnitNumber, u.TitleAr, u.TitleEn, u.TitleUr,
             lessons.Select(l => new ArabicLessonDto(
                 l.Number, l.TitleAr, l.TitleEn, l.TitleUr, l.IntroAr, l.IntroEn, l.IntroUr,
-                dialogue[l.Id].Select(d => new ArabicLineDto(d.Speaker, d.Ar, d.Tr, d.En, d.Ur)).ToList(),
+                dialogue[l.Id].Select(d => new ArabicLineDto(d.Speaker, d.Ar, d.Tr, d.En, d.Ur, d.Source)).ToList(),
                 vocab[l.Id].Select(v => new ArabicWordDto(v.Ar, v.Tr, v.En, v.Ur)).ToList(),
                 quiz[l.Id].Select(q => new ArabicQuizDto(q.QuestionAr, q.QuestionEn, q.QuestionUr, q.Options, q.OptionsAr, q.AnswerIndex)).ToList()
             )).ToList());

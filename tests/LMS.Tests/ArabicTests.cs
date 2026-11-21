@@ -78,6 +78,29 @@ public class ArabicTests
     }
 
     [Fact]
+    public async Task Seeder_reimports_lessons_of_emptied_units_and_keeps_progress()
+    {
+        await using var db = NewDb();
+        var userId = Guid.NewGuid();
+        db.ArabicUnits.Add(new ArabicUnit { Id = "b1u01", BookNumber = 1, UnitNumber = 1, TitleEn = "old title" }); // lessons deleted
+        db.ArabicProgress.Add(new ArabicProgress { UserId = userId, UnitId = "b1u01", LessonNumber = 1, BestScore = 80, Attempts = 1 });
+        await db.SaveChangesAsync();
+
+        await ArabicContentSeeder.SeedAsync(db, NullLogger.Instance);
+
+        db.ArabicUnits.Should().HaveCount(65);
+        var unit = db.ArabicUnits.Include(u => u.Lessons).ThenInclude(l => l.DialogueLines).Single(u => u.Id == "b1u01");
+        unit.TitleEn.Should().NotBe("old title");
+        unit.Lessons.Should().NotBeEmpty();
+        db.ArabicDialogueLines.Should().Contain(d => d.Source == "quran");
+        db.ArabicProgress.Single().BestScore.Should().Be(80);
+
+        var lessons = db.ArabicLessons.Count();
+        await ArabicContentSeeder.SeedAsync(db, NullLogger.Instance); // second start: nothing to do
+        db.ArabicLessons.Count().Should().Be(lessons);
+    }
+
+    [Fact]
     public void Seeder_maps_unit_json_and_skips_invalid_questions()
     {
         const string json = """

@@ -7,7 +7,10 @@ namespace LMS.Infrastructure.Persistence.Seeding;
 
 /// <summary>
 /// Loads the "Al-Arabiyyah Bayna Yadayk" course text (Data/arabic/bNuNN.json, one file per unit)
-/// into the Arabic* tables. Runs only while ArabicUnits is empty, so it is safe on every startup.
+/// into the Arabic* tables. Imports every unit that is missing or has no lessons, so it is safe on
+/// every startup. To ship new content: replace the JSON files and add a migration that runs
+/// DELETE FROM "ArabicLessons" - units (and so learners' progress, which hangs off units) are kept,
+/// their titles refreshed, and the lessons re-imported on the next boot.
 /// Images and audio from the original app are intentionally not imported.
 /// </summary>
 public static class ArabicContentSeeder
@@ -16,7 +19,8 @@ public static class ArabicContentSeeder
 
     public static async Task SeedAsync(ApplicationDbContext db, ILogger logger, CancellationToken ct = default)
     {
-        if (await db.ArabicUnits.AnyAsync(ct))
+        var existing = await db.ArabicUnits.Select(u => new { u.Id, HasLessons = u.Lessons.Any() }).ToListAsync(ct);
+        if (existing.Count > 0 && existing.All(u => u.HasLessons))
             return;
 
         var dir = Path.Combine(AppContext.BaseDirectory, "Persistence", "Seeding", "Data", "arabic");
@@ -29,11 +33,27 @@ public static class ArabicContentSeeder
         var units = Directory.GetFiles(dir, "*.json").OrderBy(f => f, StringComparer.Ordinal)
             .Select(f => ToEntity(JsonSerializer.Deserialize<UnitJson>(File.ReadAllText(f), Json)!, logger))
             .ToList();
+        var known = existing.ToDictionary(u => u.Id, u => u.HasLessons);
 
-        db.ArabicUnits.AddRange(units);
+        var imported = 0;
+        foreach (var unit in units)
+        {
+            if (!known.TryGetValue(unit.Id, out var hasLessons))
+            {
+                db.ArabicUnits.Add(unit);
+            }
+            else if (!hasLessons)
+            {
+                var row = await db.ArabicUnits.SingleAsync(x => x.Id == unit.Id, ct);
+                (row.TitleAr, row.TitleEn, row.TitleUr) = (unit.TitleAr, unit.TitleEn, unit.TitleUr);
+                foreach (var lesson in unit.Lessons) { lesson.UnitId = unit.Id; db.ArabicLessons.Add(lesson); }
+            }
+            else continue;
+            imported++;
+        }
+
         await db.SaveChangesAsync(ct);
-        logger.LogInformation("ArabicContentSeeder: imported {Units} units, {Lessons} lessons.",
-            units.Count, units.Sum(u => u.Lessons.Count));
+        logger.LogInformation("ArabicContentSeeder: imported {Units} units.", imported);
     }
 
     public static ArabicUnit ToEntity(UnitJson u, ILogger logger) => new()
@@ -55,7 +75,7 @@ public static class ArabicContentSeeder
             IntroUr = l.Intro?.Ur ?? "",
             DialogueLines = (l.Dialogue ?? []).Select((d, i) => new ArabicDialogueLine
             {
-                Order = i, Speaker = d.Who ?? "", Ar = d.Ar ?? "", Tr = d.Tr ?? "", En = d.En ?? "", Ur = d.Ur ?? "",
+                Order = i, Speaker = d.Who ?? "", Ar = d.Ar ?? "", Tr = d.Tr ?? "", En = d.En ?? "", Ur = d.Ur ?? "", Source = d.Src,
             }).ToList(),
             VocabItems = (l.Vocab ?? []).Select((v, i) => new ArabicVocabItem
             {
@@ -86,7 +106,7 @@ public static class ArabicContentSeeder
 
     // Shapes of the source JSON files.
     public record Text(string? Ar, string? En, string? Ur);
-    public record Line(string? Who, string? Ar, string? Tr, string? En, string? Ur);
+    public record Line(string? Who, string? Ar, string? Tr, string? En, string? Ur, string? Src);
     public record Quiz(Text Q, List<string> Options, List<string>? Options_Ar, int Answer);
     public record LessonJson(int N, Text Title, Text? Intro, List<Line>? Dialogue, List<Line>? Vocab, List<Quiz>? Quiz);
     public record UnitJson(string Id, int Book, int Unit, Text Title, List<LessonJson> Lessons);

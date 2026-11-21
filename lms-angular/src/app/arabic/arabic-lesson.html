@@ -85,6 +85,11 @@
                 [class]="side(d.speaker) === 1 ? 'border-accent-200 bg-accent-50 dark:border-accent-800 dark:bg-accent-900/30' : 'border-primary-200 bg-primary-50'">
                 <span dir="rtl" lang="ar" class="inline-block rounded-full px-2.5 py-0.5 font-ar text-sm font-bold"
                   [class]="side(d.speaker) === 1 ? 'bg-accent-600 text-white' : 'bg-primary-600 text-white'">{{ d.speaker }}</span>
+                @if (d.source) {
+                  <span class="ml-2 inline-block rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
+                    {{ d.source === 'quran' ? "Qur'an" : d.source === 'hadith' ? 'Hadith' : 'Classical poetry' }}
+                  </span>
+                }
                 <p dir="rtl" lang="ar" class="mt-2 font-ar text-2xl leading-loose text-ink">{{ d.ar }}</p>
                 <div class="mt-1"><app-arabic-meaning [item]="d" /></div>
               </div>

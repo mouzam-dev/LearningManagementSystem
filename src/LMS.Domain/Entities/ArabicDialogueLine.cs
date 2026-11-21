@@ -11,6 +11,8 @@ public class ArabicDialogueLine
     public string Tr { get; set; } = string.Empty;
     public string En { get; set; } = string.Empty;
     public string Ur { get; set; } = string.Empty;
+    /// <summary>"quran", "hadith" or "poem" when the line quotes one exactly; null for ordinary dialogue.</summary>
+    public string? Source { get; set; }
 
     public ArabicLesson Lesson { get; set; } = null!;
 }

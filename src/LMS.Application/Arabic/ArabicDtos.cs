@@ -3,7 +3,7 @@ namespace LMS.Application.Arabic;
 public record ArabicUnitSummaryDto(string Id, int UnitNumber, string TitleAr, string TitleEn, string TitleUr, int LessonCount);
 public record ArabicBookDto(int Number, IReadOnlyList<ArabicUnitSummaryDto> Units);
 
-public record ArabicLineDto(string Speaker, string Ar, string Tr, string En, string Ur);
+public record ArabicLineDto(string Speaker, string Ar, string Tr, string En, string Ur, string? Source);
 public record ArabicWordDto(string Ar, string Tr, string En, string Ur);
 public record ArabicQuizDto(string QuestionAr, string QuestionEn, string QuestionUr,
     IReadOnlyList<string> Options, IReadOnlyList<string>? OptionsAr, int AnswerIndex);

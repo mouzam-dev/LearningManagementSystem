@@ -88,6 +88,9 @@ namespace LMS.Infrastructure.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Source")
+                        .HasColumnType("text");
+
                     b.Property<string>("Speaker")
                         .IsRequired()
                         .HasMaxLength(100)

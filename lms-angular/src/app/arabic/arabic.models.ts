@@ -18,6 +18,8 @@ export interface ArabicLine {
   tr: string;
   en: string;
   ur: string;
+  /** Set when the line quotes the Qur'an, a hadith or classical poetry exactly. */
+  source: 'quran' | 'hadith' | 'poem' | null;
 }
 
 export interface ArabicWord {
