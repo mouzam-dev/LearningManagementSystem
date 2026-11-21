@@ -195,6 +195,10 @@ if (!skipAutoMigrate)
         .CreateLogger("TenancySeeder");
     await TenancySeeder.SeedAsync(db, seedLogger);
 
+    // Arabic course text (reference content, not demo data): imported once while the tables are empty.
+    await ArabicContentSeeder.SeedAsync(db, scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>().CreateLogger("ArabicContentSeeder"));
+
     // Sample data: only runs when the catalog is empty. Produces 3 orgs / ~80
     // users / 15 courses with lessons, assessments, enrollments and a few
     // completions so the UI looks real. Set LMS_SEED_SAMPLE=false in App Service

@@ -64,6 +64,8 @@
     BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-serif: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Arabic text (Learn Arabic module); Amiri is already loaded in index.html. */
+  --font-ar: 'Amiri', 'Noto Naskh Arabic', serif;
 
   /* -- 4px corners. Pills (rounded-full) stay round. ---------------------- */
   --radius-xs:   3px;

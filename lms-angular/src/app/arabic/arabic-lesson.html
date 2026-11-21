@@ -1,0 +1,150 @@
+<section class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+  @if (unit() === undefined) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">Loading lesson…</div>
+  } @else if (!lesson()) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">
+      Lesson not found. <a routerLink="/arabic" class="font-semibold text-primary-600">Back to Learn Arabic</a>
+    </div>
+  } @else {
+    @let u = unit()!;
+    @let l = lesson()!;
+    <a [routerLink]="['/arabic/unit', u.id]" class="text-sm font-semibold text-muted hover:text-ink">← Unit {{ u.unitNumber }} · {{ u.titleEn }}</a>
+
+    <!-- Lesson strip -->
+    <nav class="mt-3 flex flex-wrap gap-1.5" aria-label="Lessons in this unit">
+      @for (x of u.lessons; track x.number) {
+        <a [routerLink]="['/arabic/lesson', u.id, x.number]" [attr.aria-current]="x.number === l.number ? 'page' : null"
+          [attr.aria-label]="'Lesson ' + x.number"
+          class="flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-bold transition"
+          [class]="x.number === l.number ? 'border-primary-600 bg-primary-600 text-white'
+            : svc.score(u.id, x.number) != null ? 'border-accent-300 bg-accent-50 text-accent-700 dark:border-accent-700 dark:bg-accent-900/40 dark:text-accent-200' : 'border-line bg-surface text-ink-soft hover:border-line-strong'">{{ x.number }}</a>
+      }
+      <a [routerLink]="['/arabic/quiz', u.id, 'test']" aria-label="Unit test"
+        class="flex h-8 items-center rounded-lg border border-primary-200 bg-primary-50 px-2.5 text-xs font-bold text-primary-700 hover:border-primary-300">Unit test</a>
+    </nav>
+
+    <!-- Hero -->
+    <header class="mt-4 flex flex-wrap items-end justify-between gap-4 rounded-2xl border border-line bg-surface p-6">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Unit {{ u.unitNumber }} · Lesson {{ l.number }} of {{ u.lessons.length }}</p>
+        <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{{ svc.lang() === 'ur' ? l.titleUr : l.titleEn }}</h1>
+        <p dir="rtl" lang="ar" class="text-left font-ar text-2xl text-ink-soft">{{ l.titleAr }}</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold">
+          @if (l.dialogue.length) { <span class="rounded-full bg-surface-2 px-2.5 py-1 text-ink-soft">{{ l.dialogue.length }} lines</span> }
+          @if (l.vocab.length) { <span class="rounded-full bg-surface-2 px-2.5 py-1 text-ink-soft">{{ l.vocab.length }} words</span> }
+          <app-arabic-stars [pct]="svc.score(u.id, l.number)" />
+        </div>
+      </div>
+      @if (l.quiz.length) {
+        <a [routerLink]="['/arabic/quiz', u.id, l.number]"
+          class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700">Take the quiz</a>
+      }
+    </header>
+
+    <!-- Section tabs -->
+    <div class="sticky top-20 z-10 mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-line bg-canvas py-2 sm:top-24">
+      <nav class="flex gap-1" aria-label="Lesson sections">
+        @for (s of sections(); track s.id) {
+          <button type="button" (click)="jump(s.id)"
+            class="rounded-lg px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:bg-primary-50 hover:text-primary-700">{{ s.label }}</button>
+        }
+      </nav>
+      <app-arabic-prefs />
+    </div>
+
+    <!-- What we learn -->
+    <section id="learn" class="scroll-mt-40 pt-6">
+      <h2 class="mb-3 text-lg font-bold text-ink">What we learn</h2>
+      <div [class]="svc.lang() === 'both' ? 'grid gap-3 sm:grid-cols-2' : 'grid gap-3'">
+        @if (svc.lang() !== 'ur') {
+          <div class="rounded-2xl border border-line bg-surface p-5">
+            <span class="text-xs font-bold uppercase tracking-wider text-primary-600">English</span>
+            <p class="mt-2 text-sm leading-relaxed text-ink">{{ l.introEn }}</p>
+          </div>
+        }
+        @if (svc.lang() !== 'en') {
+          <div class="rounded-2xl border border-line bg-surface p-5">
+            <span class="text-xs font-bold uppercase tracking-wider text-accent-700 dark:text-accent-300">Roman Urdu</span>
+            <p class="mt-2 text-sm leading-relaxed text-ink">{{ l.introUr }}</p>
+          </div>
+        }
+      </div>
+      @if (l.introAr) {
+        <p dir="rtl" lang="ar" class="mt-3 rounded-2xl border border-line bg-surface-2 p-5 font-ar text-xl leading-loose text-ink-soft">{{ l.introAr }}</p>
+      }
+    </section>
+
+    <!-- Dialogue -->
+    @if (l.dialogue.length) {
+      <section id="dialogue" class="scroll-mt-40 pt-8">
+        <h2 class="mb-3 text-lg font-bold text-ink">Dialogue</h2>
+        <ol class="space-y-3">
+          @for (d of l.dialogue; track $index) {
+            <li class="flex" [class.justify-end]="side(d.speaker) === 1">
+              <div class="max-w-[90%] rounded-2xl border p-4 sm:max-w-[75%]"
+                [class]="side(d.speaker) === 1 ? 'border-accent-200 bg-accent-50 dark:border-accent-800 dark:bg-accent-900/30' : 'border-primary-200 bg-primary-50'">
+                <span dir="rtl" lang="ar" class="inline-block rounded-full px-2.5 py-0.5 font-ar text-sm font-bold"
+                  [class]="side(d.speaker) === 1 ? 'bg-accent-600 text-white' : 'bg-primary-600 text-white'">{{ d.speaker }}</span>
+                <p dir="rtl" lang="ar" class="mt-2 font-ar text-2xl leading-loose text-ink">{{ d.ar }}</p>
+                <div class="mt-1"><app-arabic-meaning [item]="d" /></div>
+              </div>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+    <!-- New words -->
+    @if (l.vocab.length) {
+      <section id="words" class="scroll-mt-40 pt-8">
+        <h2 class="mb-3 text-lg font-bold text-ink">New words <span class="ml-1 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{{ l.vocab.length }}</span></h2>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          @for (v of l.vocab; track $index) {
+            <div class="rounded-2xl border border-line bg-surface p-4 text-center">
+              <p dir="rtl" lang="ar" class="font-ar text-2xl leading-loose text-ink">{{ v.ar }}</p>
+              <app-arabic-meaning [item]="v" />
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Quiz CTA -->
+    <section id="quiz" class="scroll-mt-40 pt-8">
+      <div class="flex flex-wrap items-center gap-4 rounded-2xl border border-primary-200 bg-primary-50 p-5">
+        <div class="min-w-0 flex-1">
+          <h2 class="text-lg font-bold text-ink">Ready for the quiz?</h2>
+          <p class="mt-1 flex items-center gap-2 text-sm text-muted">
+            {{ l.quiz.length ? l.quiz.length + ' questions · win up to 3 stars' : 'No questions yet' }}
+            <app-arabic-stars [pct]="svc.score(u.id, l.number)" />
+          </p>
+        </div>
+        @if (l.quiz.length) {
+          <a [routerLink]="['/arabic/quiz', u.id, l.number]"
+            class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700">Start quiz</a>
+        }
+      </div>
+    </section>
+
+    <!-- Pager -->
+    <nav class="mt-8 grid grid-cols-2 gap-3" aria-label="Previous and next lesson">
+      @if (prev(); as p) {
+        <a [routerLink]="['/arabic/lesson', u.id, p.number]" class="rounded-2xl border border-line bg-surface p-4 transition hover:border-line-strong">
+          <span class="text-xs font-semibold text-muted">← Previous</span>
+          <span class="block truncate font-semibold text-ink">{{ p.titleEn }}</span>
+        </a>
+      } @else { <span></span> }
+      @if (nextLesson(); as nx) {
+        <a [routerLink]="['/arabic/lesson', u.id, nx.number]" class="rounded-2xl border border-line bg-surface p-4 text-right transition hover:border-line-strong">
+          <span class="text-xs font-semibold text-muted">Next →</span>
+          <span class="block truncate font-semibold text-ink">{{ nx.titleEn }}</span>
+        </a>
+      } @else {
+        <a [routerLink]="['/arabic/quiz', u.id, 'test']" class="rounded-2xl border border-primary-200 bg-primary-50 p-4 text-right transition hover:border-primary-300">
+          <span class="text-xs font-semibold text-primary-700">Finish →</span>
+          <span class="block font-semibold text-ink">Unit test</span>
+        </a>
+      }
+    </nav>
+  }
+</section>
