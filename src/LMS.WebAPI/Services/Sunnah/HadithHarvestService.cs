@@ -42,6 +42,7 @@ public class HadithHarvestService
 
     private HttpClient Sunnah => _httpFactory.CreateClient("sunnah");
     private HttpClient Fawaz => _httpFactory.CreateClient("fawaz");
+    private HttpClient HadithJson => _httpFactory.CreateClient("hadithjson");
 
     /// <summary>Launches the harvest in the background. Returns false if one is already running.</summary>
     public bool Start()
@@ -70,7 +71,9 @@ public class HadithHarvestService
                 c => (Lang(c.Collection, "en")?.Title ?? Humanize(c.Name),
                       Lang(c.Collection, "ar")?.Title ?? string.Empty,
                       Lang(c.Collection, "en")?.ShortIntro));
-            var slugs = list.Data.Where(c => c.TotalAvailableHadith > 0 || c.Name == "malik").Select(c => c.Name).ToList();
+            var served = list.Data.Where(c => c.TotalAvailableHadith > 0 || c.Name == "malik").Select(c => c.Name).ToHashSet();
+            var slugs = list.Data.Select(c => c.Name).Where(s => served.Contains(s) || FillBooks.ContainsKey(s))
+                .Union(FillBooks.Keys).ToList();
             _status.SetTotal(slugs.Count);
             _logger.LogInformation("Hadith harvest started ({Count} collections)", slugs.Count);
 
@@ -82,8 +85,9 @@ public class HadithHarvestService
                 _status.SetCurrent(slug);
                 try
                 {
-                    var written = await HarvestSunnahAsync(slug, i + 1, db, ct);
+                    var written = served.Contains(slug) ? await HarvestSunnahAsync(slug, i + 1, db, ct) : 0;
                     if (written == 0 && slug == "malik") written = await HarvestMalikAsync(i + 1, db, ct);
+                    if (FillBooks.TryGetValue(slug, out var path)) written += await FillFromHadithJsonAsync(slug, path, i + 1, written, db, ct);
                     _status.AddWritten(written);
                     _logger.LogInformation("Harvested {Slug}: {Written} hadith", slug, written);
                 }
@@ -226,11 +230,83 @@ public class HadithHarvestService
         return rows.Count;
     }
 
+    // ---- AhmedBaset/hadith-json (books Sunnah.com's API doesn't serve) ----
+
+    // Only collections whose book numbers and sizes were checked to match Sunnah.com's
+    // (Mishkat/Riyad/Shama'il label books differently, so filling them would duplicate).
+    private static readonly Dictionary<string, string> FillBooks = new()
+    {
+        ["ahmad"] = "the_9_books/ahmed.json",
+        ["darimi"] = "the_9_books/darimi.json",
+        ["adab"] = "other_books/aladab_almufrad.json",
+        ["bulugh"] = "other_books/bulugh_almaram.json",
+        ["qudsi40"] = "forties/qudsi40.json",
+    };
+
+    /// <summary>
+    /// Adds the books of <paramref name="slug"/> that Sunnah.com didn't serve this run, keeping its graded rows.
+    /// When Sunnah.com served nothing, the whole collection comes from hadith-json. Returns rows added.
+    /// </summary>
+    private async Task<int> FillFromHadithJsonAsync(string slug, string path, int order, int sunnahWritten,
+        ApplicationDbContext db, CancellationToken ct)
+    {
+        var src = await GetAsync<HjBook>(HadithJson, path, ct)
+            ?? throw new HttpRequestException($"{slug} could not be downloaded from hadith-json.");
+        var chapters = src.Chapters.ToDictionary(c => Num(c.Id));
+
+        var have = new HashSet<string>();
+        var seq = 0;
+        if (sunnahWritten > 0)
+        {
+            have = (await db.Hadiths.Where(h => h.Collection == slug).Select(h => h.BookNumber).Distinct().ToListAsync(ct)).ToHashSet();
+            seq = await db.Hadiths.Where(h => h.Collection == slug).MaxAsync(h => h.OurHadithNumber, ct);
+        }
+
+        var rows = new List<Hadith>();
+        foreach (var h in src.Hadiths)
+        {
+            var book = Num(h.ChapterId);
+            if (have.Contains(book)) continue;
+            chapters.TryGetValue(book, out var ch);
+            var text = h.English?.Text?.Trim();
+            var narrator = h.English?.Narrator?.Trim();
+            if (!string.IsNullOrEmpty(narrator) && !string.IsNullOrEmpty(text) && !text.StartsWith(narrator)) text = narrator + "\n" + text;
+            rows.Add(new Hadith
+            {
+                Collection = slug,
+                BookNumber = book,
+                BookNameEn = string.IsNullOrWhiteSpace(ch?.English) ? $"Book {book}" : ch.English,
+                BookNameAr = ch?.Arabic ?? string.Empty,
+                HadithNumber = h.IdInBook.ToString(),
+                OurHadithNumber = ++seq,
+                BodyEn = SunnahMarkup.Clean(text) ?? string.Empty,
+                BodyAr = SunnahMarkup.Clean(h.Arabic) ?? string.Empty,
+            });
+        }
+        if (rows.Count == 0) return 0;
+
+        if (sunnahWritten > 0) await InsertAsync(db, rows, ct);
+        else await ReplaceCollectionAsync(db, slug, rows, ct);
+
+        var meta = _colMeta.TryGetValue(slug, out var m) && !string.IsNullOrEmpty(m.TitleAr) ? m
+            : (src.Metadata?.English?.Title ?? Humanize(slug), src.Metadata?.Arabic?.Title ?? string.Empty, null);
+        await UpsertCollectionAsync(db, slug, meta.Item1, meta.Item2, meta.Item3, order,
+            sunnahWritten > 0 ? "sunnah" : "hadithjson", sunnahWritten + rows.Count, ct);
+        return rows.Count;
+    }
+
+    private static string Num(decimal n) => n.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     // ---- persistence ----
 
     private static async Task ReplaceCollectionAsync(ApplicationDbContext db, string slug, List<Hadith> rows, CancellationToken ct)
     {
         await db.Hadiths.Where(h => h.Collection == slug).ExecuteDeleteAsync(ct);
+        await InsertAsync(db, rows, ct);
+    }
+
+    private static async Task InsertAsync(ApplicationDbContext db, List<Hadith> rows, CancellationToken ct)
+    {
         const int batch = 1000;
         for (var i = 0; i < rows.Count; i += batch)
         {
@@ -370,6 +446,44 @@ public class HadithHarvestService
     {
         public int? Book { get; set; }
         public int? Hadith { get; set; }
+    }
+
+    // ---- hadith-json shapes ----
+
+    private class HjBook
+    {
+        public HjMeta? Metadata { get; set; }
+        public List<HjChapter> Chapters { get; set; } = new();
+        public List<HjHadith> Hadiths { get; set; } = new();
+    }
+
+    private class HjMeta
+    {
+        public HjTitle? Arabic { get; set; }
+        public HjTitle? English { get; set; }
+    }
+
+    private class HjTitle { public string? Title { get; set; } }
+
+    private class HjChapter
+    {
+        public decimal Id { get; set; }
+        public string? Arabic { get; set; }
+        public string? English { get; set; }
+    }
+
+    private class HjHadith
+    {
+        public int IdInBook { get; set; }
+        public decimal ChapterId { get; set; }
+        public string? Arabic { get; set; }
+        public HjEnglish? English { get; set; }
+    }
+
+    private class HjEnglish
+    {
+        public string? Narrator { get; set; }
+        public string? Text { get; set; }
     }
 }
 

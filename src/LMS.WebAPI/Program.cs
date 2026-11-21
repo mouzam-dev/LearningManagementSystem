@@ -75,7 +75,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<LMS.WebAPI.Services.Sunnah.ISunnahService, LMS.WebAPI.Services.Sunnah.DbSunnahService>();
 
 // Harvest (rebuild from source): background job + status, plus the two upstream
-// clients — Sunnah.com (keyed) for most collections, fawazahmed0's CDN for Malik.
+// clients — Sunnah.com (keyed) for most collections, fawazahmed0's CDN for Malik, hadith-json for the rest.
 builder.Services.AddSingleton<LMS.WebAPI.Services.Sunnah.HadithHarvestStatus>();
 builder.Services.AddSingleton<LMS.WebAPI.Services.Sunnah.HadithHarvestService>();
 builder.Services.AddHttpClient("sunnah", c =>
@@ -91,6 +91,12 @@ builder.Services.AddHttpClient("fawaz", c =>
 {
     c.BaseAddress = new Uri("https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/");
     c.Timeout = TimeSpan.FromSeconds(90);
+});
+// AhmedBaset/hadith-json: fills books Sunnah.com's API doesn't serve (Darimi, rest of Bulugh, ...).
+builder.Services.AddHttpClient("hadithjson", c =>
+{
+    c.BaseAddress = new Uri("https://cdn.jsdelivr.net/gh/AhmedBaset/hadith-json@main/db/by_book/");
+    c.Timeout = TimeSpan.FromSeconds(120);
 });
 
 // Expose the EF Core ApplicationDbContext to MediatR handlers via the Application

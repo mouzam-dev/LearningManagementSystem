@@ -17,7 +17,7 @@ public class HadithCollection
     /// <summary>Display order (canonical sunnah.com ordering).</summary>
     public int SortOrder { get; set; }
 
-    /// <summary>Where the data came from: "sunnah" or "fawaz".</summary>
+    /// <summary>Where the data came from: "sunnah", "fawaz" or "hadithjson".</summary>
     public string Source { get; set; } = "sunnah";
 
     /// <summary>Hadith count at last harvest (denormalized for the list view).</summary>
