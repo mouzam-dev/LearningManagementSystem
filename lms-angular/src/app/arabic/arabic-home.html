@@ -18,11 +18,6 @@
         <div><b class="block text-lg leading-tight text-ink">{{ stats().lessons }}</b><span class="text-xs text-muted">lessons completed</span></div>
       </div>
     </div>
-    @if (!svc.isAuthenticated) {
-      <p class="mt-4 text-xs text-muted">
-        <a routerLink="/login" class="font-semibold text-primary-600 hover:text-primary-700">Sign in</a> to save your progress to your account. Until then it is kept in this browser only.
-      </p>
-    }
   </header>
 
   <div class="mt-5 grid gap-4 lg:grid-cols-[1fr_auto]">

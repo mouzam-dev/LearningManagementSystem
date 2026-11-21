@@ -6,14 +6,13 @@ import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { ArabicBook, ArabicProgress, ArabicUnit, ArabicUnitSummary, ArabicWordCard, MeaningLang } from './arabic.models';
 
-// Browser storage is only for per-viewer conveniences (prefs, last lesson, guest scores).
+// Browser storage is only for per-viewer conveniences (prefs, last lesson); progress lives on the server.
 const read = <T>(k: string, d: T): T => {
   try { return (JSON.parse(localStorage.getItem(k) ?? 'null') as T) ?? d; } catch { return d; }
 };
 const write = (k: string, v: unknown) => {
   try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage blocked: keep in memory */ }
 };
-const GUEST_SCORES = 'arabic.scores';
 
 @Injectable({ providedIn: 'root' })
 export class ArabicService {
@@ -34,8 +33,6 @@ export class ArabicService {
     effect(() => write('arabic.showTr', this.showTr()));
   }
 
-  get isAuthenticated() { return this.auth.isAuthenticated(); }
-
   unit(id: string): Observable<ArabicUnit> {
     let u = this.units.get(id);
     if (!u) {
@@ -50,12 +47,8 @@ export class ArabicService {
     return this.http.get<ArabicWordCard[]>(`${this.base}/words?book=${book}${q}`);
   }
 
-  /** Signed-in learners keep scores on the server; guests keep them in this browser. */
+  /** Loads the signed-in learner's best scores from the server. */
   refreshScores(): void {
-    if (!this.isAuthenticated) {
-      this.scores.set(read(GUEST_SCORES, {}));
-      return;
-    }
     this.http.get<ArabicProgress[]>(`${this.base}/progress`).subscribe({
       next: (rows) => this.scores.set(Object.fromEntries(rows.map((r) => [`${r.unitId}-${r.lessonNumber}`, r.bestScore]))),
       error: () => this.scores.set({}),
@@ -69,11 +62,7 @@ export class ArabicService {
   saveScore(unitId: string, lessonNumber: number, pct: number): void {
     const key = `${unitId}-${lessonNumber}`;
     this.scores.update((s) => ({ ...s, [key]: Math.max(s[key] ?? 0, pct) }));
-    if (this.isAuthenticated) {
-      this.http.post(`${this.base}/progress`, { unitId, lessonNumber, score: pct }).subscribe();
-    } else {
-      write(GUEST_SCORES, this.scores());
-    }
+    this.http.post(`${this.base}/progress`, { unitId, lessonNumber, score: pct }).subscribe();
   }
 
   /** % of a unit's lessons with a quiz result. */
@@ -88,6 +77,8 @@ export class ArabicService {
     return b.units.length ? Math.round(b.units.reduce((a, u) => a + this.unitProgress(u), 0) / b.units.length) : 0;
   }
 
-  get lastLesson(): { unitId: string; n: number } | null { return read('arabic.last', null); }
-  set lastLesson(v: { unitId: string; n: number } | null) { write('arabic.last', v); }
+  // Per user, so two learners sharing a browser don't resume each other's lesson.
+  private get lastKey() { return `arabic.last.${this.auth.user()?.id ?? ''}`; }
+  get lastLesson(): { unitId: string; n: number } | null { return read(this.lastKey, null); }
+  set lastLesson(v: { unitId: string; n: number } | null) { write(this.lastKey, v); }
 }

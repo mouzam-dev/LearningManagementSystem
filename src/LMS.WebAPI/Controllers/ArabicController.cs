@@ -6,20 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace LMS.WebAPI.Controllers;
 
 /// <summary>
-/// "Learn Arabic" course (Al-Arabiyyah Bayna Yadayk, text only). Reading is public like the
-/// Qur'an / Hadith readers; saving quiz progress needs a signed-in user.
+/// "Learn Arabic" course (Al-Arabiyyah Bayna Yadayk, text only). Signed-in users only, so each
+/// learner's progress is tracked on their account.
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/arabic")]
 public class ArabicController(IMediator mediator) : ControllerBase
 {
     [HttpGet("books")]
-    [AllowAnonymous]
     public async Task<ActionResult<IReadOnlyList<ArabicBookDto>>> GetBooks(CancellationToken ct)
         => Ok(await mediator.Send(new GetArabicBooksQuery(), ct));
 
     [HttpGet("units/{unitId}")]
-    [AllowAnonymous]
     public async Task<ActionResult<ArabicUnitDto>> GetUnit(string unitId, CancellationToken ct)
     {
         try { return Ok(await mediator.Send(new GetArabicUnitQuery(unitId), ct)); }
@@ -27,18 +26,15 @@ public class ArabicController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("words")]
-    [AllowAnonymous]
     public async Task<ActionResult<IReadOnlyList<ArabicWordCardDto>>> GetWords(
         [FromQuery] int book = 1, [FromQuery] string? unitId = null, CancellationToken ct = default)
         => Ok(await mediator.Send(new GetArabicWordsQuery(book, unitId), ct));
 
     [HttpGet("progress")]
-    [Authorize]
     public async Task<ActionResult<IReadOnlyList<ArabicProgressDto>>> GetProgress(CancellationToken ct)
         => Ok(await mediator.Send(new GetMyArabicProgressQuery(), ct));
 
     [HttpPost("progress")]
-    [Authorize]
     public async Task<ActionResult<ArabicProgressDto>> SaveProgress(SaveArabicProgressCommand command, CancellationToken ct)
     {
         try { return Ok(await mediator.Send(command, ct)); }

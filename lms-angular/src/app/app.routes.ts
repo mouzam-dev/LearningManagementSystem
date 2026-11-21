@@ -51,9 +51,10 @@ export const routes: Routes = [
     path: 'hadith',
     loadComponent: () => import('./hadith/student-hadith').then((m) => m.StudentHadithPage),
   },
-  // Learn Arabic course (public to read; progress saved when signed in).
+  // Learn Arabic course: signed-in users only, so every learner's progress is tracked on their account.
   {
     path: 'arabic',
+    canActivate: [authGuard],
     children: [
       { path: '', loadComponent: () => import('./arabic/arabic-home').then((m) => m.ArabicHomePage) },
       { path: 'book/:n', loadComponent: () => import('./arabic/arabic-book').then((m) => m.ArabicBookPage) },

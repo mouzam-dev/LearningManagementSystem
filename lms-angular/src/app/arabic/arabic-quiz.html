@@ -24,9 +24,6 @@
       </h1>
       <p class="mt-1 text-sm text-muted">{{ right() }} of {{ questions().length }} correct · {{ pct() }}%</p>
       <div class="mt-3 flex justify-center [&_svg]:h-7 [&_svg]:w-7"><app-arabic-stars [pct]="pct()" /></div>
-      @if (!svc.isAuthenticated) {
-        <p class="mt-3 text-xs text-muted"><a routerLink="/login" class="font-semibold text-primary-600">Sign in</a> to save scores to your account.</p>
-      }
       <div class="mt-6 flex flex-wrap justify-center gap-2">
         <button type="button" (click)="retry()" class="rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong">Try again</button>
         @if (isTest()) {
