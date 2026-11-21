@@ -78,6 +78,9 @@ namespace LMS.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Audio")
+                        .HasColumnType("text");
+
                     b.Property<string>("En")
                         .IsRequired()
                         .HasColumnType("text");
@@ -283,6 +286,9 @@ namespace LMS.Infrastructure.Migrations
 
                     b.Property<string>("Ar")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Audio")
                         .HasColumnType("text");
 
                     b.Property<string>("En")

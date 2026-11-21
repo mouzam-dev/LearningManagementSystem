@@ -1,21 +1,28 @@
+using System.Text.Json.Serialization;
+
 namespace LMS.Application.Arabic;
 
-public record ArabicUnitSummaryDto(string Id, int UnitNumber, string TitleAr, string TitleEn, string TitleUr, int LessonCount);
-public record ArabicBookDto(int Number, IReadOnlyList<ArabicUnitSummaryDto> Units);
+// The catalog DTOs mirror the learn-app's data format (window.CATALOG), so the embedded app at
+// /learn-arabic/ reads them unchanged: books -> units -> lessons -> dialogue / vocab / quiz.
 
-public record ArabicLineDto(string Speaker, string Ar, string Tr, string En, string Ur, string? Source);
-public record ArabicWordDto(string Ar, string Tr, string En, string Ur);
-public record ArabicQuizDto(string QuestionAr, string QuestionEn, string QuestionUr,
-    IReadOnlyList<string> Options, IReadOnlyList<string>? OptionsAr, int AnswerIndex);
+public record ArabicTextDto(string Ar, string En, string Ur);
 
-public record ArabicLessonDto(int Number, string TitleAr, string TitleEn, string TitleUr,
-    string IntroAr, string IntroEn, string IntroUr,
-    IReadOnlyList<ArabicLineDto> Dialogue, IReadOnlyList<ArabicWordDto> Vocab, IReadOnlyList<ArabicQuizDto> Quiz);
+/// <summary>A dialogue line. Src: "quran" | "hadith" | "poem" for exact quotations; Au: audio clip file name.</summary>
+public record ArabicCatalogLineDto(string Who, string Ar, string Tr, string En, string Ur, string? Src, string? Au);
 
-public record ArabicUnitDto(string Id, int BookNumber, int UnitNumber, string TitleAr, string TitleEn, string TitleUr,
-    IReadOnlyList<ArabicLessonDto> Lessons);
+public record ArabicCatalogWordDto(string Ar, string Tr, string En, string Ur, string? Au);
 
-/// <summary>A vocabulary word with where it was taught, for the word-cards page.</summary>
-public record ArabicWordCardDto(string Ar, string Tr, string En, string Ur, string UnitId, int UnitNumber, int LessonNumber);
+public record ArabicCatalogQuizDto(
+    ArabicTextDto Q,
+    IReadOnlyList<string> Options,
+    [property: JsonPropertyName("options_ar")] IReadOnlyList<string>? OptionsAr,
+    int Answer);
+
+public record ArabicCatalogLessonDto(int N, ArabicTextDto Title, ArabicTextDto Intro,
+    IReadOnlyList<ArabicCatalogLineDto> Dialogue, IReadOnlyList<ArabicCatalogWordDto> Vocab, IReadOnlyList<ArabicCatalogQuizDto> Quiz);
+
+public record ArabicCatalogUnitDto(string Id, int Book, int Unit, ArabicTextDto Title, IReadOnlyList<ArabicCatalogLessonDto> Lessons);
+
+public record ArabicCatalogBookDto(int N, IReadOnlyList<ArabicCatalogUnitDto> Units);
 
 public record ArabicProgressDto(string UnitId, int LessonNumber, int BestScore, int Attempts, DateTime UpdatedAt);

@@ -30,8 +30,13 @@ public static class ArabicContentSeeder
             return;
         }
 
+        // Audio clip names per unit / lesson: "v" = vocab, "d" = dialogue, in item order.
+        var audioFile = Path.Combine(dir, "..", "arabic-audio.json");
+        var audio = File.Exists(audioFile)
+            ? JsonSerializer.Deserialize<AudioMap>(File.ReadAllText(audioFile), Json)!
+            : new AudioMap();
         var units = Directory.GetFiles(dir, "*.json").OrderBy(f => f, StringComparer.Ordinal)
-            .Select(f => ToEntity(JsonSerializer.Deserialize<UnitJson>(File.ReadAllText(f), Json)!, logger))
+            .Select(f => ToEntity(JsonSerializer.Deserialize<UnitJson>(File.ReadAllText(f), Json)!, logger, audio))
             .ToList();
         var known = existing.ToDictionary(u => u.Id, u => u.HasLessons);
 
@@ -56,7 +61,7 @@ public static class ArabicContentSeeder
         logger.LogInformation("ArabicContentSeeder: imported {Units} units.", imported);
     }
 
-    public static ArabicUnit ToEntity(UnitJson u, ILogger logger) => new()
+    public static ArabicUnit ToEntity(UnitJson u, ILogger logger, AudioMap? audio = null) => new()
     {
         Id = u.Id,
         BookNumber = u.Book,
@@ -76,10 +81,12 @@ public static class ArabicContentSeeder
             DialogueLines = (l.Dialogue ?? []).Select((d, i) => new ArabicDialogueLine
             {
                 Order = i, Speaker = d.Who ?? "", Ar = d.Ar ?? "", Tr = d.Tr ?? "", En = d.En ?? "", Ur = d.Ur ?? "", Source = d.Src,
+                Audio = Clip(audio, u.Id, l.N, "d", i),
             }).ToList(),
             VocabItems = (l.Vocab ?? []).Select((v, i) => new ArabicVocabItem
             {
                 Order = i, Ar = v.Ar ?? "", Tr = v.Tr ?? "", En = v.En ?? "", Ur = v.Ur ?? "",
+                Audio = Clip(audio, u.Id, l.N, "v", i),
             }).ToList(),
             QuizQuestions = (l.Quiz ?? [])
                 .Where(q =>
@@ -103,6 +110,13 @@ public static class ArabicContentSeeder
                 }).ToList(),
         }).ToList(),
     };
+
+    private static string? Clip(AudioMap? audio, string unitId, int lesson, string kind, int i) =>
+        audio is not null && audio.TryGetValue(unitId, out var lessons) && lessons.TryGetValue(lesson.ToString(), out var kinds)
+        && kinds.TryGetValue(kind, out var files) && i < files.Count ? files[i] : null;
+
+    /// <summary>unit id -> lesson number -> "v"/"d" -> clip file names in item order.</summary>
+    public class AudioMap : Dictionary<string, Dictionary<string, Dictionary<string, List<string>>>> { }
 
     // Shapes of the source JSON files.
     public record Text(string? Ar, string? En, string? Ur);

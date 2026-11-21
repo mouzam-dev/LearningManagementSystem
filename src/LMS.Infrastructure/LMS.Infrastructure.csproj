@@ -14,6 +14,7 @@
   <!-- Arabic course content, read by ArabicContentSeeder at startup. -->
   <ItemGroup>
     <None Update="Persistence\Seeding\Data\arabic\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Persistence\Seeding\Data\arabic-audio.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

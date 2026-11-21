@@ -93,6 +93,8 @@ public class ArabicTests
         unit.TitleEn.Should().NotBe("old title");
         unit.Lessons.Should().NotBeEmpty();
         db.ArabicDialogueLines.Should().Contain(d => d.Source == "quran");
+        db.ArabicDialogueLines.Should().OnlyContain(d => d.Audio != null && d.Audio.EndsWith(".mp3"));
+        db.ArabicVocabItems.Should().OnlyContain(v => v.Audio != null);
         db.ArabicProgress.Single().BestScore.Should().Be(80);
 
         var lessons = db.ArabicLessons.Count();

@@ -10,6 +10,8 @@ public class ArabicVocabItem
     public string Tr { get; set; } = string.Empty;
     public string En { get; set; } = string.Empty;
     public string Ur { get; set; } = string.Empty;
+    /// <summary>Audio clip file name (served from /learn-arabic/audio/); null when there is none.</summary>
+    public string? Audio { get; set; }
 
     public ArabicLesson Lesson { get; set; } = null!;
 }

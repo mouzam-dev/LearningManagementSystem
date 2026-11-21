@@ -13,6 +13,8 @@ public class ArabicDialogueLine
     public string Ur { get; set; } = string.Empty;
     /// <summary>"quran", "hadith" or "poem" when the line quotes one exactly; null for ordinary dialogue.</summary>
     public string? Source { get; set; }
+    /// <summary>Audio clip file name (served from /learn-arabic/audio/); null when there is none.</summary>
+    public string? Audio { get; set; }
 
     public ArabicLesson Lesson { get; set; } = null!;
 }

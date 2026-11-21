@@ -170,6 +170,15 @@ builder.Services.AddSwaggerGen(c =>
     c.CustomSchemaIds(type => type.FullName);
 });
 
+// Gzip/Brotli for the ~4 MB Learn Arabic catalog only (see UseWhen below): it is fixed course
+// text, so compressing it carries none of the BREACH risk of compressing token-bearing responses.
+builder.Services.AddResponseCompression();
+// Default levels are "Fastest" (3.9 MB -> 1.7 MB); "Optimal" gets the catalog well under 1 MB.
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(
+    o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(
+    o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
+
 var app = builder.Build();
 
 // ---------------------------------------------------------------------------
@@ -241,6 +250,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+
+app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/api/arabic/catalog"), branch => branch.UseResponseCompression());
 
 // Serve uploaded files (lesson documents) from wwwroot as static content.
 app.UseStaticFiles();

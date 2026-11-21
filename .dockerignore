@@ -39,3 +39,6 @@ docker-compose*.yml
 *.swp
 README*.md
 LICENSE*
+
+# Local source material (learn-app originals, reports): never part of the build
+Integration/
