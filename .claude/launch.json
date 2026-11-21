@@ -15,9 +15,9 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": [
         "/c",
-        "dotnet run --project src/LMS.WebAPI --urls http://localhost:5117"
+        "dotnet run --project src/LMS.WebAPI --urls http://localhost:5116"
       ],
-      "port": 5117
+      "port": 5116
     }
   ]
 }

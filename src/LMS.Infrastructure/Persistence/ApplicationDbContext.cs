@@ -39,6 +39,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<LiveSession> LiveSessions => Set<LiveSession>();
     public DbSet<Hadith> Hadiths => Set<Hadith>();
     public DbSet<HadithCollection> HadithCollections => Set<HadithCollection>();
+    public DbSet<ArabicUnit> ArabicUnits => Set<ArabicUnit>();
+    public DbSet<ArabicLesson> ArabicLessons => Set<ArabicLesson>();
+    public DbSet<ArabicDialogueLine> ArabicDialogueLines => Set<ArabicDialogueLine>();
+    public DbSet<ArabicVocabItem> ArabicVocabItems => Set<ArabicVocabItem>();
+    public DbSet<ArabicQuizQuestion> ArabicQuizQuestions => Set<ArabicQuizQuestion>();
+    public DbSet<ArabicProgress> ArabicProgress => Set<ArabicProgress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

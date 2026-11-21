@@ -159,3 +159,6 @@ src/LMS.WebAPI/wwwroot/docs/
 # =============================================================================
 deploy/*.zip
 deploy/sample-certificate.pdf
+
+# Source decks for the Learn Arabic content (2.5 GB, not app code)
+Integration/

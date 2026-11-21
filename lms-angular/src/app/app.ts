@@ -34,6 +34,7 @@ const STUDENT_NAV: NavEntry[] = [
     label: 'Deen', key: 's-deen', children: [
       { label: "Qur'an", link: '/student/quran' },
       { label: 'Hadith', link: '/student/hadith' },
+      { label: 'Learn Arabic', link: '/arabic' },
     ],
   },
 ];
@@ -58,6 +59,7 @@ const TEACHER_NAV: NavEntry[] = [
     label: 'Deen', key: 't-deen', children: [
       { label: "Qur'an", link: '/teacher/quran' },
       { label: 'Hadith', link: '/teacher/hadith' },
+      { label: 'Learn Arabic', link: '/arabic' },
     ],
   },
 ];

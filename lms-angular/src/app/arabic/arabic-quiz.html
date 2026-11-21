@@ -1,0 +1,83 @@
+<section class="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+  @if (unit() === undefined) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">Loading quiz…</div>
+  } @else if (!questions().length) {
+    <div class="rounded-2xl border border-line bg-surface p-8 text-center">
+      <h1 class="text-xl font-bold text-ink">No questions yet</h1>
+      <a [routerLink]="backLink()" class="mt-4 inline-block rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">Back</a>
+    </div>
+  } @else if (finished()) {
+    <!-- Result -->
+    <div class="rounded-2xl border border-line bg-surface p-8 text-center">
+      <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+        [class]="pct() >= 60 ? 'bg-primary-100 text-primary-700' : 'bg-surface-2 text-muted'">
+        <svg viewBox="0 0 24 24" class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          @if (pct() >= 60) {
+            <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>
+          } @else {
+            <path d="M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5"/>
+          }
+        </svg>
+      </span>
+      <h1 class="mt-4 text-2xl font-bold text-ink">
+        {{ pct() >= 90 ? 'MashaAllah! Perfect!' : pct() >= 60 ? 'Shabash! Well done!' : 'Good try! Keep going' }}
+      </h1>
+      <p class="mt-1 text-sm text-muted">{{ right() }} of {{ questions().length }} correct · {{ pct() }}%</p>
+      <div class="mt-3 flex justify-center [&_svg]:h-7 [&_svg]:w-7"><app-arabic-stars [pct]="pct()" /></div>
+      @if (!svc.isAuthenticated) {
+        <p class="mt-3 text-xs text-muted"><a routerLink="/login" class="font-semibold text-primary-600">Sign in</a> to save scores to your account.</p>
+      }
+      <div class="mt-6 flex flex-wrap justify-center gap-2">
+        <button type="button" (click)="retry()" class="rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong">Try again</button>
+        @if (isTest()) {
+          <a [routerLink]="['/arabic/unit', unitId()]" class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">Back to unit</a>
+        } @else if (nextLesson(); as nx) {
+          <a [routerLink]="['/arabic/lesson', unitId(), nx.number]" class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">Next lesson →</a>
+        } @else {
+          <a [routerLink]="['/arabic/quiz', unitId(), 'test']" class="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-700">Unit test</a>
+        }
+      </div>
+    </div>
+  } @else {
+    @let q = current()!;
+    <!-- Progress -->
+    <div class="mb-4 flex items-center gap-3">
+      <a [routerLink]="backLink()" aria-label="Leave quiz"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line text-muted hover:border-line-strong hover:text-ink">✕</a>
+      <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-2" role="progressbar" [attr.aria-valuenow]="i()" [attr.aria-valuemax]="questions().length">
+        <i class="block h-full rounded-full bg-primary-500 transition-all" [style.width.%]="(i() / questions().length) * 100"></i>
+      </div>
+      <span class="rounded-full bg-primary-50 px-2.5 py-1 text-xs font-bold text-primary-700">{{ i() + 1 }}/{{ questions().length }}</span>
+    </div>
+
+    <!-- Question -->
+    <div class="rounded-2xl border border-line bg-surface p-6">
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">
+        {{ isTest() ? 'Unit test' : 'Lesson ' + n() + ' quiz' }} · Question {{ i() + 1 }}
+      </p>
+      <p class="mt-2 text-lg font-semibold text-ink">{{ questionText(q) }}</p>
+      @if (svc.lang() === 'both') { <p class="mt-1 text-sm text-muted">{{ q.questionUr }}</p> }
+
+      <div class="mt-5 grid gap-2">
+        @for (k of order(); track k; let j = $index) {
+          <button type="button" (click)="pick(k)" [disabled]="picked() !== null"
+            class="flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition"
+            [class]="picked() === null ? 'border-line bg-surface hover:border-primary-300 hover:bg-primary-50'
+              : k === q.answerIndex ? 'border-accent-500 bg-accent-50 dark:bg-accent-900/30'
+              : k === picked() ? 'border-rose-400 bg-rose-50 dark:bg-rose-900/20' : 'border-line bg-surface opacity-60'">
+            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs font-bold text-muted">{{ j + 1 }}</span>
+            <span [attr.dir]="hasArabic(q.options[k]) ? 'rtl' : null"
+              [class]="hasArabic(q.options[k]) ? 'flex-1 font-ar text-xl text-ink' : 'flex-1 text-ink'">{{ q.options[k] }}</span>
+          </button>
+        }
+      </div>
+
+      <p class="mt-4 min-h-6 text-sm font-semibold" aria-live="polite"
+        [class]="picked() === q.answerIndex ? 'text-accent-700 dark:text-accent-300' : 'text-rose-600'">
+        @if (picked() !== null) {
+          {{ picked() === q.answerIndex ? 'Correct! Bilkul sahi!' : 'Not quite. The green answer is right.' }}
+        }
+      </p>
+    </div>
+  }
+</section>

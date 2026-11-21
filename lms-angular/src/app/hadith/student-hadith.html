@@ -66,7 +66,7 @@
               <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-primary-600">{{ h.bookNameEn }}@if (h.chapterEn) { <span> · {{ h.chapterEn }}</span> }</div>
             }
             <div class="grid gap-5 lg:grid-cols-2">
-              <div class="hadith-en order-2 text-[15px] leading-relaxed text-ink lg:order-1 lg:border-r lg:border-line lg:pr-5" [innerHTML]="h.bodyEn"></div>
+              <div class="hadith-en order-2 text-[15px] leading-relaxed text-ink lg:order-1 lg:border-r lg:border-line lg:pr-5" [innerHTML]="h.bodyEn || '<em>English translation not available for this hadith.</em>'"></div>
               <div class="hadith-ar order-1 text-xl text-ink lg:order-2" dir="rtl" lang="ar" style="line-height: 2.1;" [style.fontFamily]="amiri" [innerHTML]="h.bodyAr"></div>
             </div>
           </article>
@@ -163,7 +163,7 @@
                 <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-primary-600">{{ h.chapterEn }}</div>
               }
               <div class="grid gap-5 lg:grid-cols-2">
-                <div class="hadith-en order-2 text-[15px] leading-relaxed text-ink lg:order-1 lg:border-r lg:border-line lg:pr-5" [innerHTML]="h.bodyEn"></div>
+                <div class="hadith-en order-2 text-[15px] leading-relaxed text-ink lg:order-1 lg:border-r lg:border-line lg:pr-5" [innerHTML]="h.bodyEn || '<em>English translation not available for this hadith.</em>'"></div>
                 @if (h.bodyAr) {
                   <div class="hadith-ar order-1 text-xl text-ink lg:order-2" dir="rtl" lang="ar"
                        style="line-height: 2.1;" [style.fontFamily]="amiri" [innerHTML]="h.bodyAr"></div>

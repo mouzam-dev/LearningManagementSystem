@@ -51,6 +51,18 @@ export const routes: Routes = [
     path: 'hadith',
     loadComponent: () => import('./hadith/student-hadith').then((m) => m.StudentHadithPage),
   },
+  // Learn Arabic course (public to read; progress saved when signed in).
+  {
+    path: 'arabic',
+    children: [
+      { path: '', loadComponent: () => import('./arabic/arabic-home').then((m) => m.ArabicHomePage) },
+      { path: 'book/:n', loadComponent: () => import('./arabic/arabic-book').then((m) => m.ArabicBookPage) },
+      { path: 'unit/:unitId', loadComponent: () => import('./arabic/arabic-unit').then((m) => m.ArabicUnitPage) },
+      { path: 'lesson/:unitId/:n', loadComponent: () => import('./arabic/arabic-lesson').then((m) => m.ArabicLessonPage) },
+      { path: 'quiz/:unitId/:n', loadComponent: () => import('./arabic/arabic-quiz').then((m) => m.ArabicQuizPage) },
+      { path: 'words', loadComponent: () => import('./arabic/arabic-words').then((m) => m.ArabicWordsPage) },
+    ],
+  },
   {
     path: 'student',
     canActivate: [authGuard],

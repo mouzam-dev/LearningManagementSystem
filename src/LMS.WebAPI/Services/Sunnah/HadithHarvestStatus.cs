@@ -37,6 +37,7 @@ public class HadithHarvestStatus
         }
     }
 
+    public void SetTotal(int total) { lock (_lock) { TotalCollections = total; } }
     public void SetCurrent(string slug) { lock (_lock) { CurrentCollection = slug; } }
     public void AddWritten(int n) { lock (_lock) { HadithsWritten += n; } }
     public void CompleteCollection() { lock (_lock) { CollectionsDone++; } }

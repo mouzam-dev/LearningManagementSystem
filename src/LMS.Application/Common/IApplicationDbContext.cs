@@ -39,6 +39,12 @@ public interface IApplicationDbContext
     DbSet<LiveSession> LiveSessions { get; }
     DbSet<Hadith> Hadiths { get; }
     DbSet<HadithCollection> HadithCollections { get; }
+    DbSet<ArabicUnit> ArabicUnits { get; }
+    DbSet<ArabicLesson> ArabicLessons { get; }
+    DbSet<ArabicDialogueLine> ArabicDialogueLines { get; }
+    DbSet<ArabicVocabItem> ArabicVocabItems { get; }
+    DbSet<ArabicQuizQuestion> ArabicQuizQuestions { get; }
+    DbSet<ArabicProgress> ArabicProgress { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

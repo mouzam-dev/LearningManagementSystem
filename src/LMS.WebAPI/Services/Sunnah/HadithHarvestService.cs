@@ -24,17 +24,7 @@ public class HadithHarvestService
     // Be gentle with Sunnah.com's rate limiter (it returns 502 under bursts).
     private static readonly TimeSpan MinInterval = TimeSpan.FromMilliseconds(450);
 
-    /// <summary>Collections to harvest, in display order. "fawaz" = Muwatta Malik only.</summary>
-    private static readonly (string Slug, string Source, int Order)[] Scope =
-    {
-        ("bukhari", "sunnah", 1), ("muslim", "sunnah", 2), ("nasai", "sunnah", 3),
-        ("abudawud", "sunnah", 4), ("tirmidhi", "sunnah", 5), ("ibnmajah", "sunnah", 6),
-        ("malik", "fawaz", 7), ("riyadussalihin", "sunnah", 8), ("adab", "sunnah", 9),
-        ("shamail", "sunnah", 10), ("bulugh", "sunnah", 11), ("mishkat", "sunnah", 12),
-        ("hisn", "sunnah", 13), ("ahmad", "sunnah", 14), ("virtues", "sunnah", 15),
-    };
-
-    private Dictionary<string, (string TitleEn, string TitleAr, string? Intro)>? _colMeta;
+    private Dictionary<string, (string TitleEn, string TitleAr, string? Intro)> _colMeta = new();
 
     public HadithHarvestService(
         IServiceScopeFactory scopeFactory,
@@ -52,6 +42,7 @@ public class HadithHarvestService
 
     private HttpClient Sunnah => _httpFactory.CreateClient("sunnah");
     private HttpClient Fawaz => _httpFactory.CreateClient("fawaz");
+    private HttpClient HadithJson => _httpFactory.CreateClient("hadithjson");
 
     /// <summary>Launches the harvest in the background. Returns false if one is already running.</summary>
     public bool Start()
@@ -63,37 +54,61 @@ public class HadithHarvestService
 
     public async Task RunAsync(CancellationToken ct)
     {
-        if (!_status.TryBegin(Scope.Length)) return; // already running
-        _logger.LogInformation("Hadith harvest started ({Count} collections)", Scope.Length);
+        if (!_status.TryBegin(0)) return; // already running
         try
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             db.ChangeTracker.AutoDetectChangesEnabled = false;
-            _colMeta = null;
 
-            foreach (var (slug, source, order) in Scope)
+            // Scope = whatever Sunnah.com currently offers, in its order, so new books arrive without a code change.
+            // Malik is kept even at 0: Sunnah.com lists it without books, so it falls back to fawazahmed0 below.
+            var list = await GetAsync<RawPage<RawCollection>>(Sunnah, "collections?limit=100", ct);
+            if (list?.Data is not { Count: > 0 })
+                throw new InvalidOperationException("Could not load the collection list from Sunnah.com; existing data kept.");
+            _colMeta = list.Data.ToDictionary(
+                c => c.Name,
+                c => (Lang(c.Collection, "en")?.Title ?? Humanize(c.Name),
+                      Lang(c.Collection, "ar")?.Title ?? string.Empty,
+                      Lang(c.Collection, "en")?.ShortIntro));
+            var served = list.Data.Where(c => c.TotalAvailableHadith > 0 || c.Name == "malik").Select(c => c.Name).ToHashSet();
+            var slugs = list.Data.Select(c => c.Name).Where(s => served.Contains(s) || FillBooks.ContainsKey(s))
+                .Union(FillBooks.Keys).ToList();
+            _status.SetTotal(slugs.Count);
+            _logger.LogInformation("Hadith harvest started ({Count} collections)", slugs.Count);
+
+            var failed = new List<string>();
+            for (var i = 0; i < slugs.Count; i++)
             {
                 ct.ThrowIfCancellationRequested();
+                var slug = slugs[i];
                 _status.SetCurrent(slug);
-                var written = source == "fawaz"
-                    ? await HarvestMalikAsync(order, db, ct)
-                    : await HarvestSunnahAsync(slug, order, db, ct);
-                _status.AddWritten(written);
+                try
+                {
+                    var written = served.Contains(slug) ? await HarvestSunnahAsync(slug, i + 1, db, ct) : 0;
+                    if (written == 0 && slug == "malik") written = await HarvestMalikAsync(i + 1, db, ct);
+                    if (FillBooks.TryGetValue(slug, out var path)) written += await FillFromHadithJsonAsync(slug, path, i + 1, written, db, ct);
+                    _status.AddWritten(written);
+                    _logger.LogInformation("Harvested {Slug}: {Written} hadith", slug, written);
+                }
+                catch (HttpRequestException ex)
+                {
+                    // A failed download must not wipe the collection: keep its previous rows and move on.
+                    failed.Add(slug);
+                    _logger.LogWarning(ex, "Hadith harvest skipped {Slug}; previous data kept", slug);
+                }
                 _status.CompleteCollection();
-                _logger.LogInformation("Harvested {Slug}: {Written} hadith", slug, written);
             }
 
-            // Prune anything not in scope (e.g. the old dump's leftover collections).
-            var keep = Scope.Select(s => s.Slug).ToArray();
-            await db.Hadiths.Where(h => !keep.Contains(h.Collection)).ExecuteDeleteAsync(ct);
-            await db.HadithCollections.Where(c => !keep.Contains(c.Slug)).ExecuteDeleteAsync(ct);
+            // Prune collections Sunnah.com no longer offers (e.g. the old dump's leftovers).
+            await db.Hadiths.Where(h => !slugs.Contains(h.Collection)).ExecuteDeleteAsync(ct);
+            await db.HadithCollections.Where(c => !slugs.Contains(c.Slug)).ExecuteDeleteAsync(ct);
 
             // Drop the read caches so the reader reflects the refresh immediately.
             _cache.Remove(SunnahCacheKeys.Collections);
-            foreach (var (slug, _, _) in Scope) _cache.Remove(SunnahCacheKeys.Books(slug));
+            foreach (var slug in slugs) _cache.Remove(SunnahCacheKeys.Books(slug));
 
-            _status.Finish(null);
+            _status.Finish(failed.Count == 0 ? null : $"Download failed for {string.Join(", ", failed)}; their previous data was kept.");
             _logger.LogInformation("Hadith harvest completed: {Total} hadith", _status.HadithsWritten);
         }
         catch (Exception ex)
@@ -107,23 +122,40 @@ public class HadithHarvestService
 
     private async Task<int> HarvestSunnahAsync(string slug, int order, ApplicationDbContext db, CancellationToken ct)
     {
-        var meta = await CollectionMetaAsync(slug, ct);
-        var booksPage = await GetAsync<RawPage<RawBook>>(Sunnah, $"collections/{slug}/books?limit=300", ct);
-        var books = (booksPage?.Data ?? new()).Where(b => b.NumberOfHadith > 0).ToList();
+        var meta = _colMeta.TryGetValue(slug, out var m) ? m : (Humanize(slug), string.Empty, null);
+        var booksPage = await GetAsync<RawPage<RawBook>>(Sunnah, $"collections/{slug}/books?limit=300", ct)
+            ?? throw new HttpRequestException($"Book list for {slug} could not be downloaded.");
+        var books = booksPage.Data.Where(b => b.NumberOfHadith > 0).ToList();
 
+        const int pageSize = 100;
         var rows = new List<Hadith>();
         var seq = 0;
+        var skipped = 0;
         foreach (var b in books)
         {
             var bookEn = Lang(b.Book, "en")?.Name ?? $"Book {b.BookNumber}";
             var bookAr = Lang(b.Book, "ar")?.Name ?? string.Empty;
-            var page = 1;
-            while (true)
+            var url = $"collections/{slug}/books/{b.BookNumber}/hadiths";
+            for (var page = 1; ; page++)
             {
-                var p = await GetAsync<RawPage<RawHadith>>(
-                    Sunnah, $"collections/{slug}/books/{b.BookNumber}/hadiths?page={page}&limit=100", ct);
-                if (p?.Data is null || p.Data.Count == 0) break;
-                foreach (var h in p.Data)
+                var p = await GetAsync<RawPage<RawHadith>>(Sunnah, $"{url}?page={page}&limit={pageSize}", ct)
+                    ?? throw new HttpRequestException($"{slug} book {b.BookNumber} page {page} could not be downloaded.");
+                var got = p.Data;
+                if (p.Error is not null)
+                {
+                    // Sunnah.com answers 200 + {"error":…} for any page holding a broken record.
+                    // Re-fetch that page one hadith at a time so only the broken records are lost.
+                    got = new List<RawHadith>();
+                    var last = Math.Min(page * pageSize, b.NumberOfHadith);
+                    for (var i = (page - 1) * pageSize + 1; i <= last; i++)
+                    {
+                        var one = await GetAsync<RawPage<RawHadith>>(Sunnah, $"{url}?page={i}&limit=1", ct)
+                            ?? throw new HttpRequestException($"{slug} book {b.BookNumber} hadith {i} could not be downloaded.");
+                        if (one.Error is null && one.Data.Count > 0) got.AddRange(one.Data);
+                        else skipped++;
+                    }
+                }
+                foreach (var h in got)
                 {
                     var en = Lang(h.Hadith, "en");
                     var ar = Lang(h.Hadith, "ar");
@@ -144,37 +176,28 @@ public class HadithHarvestService
                         GradeCategory = GradeBucket.Of(grade),
                     });
                 }
-                if (p.Next is null) break;
-                page++;
+                // The error body carries no paging info, so stop by the book's declared size instead.
+                if (p.Error is not null ? page * pageSize >= b.NumberOfHadith : p.Next is null || p.Data.Count == 0) break;
             }
         }
 
+        if (skipped > 0)
+            _logger.LogWarning("{Slug}: {Skipped} hadith skipped (Sunnah.com returned an error for them)", slug, skipped);
+        if (rows.Count == 0) return 0; // nothing published (yet): leave any existing rows alone
         await ReplaceCollectionAsync(db, slug, rows, ct);
-        await UpsertCollectionAsync(db, slug, meta.TitleEn, meta.TitleAr, meta.Intro, order, "sunnah", rows.Count, ct);
+        await UpsertCollectionAsync(db, slug, meta.Item1, meta.Item2, meta.Item3, order, "sunnah", rows.Count, ct);
         return rows.Count;
-    }
-
-    private async Task<(string TitleEn, string TitleAr, string? Intro)> CollectionMetaAsync(string slug, CancellationToken ct)
-    {
-        if (_colMeta is null)
-        {
-            var p = await GetAsync<RawPage<RawCollection>>(Sunnah, "collections?limit=100", ct);
-            _colMeta = (p?.Data ?? new()).ToDictionary(
-                c => c.Name,
-                c => (Lang(c.Collection, "en")?.Title ?? c.Name,
-                      Lang(c.Collection, "ar")?.Title ?? string.Empty,
-                      Lang(c.Collection, "en")?.ShortIntro));
-        }
-        return _colMeta.TryGetValue(slug, out var v) ? v : (Humanize(slug), string.Empty, null);
     }
 
     // ---- fawazahmed0 (Muwatta Malik) ----
 
     private async Task<int> HarvestMalikAsync(int order, ApplicationDbContext db, CancellationToken ct)
     {
-        var en = await GetAsync<FawazEdition>(Fawaz, "editions/eng-malik.json", ct);
-        var ar = await GetAsync<FawazEdition>(Fawaz, "editions/ara-malik.json", ct);
-        if (en?.Hadiths is null || en.Hadiths.Count == 0) return 0;
+        var en = await GetAsync<FawazEdition>(Fawaz, "editions/eng-malik.json", ct)
+            ?? throw new HttpRequestException("Muwatta Malik (English) could not be downloaded.");
+        var ar = await GetAsync<FawazEdition>(Fawaz, "editions/ara-malik.json", ct)
+            ?? throw new HttpRequestException("Muwatta Malik (Arabic) could not be downloaded.");
+        if (en.Hadiths.Count == 0) return 0;
 
         var arMap = (ar?.Hadiths ?? new()).ToDictionary(h => h.HadithNumber, h => h);
         var sectionsEn = en.Metadata?.Sections ?? new();
@@ -207,11 +230,83 @@ public class HadithHarvestService
         return rows.Count;
     }
 
+    // ---- AhmedBaset/hadith-json (books Sunnah.com's API doesn't serve) ----
+
+    // Only collections whose book numbers and sizes were checked to match Sunnah.com's
+    // (Mishkat/Riyad/Shama'il label books differently, so filling them would duplicate).
+    private static readonly Dictionary<string, string> FillBooks = new()
+    {
+        ["ahmad"] = "the_9_books/ahmed.json",
+        ["darimi"] = "the_9_books/darimi.json",
+        ["adab"] = "other_books/aladab_almufrad.json",
+        ["bulugh"] = "other_books/bulugh_almaram.json",
+        ["qudsi40"] = "forties/qudsi40.json",
+    };
+
+    /// <summary>
+    /// Adds the books of <paramref name="slug"/> that Sunnah.com didn't serve this run, keeping its graded rows.
+    /// When Sunnah.com served nothing, the whole collection comes from hadith-json. Returns rows added.
+    /// </summary>
+    private async Task<int> FillFromHadithJsonAsync(string slug, string path, int order, int sunnahWritten,
+        ApplicationDbContext db, CancellationToken ct)
+    {
+        var src = await GetAsync<HjBook>(HadithJson, path, ct)
+            ?? throw new HttpRequestException($"{slug} could not be downloaded from hadith-json.");
+        var chapters = src.Chapters.ToDictionary(c => Num(c.Id));
+
+        var have = new HashSet<string>();
+        var seq = 0;
+        if (sunnahWritten > 0)
+        {
+            have = (await db.Hadiths.Where(h => h.Collection == slug).Select(h => h.BookNumber).Distinct().ToListAsync(ct)).ToHashSet();
+            seq = await db.Hadiths.Where(h => h.Collection == slug).MaxAsync(h => h.OurHadithNumber, ct);
+        }
+
+        var rows = new List<Hadith>();
+        foreach (var h in src.Hadiths)
+        {
+            var book = Num(h.ChapterId);
+            if (have.Contains(book)) continue;
+            chapters.TryGetValue(book, out var ch);
+            var text = h.English?.Text?.Trim();
+            var narrator = h.English?.Narrator?.Trim();
+            if (!string.IsNullOrEmpty(narrator) && !string.IsNullOrEmpty(text) && !text.StartsWith(narrator)) text = narrator + "\n" + text;
+            rows.Add(new Hadith
+            {
+                Collection = slug,
+                BookNumber = book,
+                BookNameEn = string.IsNullOrWhiteSpace(ch?.English) ? $"Book {book}" : ch.English,
+                BookNameAr = ch?.Arabic ?? string.Empty,
+                HadithNumber = h.IdInBook.ToString(),
+                OurHadithNumber = ++seq,
+                BodyEn = SunnahMarkup.Clean(text) ?? string.Empty,
+                BodyAr = SunnahMarkup.Clean(h.Arabic) ?? string.Empty,
+            });
+        }
+        if (rows.Count == 0) return 0;
+
+        if (sunnahWritten > 0) await InsertAsync(db, rows, ct);
+        else await ReplaceCollectionAsync(db, slug, rows, ct);
+
+        var meta = _colMeta.TryGetValue(slug, out var m) && !string.IsNullOrEmpty(m.TitleAr) ? m
+            : (src.Metadata?.English?.Title ?? Humanize(slug), src.Metadata?.Arabic?.Title ?? string.Empty, null);
+        await UpsertCollectionAsync(db, slug, meta.Item1, meta.Item2, meta.Item3, order,
+            sunnahWritten > 0 ? "sunnah" : "hadithjson", sunnahWritten + rows.Count, ct);
+        return rows.Count;
+    }
+
+    private static string Num(decimal n) => n.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     // ---- persistence ----
 
     private static async Task ReplaceCollectionAsync(ApplicationDbContext db, string slug, List<Hadith> rows, CancellationToken ct)
     {
         await db.Hadiths.Where(h => h.Collection == slug).ExecuteDeleteAsync(ct);
+        await InsertAsync(db, rows, ct);
+    }
+
+    private static async Task InsertAsync(ApplicationDbContext db, List<Hadith> rows, CancellationToken ct)
+    {
         const int batch = 1000;
         for (var i = 0; i < rows.Count; i += batch)
         {
@@ -236,6 +331,7 @@ public class HadithHarvestService
         existing.SortOrder = order;
         existing.Source = source;
         existing.HadithCount = count;
+        db.ChangeTracker.DetectChanges(); // auto-detect is off for the bulk insert; without this, edits to an existing row are never saved
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
     }
@@ -281,6 +377,7 @@ public class HadithHarvestService
         public int Total { get; set; }
         public int? Next { get; set; }
         public int? Previous { get; set; }
+        public object? Error { get; set; }
     }
 
     private class RawLang
@@ -305,6 +402,7 @@ public class HadithHarvestService
         public string Name { get; set; } = string.Empty;
         public List<RawLang> Collection { get; set; } = new();
         public int TotalHadith { get; set; }
+        public int TotalAvailableHadith { get; set; }
     }
 
     private class RawBook
@@ -348,6 +446,44 @@ public class HadithHarvestService
     {
         public int? Book { get; set; }
         public int? Hadith { get; set; }
+    }
+
+    // ---- hadith-json shapes ----
+
+    private class HjBook
+    {
+        public HjMeta? Metadata { get; set; }
+        public List<HjChapter> Chapters { get; set; } = new();
+        public List<HjHadith> Hadiths { get; set; } = new();
+    }
+
+    private class HjMeta
+    {
+        public HjTitle? Arabic { get; set; }
+        public HjTitle? English { get; set; }
+    }
+
+    private class HjTitle { public string? Title { get; set; } }
+
+    private class HjChapter
+    {
+        public decimal Id { get; set; }
+        public string? Arabic { get; set; }
+        public string? English { get; set; }
+    }
+
+    private class HjHadith
+    {
+        public int IdInBook { get; set; }
+        public decimal ChapterId { get; set; }
+        public string? Arabic { get; set; }
+        public HjEnglish? English { get; set; }
+    }
+
+    private class HjEnglish
+    {
+        public string? Narrator { get; set; }
+        public string? Text { get; set; }
     }
 }
 
