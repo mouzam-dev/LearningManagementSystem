@@ -41,8 +41,8 @@ primary_region = "bom"           # Mumbai; pick the region nearest your users
     timeout = "5s"
     grace_period = "40s"
 
-# 1 GB gives headroom for boot-time migrate + seed and the hadith harvest.
-# Drop to 512mb to save cost once it's settled.
+# 512 MB is enough for the API, the boot-time migrate/seed and the hadith refresh
+# (it holds one collection in memory at a time); go back to 1gb if the logs show OOM kills.
 [[vm]]
   size = "shared-cpu-1x"
-  memory = "1gb"
+  memory = "512mb"

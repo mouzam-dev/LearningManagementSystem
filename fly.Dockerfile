@@ -18,10 +18,11 @@ COPY ["src/LMS.Domain/LMS.Domain.csproj",                 "src/LMS.Domain/"]
 COPY ["src/LMS.Application/LMS.Application.csproj",       "src/LMS.Application/"]
 COPY ["src/LMS.Infrastructure/LMS.Infrastructure.csproj", "src/LMS.Infrastructure/"]
 COPY ["src/LMS.WebAPI/LMS.WebAPI.csproj",                 "src/LMS.WebAPI/"]
-RUN dotnet restore "src/LMS.WebAPI/LMS.WebAPI.csproj"
+# linux-x64 only: skips ~60 MB of Windows/macOS/ARM native libs (QuestPDF/SkiaSharp) the server never uses.
+RUN dotnet restore "src/LMS.WebAPI/LMS.WebAPI.csproj" -r linux-x64
 COPY src/ src/
 RUN dotnet publish "src/LMS.WebAPI/LMS.WebAPI.csproj" \
-    -c Release -o /app/publish --no-restore /p:UseAppHost=false
+    -c Release -r linux-x64 --self-contained false -o /app/publish --no-restore /p:UseAppHost=false
 
 # ---- Stage 3: runtime — SPA + API in one container ----
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
