@@ -565,7 +565,7 @@ function quiz(id, n) {
     if (i === qs.length) {
       const pct = Math.round((right / qs.length) * 100);
       saveScore(key, pct);
-      const colors = ['#0e7c6b', '#f0b84a', '#e0573f', '#2f6fdb', '#7c4ddb'];
+      const colors = ['#1f6438', '#cda33f', '#469a60', '#a2761c', '#e0573f'];  // Daura-e-Ilmiyah greens and golds
       box.innerHTML = `<div class="card result">
         ${pct >= 60 ? `<div class="confetti" aria-hidden="true">${Array.from({ length: 36 }, (_, k) => `<i style="left:${Math.random() * 100}%;background:${colors[k % 5]};animation-delay:${Math.random() * .6}s"></i>`).join('')}</div>` : ''}
         <div class="medal">${ic(pct >= 60 ? 'trophy' : 'again')}</div>
