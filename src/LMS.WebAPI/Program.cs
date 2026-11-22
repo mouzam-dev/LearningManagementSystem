@@ -173,6 +173,16 @@ builder.Services.AddSwaggerGen(c =>
 // Gzip/Brotli for the ~4 MB Learn Arabic catalog only (see UseWhen below): it is fixed course
 // text, so compressing it carries none of the BREACH risk of compressing token-bearing responses.
 builder.Services.AddResponseCompression();
+
+// Anonymous visit tracking (/api/analytics/pageview): at most 60 a minute per client address,
+// so nobody can flood the PageViews table. Fly forwards the client IP (FORWARDEDHEADERS_ENABLED).
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("pageviews", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+});
 // Default levels are "Fastest" (3.9 MB -> 1.7 MB); "Optimal" gets the catalog well under 1 MB.
 builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(
     o => o.Level = System.IO.Compression.CompressionLevel.Optimal);
@@ -278,6 +288,7 @@ if (!app.Environment.IsDevelopment())
 app.UseCors(CorsPolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 

@@ -45,6 +45,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ArabicVocabItem> ArabicVocabItems => Set<ArabicVocabItem>();
     public DbSet<ArabicQuizQuestion> ArabicQuizQuestions => Set<ArabicQuizQuestion>();
     public DbSet<ArabicProgress> ArabicProgress => Set<ArabicProgress>();
+    public DbSet<PageView> PageViews => Set<PageView>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

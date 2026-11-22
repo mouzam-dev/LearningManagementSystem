@@ -294,6 +294,11 @@ export const routes: Routes = [
           import('./admin/reports/admin-reports').then((m) => m.AdminReportsPage),
       },
       {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./admin/analytics/admin-analytics').then((m) => m.AdminAnalyticsPage),
+      },
+      {
         path: 'hadith',
         loadComponent: () =>
           import('./admin/hadith/admin-hadith').then((m) => m.AdminHadithPage),

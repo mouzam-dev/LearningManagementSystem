@@ -24,6 +24,11 @@ export class AdminService {
     return this.http.get<AdminDashboard>(`${this.baseUrl}/dashboard`);
   }
 
+  /** Visits and student activity over the last `days` days (super admin). */
+  getAnalytics(days: number): Observable<AdminAnalytics> {
+    return this.http.get<AdminAnalytics>(`${environment.apiUrl}/analytics/admin`, { params: { days } });
+  }
+
   // ---- Users ------------------------------------------------------------
 
   getUsers(filter: AdminUserFilter = {}): Observable<AdminUsersPage> {
@@ -155,4 +160,21 @@ export interface BulkImportUsersResult {
   successCount: number;
   failureCount: number;
   rows: BulkImportRowResult[];
+}
+
+export interface AdminAnalytics {
+  days: number;
+  pageViews: number;
+  visitors: number;
+  signedInUsers: number;
+  daily: { day: string; views: number; visitors: number }[];
+  topPages: { path: string; views: number; visitors: number }[];
+  devices: { name: string; views: number }[];
+  roles: { name: string; views: number }[];
+  activeStudents: number;
+  lessonsCompleted: number;
+  quizSubmissions: number;
+  arabicQuizzes: number;
+  newEnrollments: number;
+  topStudents: { studentId: string; name: string; email: string; pageViews: number; lessonsCompleted: number; lastSeen: string }[];
 }

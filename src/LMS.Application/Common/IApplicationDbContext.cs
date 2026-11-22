@@ -45,6 +45,7 @@ public interface IApplicationDbContext
     DbSet<ArabicVocabItem> ArabicVocabItems { get; }
     DbSet<ArabicQuizQuestion> ArabicQuizQuestions { get; }
     DbSet<ArabicProgress> ArabicProgress { get; }
+    DbSet<PageView> PageViews { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

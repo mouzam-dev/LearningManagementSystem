@@ -5,6 +5,7 @@ import { filter } from 'rxjs/operators';
 
 import { AuthService } from './auth/auth.service';
 import { ThemeService } from './core/services/theme.service';
+import { PageViewService } from './core/services/page-view.service';
 import { NotificationService } from './notifications/notification.service';
 
 interface NavLink {
@@ -77,6 +78,7 @@ const ADMIN_NAV: NavEntry[] = [
   { label: 'Courses', key: 'a-courses', link: '/admin/courses' },
   {
     label: 'Insights', key: 'a-insights', children: [
+      { label: 'Analytics', link: '/admin/analytics' },
       { label: 'Reports', link: '/admin/reports' },
       { label: 'Audit log', link: '/admin/audit' },
       { label: 'Hadith data', link: '/admin/hadith' },
@@ -104,6 +106,7 @@ export class App implements OnDestroy {
   private readonly router = inject(Router);
   private readonly themeService = inject(ThemeService);
   private readonly notifications = inject(NotificationService);
+  private readonly pageViews = inject(PageViewService);
 
   readonly isAuthed = this.auth.isAuthenticated;
   readonly user = this.auth.user;
@@ -157,6 +160,7 @@ export class App implements OnDestroy {
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
       this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
       this.openDropdown.set(null);
+      this.pageViews.track((e as NavigationEnd).urlAfterRedirects);
     });
   }
 

@@ -32,6 +32,18 @@
   if (read('la.theme') == null && siteTheme) write('la.theme', JSON.stringify(siteTheme));
 
   window.LMS = { api: API, token, home: '/' };
+
+  // Visit tracking for the admin Analytics page: one page view per Learn Arabic screen.
+  let visitor = read('lms.visitorId');
+  if (!visitor) { visitor = crypto.randomUUID(); write('lms.visitorId', visitor); }
+  const SCREENS = { '': 'home', b: 'book', u: 'unit', l: 'lesson', q: 'quiz', words: 'words', search: 'search' };
+  const track = () => fetch(API + '/analytics/pageview', {
+    method: 'POST', keepalive: true,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ visitorId: visitor, path: '/learn-arabic/' + (SCREENS[location.hash.slice(2).split('/')[0]] || 'other') }),
+  }).catch(() => {});
+  track();
+  addEventListener('hashchange', track);
   const s = document.createElement('script');
   s.src = 'app.js?v=lms1';
   document.body.appendChild(s);

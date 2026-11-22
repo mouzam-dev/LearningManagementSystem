@@ -1,0 +1,145 @@
+<section class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+  <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Super admin · Insights</p>
+      <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-4xl">Analytics</h1>
+      <p class="mt-2 max-w-2xl text-sm text-muted">Who visits the app, which pages they use, and how students are learning. Counted by the app itself (no outside trackers, no IP addresses); super admins' own visits aren't counted.</p>
+    </div>
+    <div class="flex rounded-xl border border-line bg-surface p-1 text-sm font-semibold" role="group" aria-label="Time range">
+      @for (r of ranges; track r) {
+        <button type="button" (click)="setRange(r)" [attr.aria-pressed]="days() === r" class="rounded-lg px-3 py-1.5 transition"
+          [class]="days() === r ? 'bg-primary-600 text-white' : 'text-ink-soft hover:text-ink'">{{ r }} days</button>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-rose-700" role="alert">{{ error() }}</div>
+  } @else if (loading() && !data()) {
+    <div class="grid gap-3 sm:grid-cols-4">@for (i of [0, 1, 2, 3]; track i) { <div class="h-24 animate-pulse rounded-2xl bg-surface-3"></div> }</div>
+  } @else if (data(); as d) {
+    <!-- Traffic: headline numbers -->
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4" [class.opacity-60]="loading()">
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Visitors</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.visitors | number }}</p><p class="text-xs text-muted">different browsers</p></div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Page views</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.pageViews | number }}</p><p class="text-xs text-muted">{{ d.visitors ? (d.pageViews / d.visitors | number: '1.0-1') : 0 }} per visitor</p></div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Signed-in users</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.signedInUsers | number }}</p><p class="text-xs text-muted">used the app while logged in</p></div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Active students</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.activeStudents | number }}</p><p class="text-xs text-muted">students who opened the app</p></div>
+    </div>
+
+    <!-- Visitors per day: one series, so no legend; tooltip carries the numbers -->
+    <div class="mt-4 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+      <div class="mb-3 flex items-baseline justify-between gap-2">
+        <h2 class="text-base font-bold text-ink">Visitors per day</h2>
+        <span class="text-xs text-muted">peak {{ maxVisitors() }}</span>
+      </div>
+      <div class="relative">
+        @if (hovered(); as h) {
+          <div class="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full rounded-lg border border-line bg-surface px-3 py-1.5 text-xs shadow-md" role="status">
+            <span class="font-semibold text-ink">{{ h.day | date: 'EEE d MMM' }}</span>
+            <span class="text-ink-soft"> · {{ h.visitors }} visitors · {{ h.views }} views</span>
+          </div>
+        }
+        <div class="flex h-40 items-end gap-[2px] border-b border-line" (mouseleave)="hover.set(null)">
+          @for (day of d.daily; track day.day; let i = $index) {
+            <button type="button" class="group flex h-full flex-1 items-end justify-center focus:outline-none"
+              (mouseenter)="hover.set(i)" (focus)="hover.set(i)" (blur)="hover.set(null)"
+              [attr.aria-label]="(day.day | date: 'd MMM') + ': ' + day.visitors + ' visitors, ' + day.views + ' page views'">
+              <span class="block w-full max-w-[24px] rounded-t-[4px] bg-accent-600 transition group-hover:bg-accent-700 group-focus-visible:ring-2 group-focus-visible:ring-primary-400 dark:bg-accent-400"
+                [style.height.%]="day.visitors ? (day.visitors / maxVisitors()) * 100 : 0" [class.min-h-[2px]]="day.visitors > 0"></span>
+            </button>
+          }
+        </div>
+        <div class="mt-1 flex justify-between text-[11px] text-muted">
+          @for (a of axisDays(); track $index) { <span>{{ a.day | date: 'd MMM' }}</span> }
+        </div>
+      </div>
+      <details class="mt-3 text-sm">
+        <summary class="cursor-pointer text-xs font-semibold text-muted">Show as a table</summary>
+        <div class="mt-2 max-h-60 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-muted"><tr><th class="py-1">Day</th><th class="py-1 text-right">Visitors</th><th class="py-1 text-right">Page views</th></tr></thead>
+            <tbody class="text-ink-soft">@for (day of d.daily; track day.day) { <tr class="border-t border-line"><td class="py-1">{{ day.day | date: 'EEE d MMM' }}</td><td class="py-1 text-right">{{ day.visitors }}</td><td class="py-1 text-right">{{ day.views }}</td></tr> }</tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+      <!-- Most visited pages -->
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5 lg:col-span-2">
+        <h2 class="mb-3 text-base font-bold text-ink">Most visited pages</h2>
+        @if (d.topPages.length === 0) { <p class="text-sm text-muted">No visits recorded in this period yet.</p> }
+        <ul class="space-y-2.5">
+          @for (p of d.topPages; track p.path) {
+            <li>
+              <div class="flex items-baseline justify-between gap-3 text-sm">
+                <span class="min-w-0 truncate font-medium text-ink" [title]="p.path">{{ pageName(p.path) }}</span>
+                <span class="shrink-0 text-ink-soft">{{ p.views | number }} views <span class="text-xs text-muted">· {{ p.visitors }} {{ p.visitors === 1 ? 'person' : 'people' }}</span></span>
+              </div>
+              <div class="mt-1 h-2 rounded-full bg-surface-3"><div class="h-full rounded-full bg-accent-600 dark:bg-accent-400" [style.width.%]="(p.views / maxPageViews()) * 100"></div></div>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <!-- Devices and who is visiting -->
+      <div class="space-y-4">
+        <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+          <h2 class="mb-3 text-base font-bold text-ink">Devices</h2>
+          <ul class="space-y-2.5">
+            @for (x of d.devices; track x.name) {
+              <li>
+                <div class="flex justify-between text-sm"><span class="capitalize text-ink">{{ x.name }}</span><span class="text-ink-soft">{{ share(x.views, d.devices) }}%</span></div>
+                <div class="mt-1 h-2 rounded-full bg-surface-3"><div class="h-full rounded-full bg-accent-600 dark:bg-accent-400" [style.width.%]="share(x.views, d.devices)"></div></div>
+              </li>
+            }
+          </ul>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+          <h2 class="mb-3 text-base font-bold text-ink">Who is visiting</h2>
+          <ul class="space-y-2.5">
+            @for (x of d.roles; track x.name) {
+              <li>
+                <div class="flex justify-between text-sm"><span class="text-ink">{{ x.name === 'Visitor' ? 'Not signed in' : x.name }}</span><span class="text-ink-soft">{{ share(x.views, d.roles) }}% of views</span></div>
+                <div class="mt-1 h-2 rounded-full bg-surface-3"><div class="h-full rounded-full bg-accent-600 dark:bg-accent-400" [style.width.%]="share(x.views, d.roles)"></div></div>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student activity -->
+    <h2 class="mb-3 mt-8 text-lg font-bold text-ink">Student activity <span class="text-sm font-normal text-muted">· last {{ d.days }} days</span></h2>
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Lessons completed</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.lessonsCompleted | number }}</p></div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Quizzes submitted</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.quizSubmissions | number }}</p></div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">Arabic quizzes taken</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.arabicQuizzes | number }}</p></div>
+      <div class="rounded-2xl border border-line bg-surface p-4 shadow-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted">New enrolments</p><p class="mt-1 text-3xl font-bold text-ink">{{ d.newEnrollments | number }}</p></div>
+    </div>
+
+    <div class="mt-4 rounded-2xl border border-line bg-surface shadow-sm">
+      <h3 class="border-b border-line px-4 py-3 text-base font-bold text-ink sm:px-5">Most active students</h3>
+      @if (d.topStudents.length === 0) {
+        <p class="px-5 py-6 text-sm text-muted">No signed-in student activity in this period yet.</p>
+      } @else {
+        <ul class="divide-y divide-line">
+          @for (s of d.topStudents; track s.studentId; let i = $index) {
+            <li class="flex items-center gap-3 px-4 py-3 sm:px-5">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs font-bold text-ink-soft">{{ i + 1 }}</span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate font-semibold text-ink">{{ s.name }}</p>
+                <p class="truncate text-xs text-muted">{{ s.email }}</p>
+              </div>
+              <div class="shrink-0 text-right text-xs text-ink-soft">
+                <p><span class="font-semibold text-ink">{{ s.pageViews }}</span> page views · <span class="font-semibold text-ink">{{ s.lessonsCompleted }}</span> lessons</p>
+                <p class="text-muted">last seen {{ s.lastSeen | date: 'd MMM, HH:mm' }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+    <p class="mt-4 text-xs text-muted">Days are counted in UTC. Visits are recorded from now on; earlier visits weren't tracked.</p>
+  }
+</section>
