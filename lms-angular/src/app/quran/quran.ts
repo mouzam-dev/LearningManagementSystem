@@ -1,3 +1,4 @@
+import { OfflineSave } from '../shared/offline-save';
 import { DeenTabBar } from '../shared/deen-tab-bar';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -36,7 +37,7 @@ interface TafsirState {
 @Component({
   selector: 'app-student-quran',
   standalone: true,
-  imports: [CommonModule, FormsModule, DeenTabBar],
+  imports: [CommonModule, FormsModule, DeenTabBar, OfflineSave],
   templateUrl: './quran.html',
   styles: [
     `

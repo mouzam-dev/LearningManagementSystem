@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 
 import { CourseStudentListItem, TeacherCourseDetail } from '../models/teacher.models';
 import { BulkEnrollResult, TeacherService } from '../teacher.service';
+import { saveFile } from '../../core/native';
 
 @Component({
   selector: 'app-teacher-course-students',
@@ -154,11 +155,6 @@ export class TeacherCourseStudentsPage {
       'student3@example.com',
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'lms-bulk-enroll-template.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    void saveFile(blob, 'lms-bulk-enroll-template.csv');
   }
 }

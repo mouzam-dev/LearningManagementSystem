@@ -14,6 +14,7 @@ import {
   AdminUserFilter,
   AdminUsersPage,
 } from './models/admin.models';
+import { saveFile } from '../core/native';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -127,12 +128,7 @@ export class AdminService {
     this.http
       .get(`${this.baseUrl}/reports/${kind}.csv`, { responseType: 'blob' })
       .subscribe((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `lms-${kind}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+        void saveFile(blob, `lms-${kind}.csv`);
       });
   }
 

@@ -8,6 +8,7 @@ import { TeacherService } from '../teacher/teacher.service';
 import { jitsiRoomUrl } from './jitsi';
 import { LiveSession, LiveSessionStatus } from './live-classes.models';
 import { LiveClassesService } from './live-classes.service';
+import { openExternal } from '../core/native';
 
 @Component({
   selector: 'app-teacher-live-classes',
@@ -125,7 +126,7 @@ export class TeacherLiveClassesPage {
 
   /** Opens the live room in a new tab on the community Jitsi server. */
   openRoom(s: LiveSession): void {
-    window.open(jitsiRoomUrl(s.roomName), '_blank', 'noopener,noreferrer');
+    openExternal(jitsiRoomUrl(s.roomName));
   }
 
   statusBadge(status: string): string {

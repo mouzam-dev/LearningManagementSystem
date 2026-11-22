@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 
 import { Certificate } from '../models/certificate.models';
 import { StudentService } from '../student.service';
+import { isNativeApp, saveFile } from '../../core/native';
 
 /**
  * Printable certificate view — the diploma. Two surfaces:
@@ -86,7 +87,9 @@ export class StudentCertificateDetail {
   }
 
   print(): void {
-    if (typeof window !== 'undefined') window.print();
+    // The app's web view has no print dialog; the PDF's share sheet offers Print instead.
+    if (isNativeApp()) this.downloadPdf();
+    else if (typeof window !== 'undefined') window.print();
   }
 
   async copyVerifyLink(): Promise<void> {
@@ -110,8 +113,7 @@ export class StudentCertificateDetail {
 
     this.studentService.downloadCertificatePdf(c.certificateId).subscribe({
       next: (blob) => {
-        triggerBlobDownload(blob, `Certificate-${c.verifyCode}.pdf`);
-        this.downloading.set(false);
+        void saveFile(blob, `Certificate-${c.verifyCode}.pdf`).finally(() => this.downloading.set(false));
       },
       error: () => {
         this.downloading.set(false);
@@ -119,21 +121,4 @@ export class StudentCertificateDetail {
       },
     });
   }
-}
-
-/**
- * Browser-only file-download helper. Creates a temporary object URL, clicks
- * an anchor, then revokes the URL to release the blob. Kept top-level so the
- * cert-list page can reuse it later without going through the component.
- */
-function triggerBlobDownload(blob: Blob, fileName: string): void {
-  if (typeof window === 'undefined') return;
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  window.URL.revokeObjectURL(url);
 }

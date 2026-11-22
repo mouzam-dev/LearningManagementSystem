@@ -85,6 +85,7 @@
             <button type="button" (click)="prev()" [disabled]="(selectedChapter()?.id ?? 1) <= 1" class="rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">← Prev</button>
             <button type="button" (click)="next()" [disabled]="(selectedChapter()?.id ?? 114) >= 114" class="rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">Next →</button>
             <div class="ml-auto flex items-center gap-1">
+              <app-offline-save kind="quran" [id]="translationId()" />
               <button type="button" (click)="showSettings.set(!showSettings())" [attr.aria-expanded]="showSettings()"
                 class="h-8 rounded-lg border border-line px-2.5 text-sm font-semibold text-ink-soft hover:border-line-strong lg:hidden">Settings</button>
               <button type="button" (click)="smallerFont()" aria-label="Smaller text" class="h-8 w-8 rounded-lg border border-line text-sm font-bold text-ink-soft hover:border-line-strong">A-</button>

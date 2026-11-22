@@ -5,6 +5,7 @@ import { Component, inject, signal } from '@angular/core';
 import { jitsiRoomUrl } from './jitsi';
 import { LiveSession } from './live-classes.models';
 import { LiveClassesService } from './live-classes.service';
+import { isNativeApp, openExternal } from '../core/native';
 
 @Component({
   selector: 'app-student-live-classes',
@@ -42,7 +43,8 @@ export class StudentLiveClassesPage {
   join(s: LiveSession): void {
     // Open a blank tab synchronously (within the click) so popup blockers allow it,
     // then point it at the room once the join — which marks attendance — succeeds.
-    const win = window.open('', '_blank');
+    // In the app the room opens in a Chrome tab once joined (no popup blocker there).
+    const win = isNativeApp() ? null : window.open('', '_blank');
     this.busy.set(true);
     this.error.set(null);
     this.live.join(s.id).subscribe({
@@ -50,7 +52,7 @@ export class StudentLiveClassesPage {
         this.busy.set(false);
         const url = jitsiRoomUrl(info.roomName);
         if (win) win.location.href = url;
-        else window.open(url, '_blank', 'noopener,noreferrer');
+        else openExternal(url);
       },
       error: (e: HttpErrorResponse) => {
         this.busy.set(false);

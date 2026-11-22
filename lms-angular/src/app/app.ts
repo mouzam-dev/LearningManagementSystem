@@ -6,7 +6,9 @@ import { filter } from 'rxjs/operators';
 import { AuthService } from './auth/auth.service';
 import { ThemeService } from './core/services/theme.service';
 import { PageViewService } from './core/services/page-view.service';
+import { PushService } from './core/services/push.service';
 import { NotificationService } from './notifications/notification.service';
+import { AppUpdateBanner } from './shared/app-update-banner';
 
 interface NavLink {
   label: string;
@@ -97,7 +99,7 @@ const ORGADMIN_NAV: NavEntry[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AppUpdateBanner],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -107,6 +109,7 @@ export class App implements OnDestroy {
   private readonly themeService = inject(ThemeService);
   private readonly notifications = inject(NotificationService);
   private readonly pageViews = inject(PageViewService);
+  private readonly push = inject(PushService);
 
   readonly isAuthed = this.auth.isAuthenticated;
   readonly user = this.auth.user;
@@ -148,6 +151,7 @@ export class App implements OnDestroy {
       if (signedIn && !this.notificationsActive) {
         this.notifications.startPolling();
         this.notificationsActive = true;
+        void this.push.register(); // Android app only; no-op in the browser
       } else if (!signedIn && this.notificationsActive) {
         this.notifications.stopPolling();
         this.notifications.reset();
@@ -205,6 +209,7 @@ export class App implements OnDestroy {
 
   logout(): void {
     this.menuOpen.set(false);
+    this.push.unregister();
     this.auth.logout();
     this.router.navigateByUrl('/login');
   }

@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { BranchAttendanceDetail, OrgAttendanceOverview } from './attendance.models';
 import { AttendanceService } from './attendance.service';
+import { saveFile } from '../core/native';
 
 @Component({
   selector: 'app-orgadmin-attendance',
@@ -65,12 +66,7 @@ export class OrgAdminAttendancePage {
   exportCsv(): void {
     this.attendance.exportOverviewCsv(this.fromDate() || undefined, this.toDate() || undefined).subscribe({
       next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'attendance-overview.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+        void saveFile(blob, 'attendance-overview.csv');
       },
       error: (err: HttpErrorResponse) => this.error.set(this.msg(err)),
     });

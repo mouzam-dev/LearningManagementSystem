@@ -8,6 +8,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AdminUserListItem } from '../models/admin.models';
 import { AdminService, BulkImportUsersResult } from '../admin.service';
+import { saveFile } from '../../core/native';
 
 type RoleFilter = '' | 'Student' | 'Teacher' | 'OrgAdmin' | 'SuperAdmin';
 type StatusFilter = 'all' | 'active' | 'suspended';
@@ -182,11 +183,6 @@ export class AdminUsersPage {
       'grace.hopper@example.com,Grace,Hopper,OrgAdmin,codeforge,',
     ];
     const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'lms-bulk-import-template.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    void saveFile(blob, 'lms-bulk-import-template.csv');
   }
 }

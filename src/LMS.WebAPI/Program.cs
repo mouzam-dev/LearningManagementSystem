@@ -34,10 +34,18 @@ builder.Host.UseSerilog((context, services, config) =>
 // DateTime.UtcNow by convention). It MUST be set before the first connection.
 // ---------------------------------------------------------------------------
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsql => npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+        npgsql => npgsql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName))
+    .AddInterceptors(sp.GetRequiredService<LMS.WebAPI.Services.Push.NotificationPushInterceptor>()));
+
+// Phone pushes (Android app): every committed Notification row is queued and sent via
+// Firebase Cloud Messaging in the background. Off until Firebase__ServiceAccountJson is set.
+builder.Services.AddSingleton<LMS.WebAPI.Services.Push.PushQueue>();
+builder.Services.AddSingleton<LMS.WebAPI.Services.Push.NotificationPushInterceptor>();
+builder.Services.AddHostedService<LMS.WebAPI.Services.Push.FcmPushSender>();
+builder.Services.AddHttpClient("fcm", c => c.Timeout = TimeSpan.FromSeconds(15));
 
 // ---------------------------------------------------------------------------
 // MediatR / AutoMapper / FluentValidation — all scan the Application assembly
@@ -264,8 +272,12 @@ app.UseSerilogRequestLogging();
 app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/api/arabic/catalog"), branch => branch.UseResponseCompression());
 
 // Serve uploaded files (lesson documents) from wwwroot as static content.
+// The Android app is downloadable from /app/ (its update prompt links there); .apk isn't a default type.
+var staticTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+staticTypes.Mappings[".apk"] = "application/vnd.android.package-archive";
 app.UseStaticFiles(new StaticFileOptions
 {
+    ContentTypeProvider = staticTypes,
     // Angular build files carry a content hash in their name (main-2EYKG2II.js), and the Learn Arabic
     // audio clips are content-hashed too, so browsers may keep them for a year. Everything else
     // (index.html, manifest, learn-arabic pages, uploads) is re-checked on each visit.

@@ -46,6 +46,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ArabicQuizQuestion> ArabicQuizQuestions => Set<ArabicQuizQuestion>();
     public DbSet<ArabicProgress> ArabicProgress => Set<ArabicProgress>();
     public DbSet<PageView> PageViews => Set<PageView>();
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
