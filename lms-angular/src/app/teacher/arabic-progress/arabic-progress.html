@@ -32,7 +32,41 @@
   } @else {
     <p class="mb-3 text-xs text-muted">{{ totalCount() }} students · {{ started() }} on this page have started</p>
 
-    <div class="overflow-x-auto rounded-2xl border border-line bg-surface shadow-sm">
+    <!-- Phones: one card per student (the table below needs ~760px). -->
+    <ul class="space-y-3 sm:hidden">
+      @for (s of students(); track s.studentId) {
+        <li class="rounded-2xl border border-line bg-surface p-4 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-ink">{{ s.name }}</p>
+              <p class="truncate text-xs text-muted">{{ s.email }}</p>
+            </div>
+            <span class="shrink-0 rounded-full px-2.5 py-1 text-sm font-bold"
+                  [class.bg-accent-50]="(s.averageScore ?? 0) >= 80" [class.text-accent-700]="(s.averageScore ?? 0) >= 80"
+                  [class.bg-amber-50]="s.averageScore != null && s.averageScore < 60" [class.text-amber-700]="s.averageScore != null && s.averageScore < 60"
+                  [class.bg-surface-2]="s.averageScore == null || (s.averageScore >= 60 && s.averageScore < 80)"
+                  [class.text-ink-soft]="s.averageScore == null || (s.averageScore >= 60 && s.averageScore < 80)">
+              {{ s.averageScore != null ? s.averageScore + '%' : '—' }}
+            </span>
+          </div>
+          <div class="mt-3 flex items-center gap-2">
+            <div class="h-2 flex-1 overflow-hidden rounded-full bg-surface-3" role="progressbar" [attr.aria-valuenow]="pct(s)"
+                 aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="'Lessons done by ' + s.name">
+              <div class="h-full rounded-full bg-accent-600" [style.width.%]="pct(s)"></div>
+            </div>
+            <span class="whitespace-nowrap text-xs text-ink-soft">{{ s.lessonsDone }} / {{ totalLessons() }} lessons</span>
+          </div>
+          <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+            <dt class="text-muted">Unit tests</dt><dd class="text-right text-ink-soft">{{ s.unitTestsDone }} / {{ totalUnits() }}</dd>
+            <dt class="text-muted">Attempts</dt><dd class="text-right text-ink-soft">{{ s.attempts }}</dd>
+            <dt class="text-muted">Now on</dt><dd class="text-right text-ink-soft" [class.text-subtle]="!s.lastActivity">{{ position(s) }}</dd>
+            <dt class="text-muted">Last active</dt><dd class="text-right text-ink-soft">{{ s.lastActivity ? (s.lastActivity | date: 'mediumDate') : '—' }}</dd>
+          </dl>
+        </li>
+      }
+    </ul>
+
+    <div class="hidden overflow-x-auto rounded-2xl border border-line bg-surface shadow-sm sm:block">
       <table class="w-full min-w-[760px] text-left text-sm">
         <thead class="border-b border-line text-[11px] font-semibold uppercase tracking-wider text-muted">
           <tr>

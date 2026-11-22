@@ -101,6 +101,7 @@
           }
 
           <div class="max-h-[28rem] overflow-y-auto">
+            <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead class="sticky top-0 bg-surface text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
@@ -135,7 +136,7 @@
                   </tr>
                 }
               </tbody>
-            </table>
+            </table></div>
           </div>
 
           <div class="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">
@@ -163,6 +164,7 @@
         @if (sessions().length === 0) {
           <div class="px-5 py-8 text-center text-sm text-muted">No sessions yet. Open one above to start taking attendance.</div>
         } @else {
+          <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="text-left text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -192,7 +194,7 @@
                 </tr>
               }
             </tbody>
-          </table>
+          </table></div>
         }
       </div>
     } @else {
@@ -209,6 +211,7 @@
           </div>
         </div>
         <div class="overflow-hidden rounded-2xl border border-line bg-surface">
+          <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="text-left text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -232,7 +235,7 @@
                 </tr>
               }
             </tbody>
-          </table>
+          </table></div>
           @if (sum.students.length === 0) {
             <div class="px-5 py-8 text-center text-sm text-muted">No attendance recorded yet.</div>
           }

@@ -342,3 +342,21 @@ code {
   font-family: var(--font-mono);
   font-size: 0.9em;
 }
+
+/* ---------- Phones ----------------------------------------------------------
+   Plain (unlayered) rules, so they win over Tailwind's layered utilities. */
+@media (max-width: 639px) {
+  /* iOS Safari zooms the page when a field under 16px gets focus; 16px stops that. */
+  input:not([type=checkbox]):not([type=radio]), select, textarea { font-size: 16px; }
+  /* 10px labels are too small to read on a phone. */
+  .text-\[10px\] { font-size: 11px; }
+}
+
+/* Touch screens (phones, tablets): finger-sized targets. Desktop mice are unaffected. */
+@media (pointer: coarse) {
+  /* Icon-only buttons (edit / delete / reorder / close ...) */
+  button:has(> svg:only-child), a:has(> svg:only-child) { min-width: 40px; min-height: 40px; }
+  /* Tappable rating stars; read-only stars carry .pointer-events-none and stay compact */
+  app-star-rating button:not(.pointer-events-none) { padding: 6px; }
+  input[type=checkbox], input[type=radio] { width: 20px; height: 20px; }
+}
