@@ -1,0 +1,18 @@
+{
+  "name": "daura-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android app shell for Daura-e-Ilmiyah Shariyah: opens the live site full-screen.",
+  "scripts": {
+    "sync": "cap sync android",
+    "apk": "cap sync android && cd android && gradlew.bat assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2"
+  }
+}

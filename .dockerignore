@@ -42,3 +42,5 @@ LICENSE*
 
 # Local source material (learn-app originals, reports): never part of the build
 Integration/
+# Android app shell (and its signing key) - not part of the server image
+mobile/

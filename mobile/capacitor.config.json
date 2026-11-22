@@ -1,0 +1,12 @@
+{
+  "appId": "org.dauraeilmiyah.shariyah",
+  "appName": "Daura-e-Ilmiyah",
+  "webDir": "www",
+  "server": {
+    "url": "https://duare-shariye.fly.dev",
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "backgroundColor": "#ffffff"
+  }
+}

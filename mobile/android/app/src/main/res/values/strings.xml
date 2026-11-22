@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Daura-e-Ilmiyah</string>
+    <string name="title_activity_main">Daura-e-Ilmiyah</string>
+    <string name="package_name">org.dauraeilmiyah.shariyah</string>
+    <string name="custom_url_scheme">org.dauraeilmiyah.shariyah</string>
+</resources>
