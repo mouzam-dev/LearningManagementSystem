@@ -254,7 +254,18 @@ app.UseSerilogRequestLogging();
 app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/api/arabic/catalog"), branch => branch.UseResponseCompression());
 
 // Serve uploaded files (lesson documents) from wwwroot as static content.
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    // Angular build files carry a content hash in their name (main-2EYKG2II.js), and the Learn Arabic
+    // audio clips are content-hashed too, so browsers may keep them for a year. Everything else
+    // (index.html, manifest, learn-arabic pages, uploads) is re-checked on each visit.
+    OnPrepareResponse = ctx =>
+    {
+        var path = ctx.Context.Request.Path.Value ?? string.Empty;
+        var hashed = HashedAsset().IsMatch(Path.GetFileName(path)) || path.StartsWith("/learn-arabic/audio/", StringComparison.Ordinal);
+        ctx.Context.Response.Headers.CacheControl = hashed ? "public, max-age=31536000, immutable" : "no-cache";
+    },
+});
 
 // Skip HTTPS redirect in Development so the Angular dev server can call the HTTP
 // listener directly. A 307 from http→https on the API origin breaks browser CORS
@@ -296,9 +307,17 @@ if (!app.Environment.IsDevelopment())
                 return;
             }
             ctx.Response.ContentType = "text/html; charset=utf-8";
+            ctx.Response.Headers.CacheControl = "no-cache"; // always pick up a new deploy
             await ctx.Response.SendFileAsync(indexPath);
         });
     }
 }
 
 app.Run();
+
+// e.g. main-2EYKG2II.js, chunk-XEML6G7C.js, styles-2QLG2JYR.css (Angular's hashed output names)
+partial class Program
+{
+    [System.Text.RegularExpressions.GeneratedRegex(@"^[a-z0-9]+-[A-Z0-9]{8}\.(js|css)$")]
+    private static partial System.Text.RegularExpressions.Regex HashedAsset();
+}

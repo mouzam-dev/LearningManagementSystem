@@ -30,7 +30,9 @@ primary_region = "bom"           # Mumbai; pick the region nearest your users
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"
+  # "suspend" freezes the idle machine in memory and resumes it in ~1s; "stop" meant a full
+  # cold boot (~15s) for the first visitor after a quiet spell. Same cost while idle.
+  auto_stop_machines = "suspend"
   auto_start_machines = true
   min_machines_running = 0
 

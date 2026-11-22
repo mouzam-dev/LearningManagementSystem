@@ -1,3 +1,4 @@
+import { DeenTabBar } from '../shared/deen-tab-bar';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -13,7 +14,7 @@ const GRADE_OPTIONS = ['Sahih', 'Hasan', 'Daif', 'Maudu', 'Other'];
 @Component({
   selector: 'app-student-hadith',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DeenTabBar],
   templateUrl: './student-hadith.html',
   styles: [
     `
@@ -29,6 +30,8 @@ export class StudentHadithPage {
   readonly gradeOptions = GRADE_OPTIONS;
 
   readonly view = signal<View>('collections');
+  /** Phones: collection/grade filters fold away behind a button. */
+  readonly showFilters = signal(false);
   readonly collections = signal<SunnahCollection[]>([]);
   readonly books = signal<SunnahBook[]>([]);
   readonly hadiths = signal<SunnahHadith[]>([]);

@@ -1,38 +1,46 @@
-<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-  <header class="mb-5">
+<section class="mx-auto w-full max-w-7xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8 lg:px-8 lg:pb-8">
+  <header class="mb-4 sm:mb-5">
     <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Deen</p>
-    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Hadith</h1>
-    <p class="mt-2 max-w-2xl text-sm text-muted">
+    <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-4xl">Hadith</h1>
+    <p class="mt-2 hidden max-w-2xl text-sm text-muted sm:block">
       The major hadith collections — narration, Arabic, and grading — side by side.
     </p>
   </header>
 
-  <!-- ===== Search + filters ===== -->
-  <div class="mb-6 rounded-2xl border border-line bg-surface-2 p-4">
+  <!-- ===== Search + filters (filters fold away on phones) ===== -->
+  <div class="mb-5 rounded-2xl border border-line bg-surface-2 p-3 sm:mb-6 sm:p-4">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
       <div class="min-w-0 flex-1">
-        <label class="mb-1 block text-xs font-semibold text-muted">Search</label>
-        <input type="search" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
-          (keyup.enter)="runSearch()" placeholder="Search English or Arabic text, or a hadith number…"
-          class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400" />
+        <label class="mb-1 hidden text-xs font-semibold text-muted lg:block">Search</label>
+        <div class="flex gap-2">
+          <input type="search" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"
+            (keyup.enter)="runSearch()" placeholder="Search hadith text or number…" aria-label="Search hadith"
+            class="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400" />
+          <button type="button" (click)="runSearch()"
+            class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700 lg:hidden">Search</button>
+          <button type="button" (click)="showFilters.set(!showFilters())" [attr.aria-expanded]="showFilters()"
+            class="rounded-xl border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink-soft lg:hidden">Filters</button>
+        </div>
       </div>
-      <div>
-        <label class="mb-1 block text-xs font-semibold text-muted">Collection</label>
-        <select [ngModel]="filterCollection()" (ngModelChange)="filterCollection.set($event)"
-          class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400 lg:w-44">
-          <option value="">All collections</option>
-          @for (c of collections(); track c.name) { <option [value]="c.name">{{ c.titleEn }}</option> }
-        </select>
+      <div class="gap-3 sm:grid-cols-2 lg:flex lg:items-end" [class.grid]="showFilters()" [class.hidden]="!showFilters()">
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">Collection</label>
+          <select [ngModel]="filterCollection()" (ngModelChange)="filterCollection.set($event)"
+            class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400 lg:w-44">
+            <option value="">All collections</option>
+            @for (c of collections(); track c.name) { <option [value]="c.name">{{ c.titleEn }}</option> }
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-semibold text-muted">Grade</label>
+          <select [ngModel]="filterGrade()" (ngModelChange)="filterGrade.set($event)"
+            class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400 lg:w-36">
+            <option value="">Any grade</option>
+            @for (g of gradeOptions; track g) { <option [value]="g">{{ g }}</option> }
+          </select>
+        </div>
       </div>
-      <div>
-        <label class="mb-1 block text-xs font-semibold text-muted">Grade</label>
-        <select [ngModel]="filterGrade()" (ngModelChange)="filterGrade.set($event)"
-          class="w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary-400 lg:w-36">
-          <option value="">Any grade</option>
-          @for (g of gradeOptions; track g) { <option [value]="g">{{ g }}</option> }
-        </select>
-      </div>
-      <div class="flex gap-2">
+      <div class="hidden gap-2 lg:flex">
         <button type="button" (click)="runSearch()"
           class="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">Search</button>
         @if (view() === 'search') {
@@ -40,6 +48,10 @@
             class="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-soft transition hover:border-line-strong">Clear</button>
         }
       </div>
+      @if (view() === 'search') {
+        <button type="button" (click)="clearSearch()"
+          class="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink-soft lg:hidden">Clear search</button>
+      }
     </div>
   </div>
 
@@ -192,3 +204,5 @@
     }
   }
 </section>
+
+<app-deen-tab-bar />

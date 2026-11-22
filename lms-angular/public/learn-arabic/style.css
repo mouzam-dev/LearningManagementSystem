@@ -542,6 +542,6 @@ main > * { animation: rise .35s ease both; }
 .sitebar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--surface);
   border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; }
 .sitebar svg { width: 20px; height: 20px; flex: none; color: var(--primary); }
-.sitebar img { height: 34px; width: auto; background: #fff; border-radius: 6px; padding: 2px 4px; }
+.sitebar img { height: 28px; width: auto; background: #fff; border-radius: 6px; padding: 3px 5px; }
 .sitebar span { margin-inline-start: auto; font-weight: 700; font-size: .9rem; color: var(--primary); white-space: nowrap; }
 @media (min-width: 1024px) { .sitebar { display: none; } }  /* desktop: the sidebar has the back link */

@@ -1,6 +1,7 @@
+import { DeenTabBar } from '../shared/deen-tab-bar';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, afterNextRender, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import {
@@ -35,7 +36,7 @@ interface TafsirState {
 @Component({
   selector: 'app-student-quran',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DeenTabBar],
   templateUrl: './quran.html',
   styles: [
     `
@@ -70,6 +71,11 @@ export class StudentQuranPage {
 
   readonly verses = signal<QuranVerse[]>([]);
   readonly search = signal(''); // sūrah-list filter
+  /** Phones/tablets show one pane at a time, like an app: the sūrah list or the reader. */
+  readonly pane = signal<'list' | 'read'>('list');
+  readonly showSettings = signal(false);
+  /** The sticky pane switch sits right under the site header, whose height varies (signed in / out, phone / tablet). */
+  readonly headerHeight = signal(64);
 
   readonly selectedId = signal<number>(this.num(LS.chapter, 1, 114));
   // 0 = "None" (plain Arabic) — also the default until the reader opts into one.
@@ -120,7 +126,13 @@ export class StudentQuranPage {
     () => this.tafsirs().find((t) => t.id === this.tafsirId())?.rtl ?? false,
   );
 
+  @HostListener('window:resize')
+  measureHeader(): void {
+    this.headerHeight.set(document.querySelector('header')?.getBoundingClientRect().height ?? 64);
+  }
+
   constructor() {
+    afterNextRender(() => this.measureHeader());
     this.loadResources();
   }
 
@@ -185,10 +197,15 @@ export class StudentQuranPage {
     });
   }
 
+  scrollTop(): void {
+    window.scrollTo({ top: 0 });
+  }
+
   selectChapter(id: number): void {
     if (id < 1 || id > 114) return;
     const scrollTop = this.pendingScrollAyah == null;
     this.selectedId.set(id);
+    this.pane.set('read');
     localStorage.setItem(LS.chapter, String(id));
     this.loadVerses();
     this.loadAudio();

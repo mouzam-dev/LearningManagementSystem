@@ -1,8 +1,8 @@
-<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-  <header class="mb-5">
+<section class="mx-auto w-full max-w-7xl px-4 pb-24 pt-5 sm:px-6 sm:pt-8 lg:px-8 lg:pb-8">
+  <header class="mb-4 sm:mb-5">
     <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Deen</p>
-    <h1 class="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Read the Qur'an</h1>
-    <p class="mt-2 max-w-2xl text-sm text-muted">
+    <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-4xl">Read the Qur'an</h1>
+    <p class="mt-2 hidden max-w-2xl text-sm text-muted sm:block">
       Full Qur'an with translation, tafsir, recitation audio, and search — via the Quran.com API.
     </p>
   </header>
@@ -45,12 +45,22 @@
   @if (loadingChapters()) {
     <div class="rounded-2xl border border-line bg-surface p-8 text-sm text-muted">Loading the Qur'an…</div>
   } @else {
+    <!-- Phones/tablets: switch between the sūrah list and the reader -->
+    <div class="sticky z-20 -mx-4 mb-4 bg-canvas/95 px-4 py-2 backdrop-blur lg:hidden" [style.top.px]="headerHeight()">
+      <div class="grid grid-cols-2 rounded-xl border border-line bg-surface p-1 text-sm font-semibold">
+        <button type="button" (click)="pane.set('list')" class="rounded-lg py-2 transition"
+          [class]="pane() === 'list' ? 'bg-primary-600 text-white' : 'text-ink-soft'">Sūrahs</button>
+        <button type="button" (click)="pane.set('read'); scrollTop()" class="truncate rounded-lg px-2 py-2 transition"
+          [class]="pane() === 'read' ? 'bg-primary-600 text-white' : 'text-ink-soft'">Reading · {{ selectedChapter()?.nameSimple }}</button>
+      </div>
+    </div>
+
     <div class="grid gap-6 lg:grid-cols-[18rem_1fr]">
       <!-- Sūrah list -->
-      <aside class="lg:sticky lg:top-20 lg:self-start">
+      <aside class="lg:sticky lg:top-20 lg:block lg:self-start" [class.hidden]="pane() === 'read'">
         <input type="search" [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Filter sūrah…"
           class="mb-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink" />
-        <div class="max-h-[45vh] overflow-y-auto rounded-2xl border border-line bg-surface lg:max-h-[72vh]">
+        <div class="rounded-2xl border border-line bg-surface lg:max-h-[72vh] lg:overflow-y-auto">
           @for (c of filteredChapters(); track c.id) {
             <button type="button" (click)="selectChapter(c.id)"
               class="flex w-full items-center gap-3 border-b border-line px-3 py-2.5 text-left transition hover:bg-surface-2"
@@ -68,18 +78,20 @@
       </aside>
 
       <!-- Reading pane -->
-      <main class="min-w-0">
+      <main class="min-w-0 lg:block" [class.hidden]="pane() === 'list'">
         <!-- Controls -->
         <div class="mb-4 space-y-3 rounded-2xl border border-line bg-surface p-4">
           <div class="flex flex-wrap items-center gap-2">
             <button type="button" (click)="prev()" [disabled]="(selectedChapter()?.id ?? 1) <= 1" class="rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">← Prev</button>
             <button type="button" (click)="next()" [disabled]="(selectedChapter()?.id ?? 114) >= 114" class="rounded-lg border border-line px-3 py-1.5 text-sm font-semibold text-ink-soft transition hover:border-line-strong disabled:opacity-40">Next →</button>
             <div class="ml-auto flex items-center gap-1">
+              <button type="button" (click)="showSettings.set(!showSettings())" [attr.aria-expanded]="showSettings()"
+                class="h-8 rounded-lg border border-line px-2.5 text-sm font-semibold text-ink-soft hover:border-line-strong lg:hidden">Settings</button>
               <button type="button" (click)="smallerFont()" aria-label="Smaller text" class="h-8 w-8 rounded-lg border border-line text-sm font-bold text-ink-soft hover:border-line-strong">A-</button>
               <button type="button" (click)="biggerFont()" aria-label="Larger text" class="h-8 w-8 rounded-lg border border-line text-base font-bold text-ink-soft hover:border-line-strong">A+</button>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-3 xl:grid-cols-5">
+          <div class="grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-3 lg:grid xl:grid-cols-5" [class.grid]="showSettings()" [class.hidden]="!showSettings()">
             <label class="block min-w-0">
               <span class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted">Translation</span>
               <select [value]="translationId()" (change)="onTranslationChange($event)"
@@ -177,3 +189,5 @@
     </div>
   }
 </section>
+
+<app-deen-tab-bar />

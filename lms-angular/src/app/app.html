@@ -6,7 +6,7 @@
       [routerLink]="user()?.role === 'Student' ? '/student/dashboard' : user()?.role === 'Teacher' ? '/teacher/dashboard' : user()?.role === 'SuperAdmin' ? '/admin/dashboard' : user()?.role === 'OrgAdmin' ? '/orgadmin/dashboard' : '/home'"
       (click)="closeMenu()"
       class="flex shrink-0 items-center gap-2 text-ink transition hover:opacity-80">
-      <img src="/logo.png" alt="Daura-e-Ilmiyah Shariyah" class="h-12 w-auto sm:h-20" />
+      <img src="/logo-header.webp" alt="Daura-e-Ilmiyah Shariyah" width="600" height="134" class="h-8 w-auto sm:h-11" />
       <span class="sr-only">Daura-e-Ilmiyah Shariyah</span>
     </a>
 
