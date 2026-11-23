@@ -86,6 +86,13 @@
   --shadow-2xl: 0 20px 40px rgba(15, 23, 42, 0.10);
 }
 
+/* Phone status bar / camera cutout and gesture bar. env() is the browser's value; the Android
+   app (Capacitor) injects --safe-area-inset-* on WebViews too old to report env() correctly. */
+:root {
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+}
+
 /* -- Light theme: clean white surfaces, navy ink, gray inputs ----------- */
 :root {
   --c-canvas:      #ffffff;

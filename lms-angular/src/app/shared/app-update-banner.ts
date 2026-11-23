@@ -21,7 +21,7 @@ interface AppVersion {
   selector: 'app-update-banner',
   template: `
     @if (apk(); as v) {
-      <div class="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-lg lg:bottom-4" role="status">
+      <div class="fixed inset-x-3 bottom-[calc(5rem+var(--safe-bottom))] z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-lg lg:bottom-4" role="status">
         <div class="min-w-0 flex-1 text-sm">
           <p class="font-semibold text-ink">New app version {{ v.versionName }}</p>
           <p class="text-xs text-muted">{{ v.notes || 'Update to get the latest features.' }}</p>
@@ -30,7 +30,7 @@ interface AppVersion {
         <button type="button" class="shrink-0 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white hover:bg-primary-700" (click)="download(v)">Download</button>
       </div>
     } @else if (siteUpdate()) {
-      <div class="fixed inset-x-3 bottom-20 z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-lg lg:bottom-4" role="status">
+      <div class="fixed inset-x-3 bottom-[calc(5rem+var(--safe-bottom))] z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-line bg-surface p-3 shadow-lg lg:bottom-4" role="status">
         <p class="min-w-0 flex-1 text-sm font-semibold text-ink">A new version of the site is ready.</p>
         <button type="button" class="shrink-0 rounded-lg px-2 py-2 text-sm font-semibold text-muted hover:text-ink" (click)="siteUpdate.set(false)">Later</button>
         <button type="button" class="shrink-0 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white hover:bg-primary-700" (click)="reload()">Refresh</button>

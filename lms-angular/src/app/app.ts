@@ -9,6 +9,7 @@ import { PageViewService } from './core/services/page-view.service';
 import { PushService } from './core/services/push.service';
 import { NotificationService } from './notifications/notification.service';
 import { AppUpdateBanner } from './shared/app-update-banner';
+import { DeenTabBar } from './shared/deen-tab-bar';
 
 interface NavLink {
   label: string;
@@ -99,7 +100,7 @@ const ORGADMIN_NAV: NavEntry[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AppUpdateBanner],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, AppUpdateBanner, DeenTabBar],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -140,6 +141,11 @@ export class App implements OnDestroy {
     const u = this.currentUrl();
     return u === '/' || u.startsWith('/home');
   });
+
+  /** Phone bottom bar: on every page for students, on the Qur'an / Hadith readers for everyone. */
+  readonly showTabBar = computed(() =>
+    this.user()?.role === 'Student' || /^\/(student\/|teacher\/)?(quran|hadith)(\/|\?|$)/.test(this.currentUrl()),
+  );
 
   private notificationsActive = false;
 

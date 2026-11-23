@@ -1,5 +1,5 @@
 <header
-  class="sticky top-0 z-30 border-b border-line bg-surface">
+  class="sticky top-0 z-30 border-b border-line bg-surface pt-[var(--safe-top)]">
   <div class="mx-auto flex h-16 w-full max-w-7xl items-center gap-2 px-3 sm:h-24 sm:gap-3 sm:px-6 lg:px-8">
     <!-- Brand -->
     <a
@@ -161,7 +161,7 @@
   <!-- Mobile nav drawer -->
   @if (isAuthed() && menuOpen()) {
     <!-- The header is sticky, so a long menu must scroll inside itself (dvh = the visible screen on phones). -->
-    <nav class="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t border-line bg-surface px-4 py-3 md:hidden">
+    <nav class="max-h-[calc(100dvh-4rem-var(--safe-top))] overflow-y-auto overscroll-contain border-t border-line bg-surface px-4 py-3 md:hidden">
       <div class="flex flex-col gap-1">
         @for (entry of navEntries(); track entry.key) {
           @if (entry.link) {
@@ -189,8 +189,11 @@
   }
 </header>
 
-<main class="mx-auto w-full" [class.max-w-7xl]="!fullWidthMain()">
+<main class="mx-auto w-full" [class.max-w-7xl]="!fullWidthMain()" [class.pb-20]="showTabBar()" [class.lg:pb-0]="showTabBar()">
   <router-outlet />
 </main>
 
+@if (showTabBar()) {
+  <app-deen-tab-bar />
+}
 <app-update-banner />

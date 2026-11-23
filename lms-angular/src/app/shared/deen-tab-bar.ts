@@ -14,7 +14,7 @@ import { landingPathForRole } from '../core/guards/auth.guard';
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
   template: `
-    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur lg:hidden" aria-label="Deen">
+    <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[var(--safe-bottom)] backdrop-blur lg:hidden" aria-label="Deen">
       <div class="mx-auto grid max-w-md grid-cols-4">
         @for (t of tabs(); track t.label) {
           <a [routerLink]="t.link" routerLinkActive="!text-primary-700 dark:!text-primary-300" #rla="routerLinkActive"
