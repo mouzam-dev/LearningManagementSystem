@@ -45,6 +45,9 @@ public interface IApplicationDbContext
     DbSet<ArabicVocabItem> ArabicVocabItems { get; }
     DbSet<ArabicQuizQuestion> ArabicQuizQuestions { get; }
     DbSet<ArabicProgress> ArabicProgress { get; }
+    DbSet<QuranSurah> QuranSurahs { get; }
+    DbSet<QuranVerse> QuranVerses { get; }
+    DbSet<AiQueryLog> AiQueryLogs { get; }
     DbSet<PageView> PageViews { get; }
     DbSet<DeviceToken> DeviceTokens { get; }
 

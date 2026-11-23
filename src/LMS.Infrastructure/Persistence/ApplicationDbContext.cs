@@ -45,6 +45,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ArabicVocabItem> ArabicVocabItems => Set<ArabicVocabItem>();
     public DbSet<ArabicQuizQuestion> ArabicQuizQuestions => Set<ArabicQuizQuestion>();
     public DbSet<ArabicProgress> ArabicProgress => Set<ArabicProgress>();
+    public DbSet<QuranSurah> QuranSurahs => Set<QuranSurah>();
+    public DbSet<QuranVerse> QuranVerses => Set<QuranVerse>();
+    public DbSet<AiQueryLog> AiQueryLogs => Set<AiQueryLog>();
     public DbSet<PageView> PageViews => Set<PageView>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 

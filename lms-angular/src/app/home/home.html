@@ -20,6 +20,18 @@
           open to everyone, no account needed.
         </p>
 
+        <!-- Library search: the Qur'an and every hadith collection, open to everyone. -->
+        <form class="hero-search" role="search" (submit)="$event.preventDefault(); searchLibrary(libq.value)">
+          <svg class="hero-search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+          </svg>
+          <input #libq type="search" name="q" maxlength="200" autocomplete="off"
+                 placeholder="Search Qur'an &amp; hadith…"
+                 aria-label="Search the Qur'an and hadith" />
+          <button type="submit">Search</button>
+        </form>
+
         <div class="hero-ctas">
           <a routerLink="/register" class="btn-primary">
             Get started — it's free

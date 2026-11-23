@@ -80,6 +80,12 @@ export class Home implements OnInit {
   }
 
   /** Submitting the hero search just refilters the preview grid below. */
+  /** Hero search box: opens the Qur'an & hadith library with this search (no sign-in needed). */
+  searchLibrary(q: string): void {
+    q = q.trim();
+    if (q.length >= 2) void this.router.navigate(['/library'], { queryParams: { q } });
+  }
+
   search(): void {
     this.fetchCourses();
     if (typeof document !== 'undefined') {

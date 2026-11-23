@@ -23,6 +23,49 @@ namespace LMS.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LMS.Domain.Entities.AiQueryLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("InputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PassageCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("AiQueryLogs", (string)null);
+                });
+
             modelBuilder.Entity("LMS.Domain.Entities.Announcement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1388,6 +1431,73 @@ namespace LMS.Infrastructure.Migrations
                     b.ToTable("Questions", (string)null);
                 });
 
+            modelBuilder.Entity("LMS.Domain.Entities.QuranSurah", b =>
+                {
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NameTransliterated")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("RevelationPlace")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("VerseCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Number");
+
+                    b.ToTable("QuranSurahs", (string)null);
+                });
+
+            modelBuilder.Entity("LMS.Domain.Entities.QuranVerse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SurahNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TextAr")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TextEn")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TextUr")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("VerseNumber")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SurahNumber", "VerseNumber")
+                        .IsUnique();
+
+                    b.ToTable("QuranVerses", (string)null);
+                });
+
             modelBuilder.Entity("LMS.Domain.Entities.RolePermission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2063,6 +2173,17 @@ namespace LMS.Infrastructure.Migrations
                     b.Navigation("Assessment");
                 });
 
+            modelBuilder.Entity("LMS.Domain.Entities.QuranVerse", b =>
+                {
+                    b.HasOne("LMS.Domain.Entities.QuranSurah", "Surah")
+                        .WithMany("Verses")
+                        .HasForeignKey("SurahNumber")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Surah");
+                });
+
             modelBuilder.Entity("LMS.Domain.Entities.RolePermission", b =>
                 {
                     b.HasOne("LMS.Domain.Entities.Permission", "Permission")
@@ -2234,6 +2355,11 @@ namespace LMS.Infrastructure.Migrations
             modelBuilder.Entity("LMS.Domain.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("LMS.Domain.Entities.QuranSurah", b =>
+                {
+                    b.Navigation("Verses");
                 });
 
             modelBuilder.Entity("LMS.Domain.Entities.Rubric", b =>

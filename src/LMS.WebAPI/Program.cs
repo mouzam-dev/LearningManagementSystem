@@ -81,6 +81,9 @@ builder.Services.AddSingleton<ICertificatePdfService,
 // served by DbSunnahService. Collection/book lists are cached in-memory.
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<LMS.WebAPI.Services.Sunnah.ISunnahService, LMS.WebAPI.Services.Sunnah.DbSunnahService>();
+// Library search over our own Qur'an + hadith tables, and AI answers/notes from them (Anthropic:ApiKey).
+builder.Services.AddScoped<LMS.WebAPI.Services.Library.LibrarySearchService>();
+builder.Services.AddScoped<LMS.WebAPI.Services.Library.LibraryAiService>();
 
 // Harvest (rebuild from source): background job + status, plus the two upstream
 // clients — Sunnah.com (keyed) for most collections, fawazahmed0's CDN for Malik, hadith-json for the rest.
@@ -190,6 +193,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("pageviews", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+    // Library search is open to visitors (home page search box): 30 searches a minute per address.
+    o.AddPolicy("library-search", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));
 });
 // Default levels are "Fastest" (3.9 MB -> 1.7 MB); "Optimal" gets the catalog well under 1 MB.
 builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(
@@ -240,6 +247,10 @@ if (!skipAutoMigrate)
     // Arabic course text (reference content, not demo data): imported once while the tables are empty.
     await ArabicContentSeeder.SeedAsync(db, scope.ServiceProvider
         .GetRequiredService<ILoggerFactory>().CreateLogger("ArabicContentSeeder"));
+
+    // Full Qur'an text for the library search (reference content, imported once while empty).
+    await QuranSeeder.SeedAsync(db, scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>().CreateLogger("QuranSeeder"));
 
     // Sample data: only runs when the catalog is empty. Produces 3 orgs / ~80
     // users / 15 courses with lessons, assessments, enrollments and a few

@@ -51,6 +51,11 @@ export const routes: Routes = [
     path: 'hadith',
     loadComponent: () => import('./hadith/student-hadith').then((m) => m.StudentHadithPage),
   },
+  // Qur'an & hadith library: search is public (home page search box); AI answers/notes need sign-in.
+  {
+    path: 'library',
+    loadComponent: () => import('./library/library-page').then((m) => m.LibraryPage),
+  },
   // Learn Arabic is the embedded learn-app (public/learn-arabic): a full page of its own, so /arabic
   // (and old /arabic/... links) leave the Angular app for it. Signed-in users only: it saves
   // progress to the learner's account.
