@@ -545,3 +545,10 @@ main > * { animation: rise .35s ease both; }
 .sitebar img { height: 28px; width: auto; background: #fff; border-radius: 6px; padding: 3px 5px; }
 .sitebar span { margin-inline-start: auto; font-weight: 700; font-size: .9rem; color: var(--primary); white-space: nowrap; }
 @media (min-width: 1024px) { .sitebar { display: none; } }  /* desktop: the sidebar has the back link */
+/* Phones: the bar stays pinned above the page header and clear of the status bar / camera
+   (the Android app draws under it; Capacitor fills --safe-area-inset-top on older WebViews). */
+@media (max-width: 1023.98px) {
+  :root { --st: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px)); }
+  .sitebar { position: sticky; top: 0; z-index: 25; box-sizing: border-box; height: calc(46px + var(--st)); padding-top: calc(8px + var(--st)); }
+  .top { top: calc(46px + var(--st)); padding-top: 10px; }
+}
