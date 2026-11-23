@@ -19,17 +19,15 @@ export interface LibraryResults {
   quran: QuranHit[]; hadith: HadithHit[];
 }
 
-export interface AiPassage { id: string; kind: 'quran' | 'hadith'; reference: string; textEn: string; textAr: string; grade: string | null }
-export interface AiAnswer {
-  found: boolean; title: string; summary: string; caution: string;
-  sections: { heading: string; points: { text: string; sources: string[] }[] }[];
+export interface NotesSection { heading: string; hadith: HadithHit[] }
+export interface LibraryNotes {
+  topic: string; matchedAllWords: boolean; quranTotal: number; hadithTotal: number;
+  quran: QuranHit[]; sections: NotesSection[];
 }
-export interface AiResult { mode: 'answer' | 'notes'; question: string; answer: AiAnswer; passages: AiPassage[]; usedToday: number; dailyLimit: number }
-export interface AiUsage { aiEnabled: boolean; used: number; limit: number }
 
 export type LibraryScope = 'all' | 'quran' | 'hadith';
 
-/** Search + AI answers over our own Qur'an and hadith tables (GET/POST /api/library/...). */
+/** Free search and topic notes over our own Qur'an and hadith tables (GET /api/library/...). */
 @Injectable({ providedIn: 'root' })
 export class LibraryService {
   private readonly http = inject(HttpClient);
@@ -40,12 +38,8 @@ export class LibraryService {
     return this.http.get<LibraryResults>(`${this.base}/search`, { params });
   }
 
-  usage(): Observable<AiUsage> {
-    return this.http.get<AiUsage>(`${this.base}/usage`);
-  }
-
-  ask(question: string, mode: 'answer' | 'notes'): Observable<AiResult> {
-    return this.http.post<AiResult>(`${this.base}/ask`, { question, mode });
+  notes(q: string): Observable<LibraryNotes> {
+    return this.http.get<LibraryNotes>(`${this.base}/notes`, { params: new HttpParams().set('q', q) });
   }
 }
 

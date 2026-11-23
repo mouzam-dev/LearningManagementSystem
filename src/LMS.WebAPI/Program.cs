@@ -81,9 +81,8 @@ builder.Services.AddSingleton<ICertificatePdfService,
 // served by DbSunnahService. Collection/book lists are cached in-memory.
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<LMS.WebAPI.Services.Sunnah.ISunnahService, LMS.WebAPI.Services.Sunnah.DbSunnahService>();
-// Library search over our own Qur'an + hadith tables, and AI answers/notes from them (Anthropic:ApiKey).
+// Library search and topic notes over our own Qur'an + hadith tables (free, no external service).
 builder.Services.AddScoped<LMS.WebAPI.Services.Library.LibrarySearchService>();
-builder.Services.AddScoped<LMS.WebAPI.Services.Library.LibraryAiService>();
 
 // Harvest (rebuild from source): background job + status, plus the two upstream
 // clients — Sunnah.com (keyed) for most collections, fawazahmed0's CDN for Malik, hadith-json for the rest.

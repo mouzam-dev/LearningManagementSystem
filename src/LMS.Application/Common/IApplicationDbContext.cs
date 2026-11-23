@@ -47,7 +47,6 @@ public interface IApplicationDbContext
     DbSet<ArabicProgress> ArabicProgress { get; }
     DbSet<QuranSurah> QuranSurahs { get; }
     DbSet<QuranVerse> QuranVerses { get; }
-    DbSet<AiQueryLog> AiQueryLogs { get; }
     DbSet<PageView> PageViews { get; }
     DbSet<DeviceToken> DeviceTokens { get; }
 

@@ -3,13 +3,13 @@
     <p class="text-xs font-semibold uppercase tracking-wider text-primary-600">Deen</p>
     <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink sm:text-4xl">Qur'an &amp; Hadith library</h1>
     <p class="mt-2 max-w-2xl text-sm text-muted">
-      Search, ask a question, or prepare notes. Everything comes only from the Qur'an and the hadith collections in our library.
+      Search, or gather notes on any topic or question. Everything comes only from the Qur'an and the hadith collections in our library — free for everyone.
     </p>
   </header>
 
   <!-- Mode -->
-  <div class="mb-3 grid grid-cols-3 gap-1 rounded-2xl border border-line bg-surface-2 p-1" role="tablist" aria-label="Mode">
-    @for (t of [['search', 'Search'], ['answer', 'Ask'], ['notes', 'Make notes']]; track t[0]) {
+  <div class="mb-3 grid grid-cols-2 gap-1 rounded-2xl border border-line bg-surface-2 p-1" role="tablist" aria-label="Mode">
+    @for (t of [['search', 'Search'], ['notes', 'Notes on a topic']]; track t[0]) {
       <button type="button" role="tab" [attr.aria-selected]="tab() === t[0]" (click)="setTab($any(t[0]))"
         class="rounded-xl px-2 py-2 text-sm font-semibold transition"
         [class]="tab() === t[0] ? 'bg-surface text-primary-700 shadow-sm dark:text-primary-300' : 'text-muted hover:text-ink'">
@@ -21,12 +21,12 @@
   <!-- Input -->
   <form class="mb-3 flex gap-2" (ngSubmit)="run()">
     <input type="search" name="q" [ngModel]="text()" (ngModelChange)="text.set($event)" maxlength="500"
-      [placeholder]="tab() === 'search' ? 'Search a word or phrase, in English, Arabic or Urdu…' : tab() === 'answer' ? 'Ask a question, e.g. How to perform salah?' : 'A topic for notes, e.g. Zakat'"
-      [attr.aria-label]="tab() === 'search' ? 'Search the library' : tab() === 'answer' ? 'Your question' : 'Notes topic'"
+      [placeholder]="tab() === 'search' ? 'Search a word or phrase, in English, Arabic or Urdu…' : 'A topic or question, e.g. How to perform salah'"
+      [attr.aria-label]="tab() === 'search' ? 'Search the library' : 'Notes topic or question'"
       class="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none focus:border-primary-400" />
-    <button type="submit" [disabled]="loading() || text().trim().length < 2 || (tab() !== 'search' && (!signedIn() || !usage()?.aiEnabled || aiLeft() === 0))"
+    <button type="submit" [disabled]="loading() || text().trim().length < 2"
       class="shrink-0 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700 disabled:opacity-50">
-      {{ tab() === 'search' ? 'Search' : tab() === 'answer' ? 'Ask' : 'Prepare' }}
+      {{ tab() === 'search' ? 'Search' : 'Make notes' }}
     </button>
   </form>
 
@@ -39,17 +39,6 @@
           {{ s[1] }}
         </button>
       }
-    } @else if (!signedIn()) {
-      <span class="rounded-lg bg-primary-50 px-2.5 py-1 font-semibold text-primary-800 dark:bg-primary-900/40 dark:text-primary-200">
-        <a routerLink="/login" [queryParams]="{ returnUrl }" class="underline">Sign in</a> or
-        <a routerLink="/register" class="underline">create a free account</a> to ask questions and make notes. Search is open to everyone.
-      </span>
-    } @else if (usage(); as u) {
-      @if (!u.aiEnabled) {
-        <span class="rounded-lg bg-amber-50 px-2.5 py-1 font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">AI answers are not switched on yet. Search still works.</span>
-      } @else {
-        <span class="text-muted">{{ aiLeft() }} of {{ u.limit }} AI requests left today</span>
-      }
     }
   </div>
 
@@ -60,7 +49,7 @@
   @if (loading()) {
     <div class="flex items-center gap-3 rounded-2xl border border-line bg-surface p-5 text-sm text-muted" role="status">
       <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary-300 border-t-transparent"></span>
-      {{ tab() === 'search' ? 'Searching…' : 'Reading the Qur\'an and hadith in our library and organizing an answer… (about 10–20 seconds)' }}
+      {{ tab() === 'search' ? 'Searching…' : 'Gathering verses and hadith from the library…' }}
     </div>
   } @else if (tab() === 'search') {
     <!-- ================= Search results ================= -->
@@ -128,65 +117,64 @@
       </div>
     }
   } @else {
-    <!-- ================= AI answer / notes ================= -->
-    @if (ai(); as r) {
-      <article class="rounded-2xl border border-line bg-surface p-5 sm:p-6">
-        <div class="mb-3 flex items-start justify-between gap-3">
-          <h2 class="text-xl font-bold text-ink">{{ r.answer.title || r.question }}</h2>
-          @if (r.answer.found) {
+    <!-- ================= Notes (free, from our database) ================= -->
+    @if (notes(); as n) {
+      @if (n.quranTotal + n.hadithTotal === 0) {
+        <p class="rounded-2xl border border-line bg-surface p-5 text-sm text-muted">Nothing in the library matched “{{ n.topic }}”. Try a simpler topic word (e.g. prayer, fasting, charity, patience).</p>
+      } @else {
+        <article class="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+          <div class="mb-1 flex items-start justify-between gap-3">
+            <h2 class="text-xl font-bold text-ink">Notes: {{ n.topic }}</h2>
             <button type="button" (click)="copy()" class="shrink-0 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-ink-soft hover:border-line-strong">
               {{ copied() ? 'Copied ✓' : 'Copy' }}
             </button>
-          }
-        </div>
-        <p class="whitespace-pre-line text-sm leading-relaxed text-ink-soft">{{ r.answer.summary }}</p>
+          </div>
+          <p class="text-xs text-muted">
+            {{ n.quran.length }} verse(s) and the strongest hadith, grouped under the chapter headings of the hadith books.
+            @if (!n.matchedAllWords) { Nothing matched every word, so these match some of them. }
+          </p>
 
-        @for (s of r.answer.sections; track $index) {
-          <h3 class="mb-2 mt-5 text-base font-bold text-ink">{{ s.heading }}</h3>
-          <ul class="space-y-2">
-            @for (p of s.points; track $index) {
-              <li class="flex gap-2 text-sm leading-relaxed text-ink-soft">
-                <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-500" aria-hidden="true"></span>
-                <span>
-                  {{ p.text }}
-                  @for (id of p.sources; track id) {
-                    <button type="button" (click)="showSource(id)"
-                      class="ml-1 inline-block rounded-md bg-primary-50 px-1.5 py-0.5 align-baseline text-[11px] font-semibold text-primary-700 hover:bg-primary-100 dark:bg-primary-900/40 dark:text-primary-300">{{ sourceLabel(id) }}</button>
+          @if (n.quran.length) {
+            <h3 class="mb-3 mt-6 text-base font-bold text-primary-700 dark:text-primary-300">From the Qur'an</h3>
+            <ul class="space-y-4">
+              @for (v of n.quran; track v.surah * 1000 + v.ayah) {
+                <li class="border-l-2 border-primary-200 pl-3 dark:border-primary-800">
+                  <p dir="rtl" lang="ar" class="mb-1 text-lg text-ink" style="line-height: 2.1" [style.fontFamily]="amiri">{{ v.textAr }}</p>
+                  <p class="text-sm leading-relaxed text-ink-soft">{{ v.textEn }}</p>
+                  <p class="mt-1 text-xs font-semibold text-muted">Qur'an {{ v.surah }}:{{ v.ayah }} · {{ v.surahName }}</p>
+                </li>
+              }
+            </ul>
+          }
+
+          @for (s of n.sections; track s.heading) {
+            <h3 class="mb-3 mt-6 text-base font-bold text-primary-700 dark:text-primary-300">{{ s.heading }}</h3>
+            <ul class="space-y-4">
+              @for (h of s.hadith; track h.id) {
+                <li class="border-l-2 border-line pl-3">
+                  @if (open().has(h.id)) {
+                    <p class="whitespace-pre-line text-sm leading-relaxed text-ink-soft">{{ h.textEn }}</p>
+                    <p dir="rtl" lang="ar" class="mt-2 text-lg text-ink" style="line-height: 2.1" [style.fontFamily]="amiri">{{ h.textAr }}</p>
+                  } @else {
+                    <p class="whitespace-pre-line text-sm leading-relaxed text-ink-soft">{{ short(h.textEn) }}</p>
                   }
-                </span>
-              </li>
-            }
-          </ul>
-        }
-
-        @if (r.answer.caution) {
-          <p class="mt-5 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">{{ r.answer.caution }}</p>
-        }
-        <p class="mt-4 text-xs text-subtle">Written by AI only from the verses and hadith below, from our library. Check the sources, and ask a scholar for rulings.</p>
-      </article>
-
-      @if (r.passages.length) {
-        <h2 class="mb-2 mt-6 text-sm font-bold uppercase tracking-wide text-muted">Sources · {{ r.passages.length }}</h2>
-        <ul class="space-y-3">
-          @for (p of r.passages; track p.id) {
-            <li [id]="anchor(p)" class="scroll-mt-24 rounded-2xl border bg-surface p-4 transition"
-              [class]="highlighted() === p.id ? 'border-primary-400 ring-2 ring-primary-200 dark:ring-primary-800' : 'border-line'">
-              <div class="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
-                <span class="text-primary-700 dark:text-primary-300">{{ p.reference }}</span>
-                @if (p.grade) { <span class="rounded-md bg-surface-2 px-1.5 py-0.5 text-muted">{{ p.grade }}</span> }
-              </div>
-              <p dir="rtl" lang="ar" class="mb-2 text-lg text-ink" style="line-height: 2.1" [style.fontFamily]="amiri">{{ p.textAr }}</p>
-              <p class="whitespace-pre-line text-sm leading-relaxed text-ink-soft">{{ p.textEn }}</p>
-            </li>
+                  <p class="mt-1 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
+                    <span>{{ h.collectionTitle }} {{ h.hadithNumber }}</span>
+                    @if (h.grade) { <span class="rounded-md bg-surface-2 px-1.5 py-0.5">{{ h.grade }}</span> }
+                    <button type="button" (click)="toggle(h)" class="text-primary-700 hover:underline dark:text-primary-300">{{ open().has(h.id) ? 'Show less' : 'Read full + Arabic' }}</button>
+                  </p>
+                </li>
+              }
+            </ul>
           }
-        </ul>
+          <p class="mt-6 text-xs text-subtle">Gathered from the Qur'an and hadith in our library. Ask a scholar for rulings.</p>
+        </article>
       }
     } @else {
       <div class="flex flex-wrap gap-2">
         <span class="text-xs text-muted">Try:</span>
-        @for (q of examples[tab()]; track q) {
-          <button type="button" (click)="useExample(q)" [disabled]="!usage()?.aiEnabled"
-            class="rounded-full border border-line px-3 py-1 text-xs font-semibold text-ink-soft hover:border-primary-300 disabled:opacity-50">{{ q }}</button>
+        @for (q of examples.notes; track q) {
+          <button type="button" (click)="useExample(q)" class="rounded-full border border-line px-3 py-1 text-xs font-semibold text-ink-soft hover:border-primary-300">{{ q }}</button>
         }
       </div>
     }

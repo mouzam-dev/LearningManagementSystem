@@ -14,6 +14,12 @@ public record HadithHit(int Id, string Collection, string CollectionTitle, strin
 public record LibraryResults(string Query, bool MatchedAllWords, int QuranTotal, int HadithTotal,
     IReadOnlyList<QuranHit> Quran, IReadOnlyList<HadithHit> Hadith);
 
+/// <summary>Hadith on a topic under one chapter heading taken from the books themselves.</summary>
+public record NotesSection(string Heading, IReadOnlyList<HadithHit> Hadith);
+
+public record LibraryNotes(string Topic, bool MatchedAllWords, int QuranTotal, int HadithTotal,
+    IReadOnlyList<QuranHit> Quran, IReadOnlyList<NotesSection> Sections);
+
 /// <summary>
 /// Full-text search over our own Qur'an (QuranVerses) and hadith (Hadiths) tables, using the
 /// PostgreSQL "SearchVector" columns from the AddLibrarySearch migration. English words go through
@@ -46,6 +52,18 @@ public class LibrarySearchService(ApplicationDbContext db)
         ["kaaba"] = ["kabah"], ["kaba"] = ["kabah"], ["kaabah"] = ["kabah"], ["sabr"] = ["patience"], ["shirk"] = ["polytheism", "partners"], ["iman"] = ["faith", "belief"], ["imaan"] = ["faith"],
         ["adhan"] = ["call"], ["azan"] = ["call"], ["masjid"] = ["mosque"], ["ruku"] = ["bowing", "bow"], ["sujood"] = ["prostration"],
         ["sajdah"] = ["prostration"], ["riba"] = ["usury", "interest"], ["janazah"] = ["funeral"], ["halal"] = ["lawful"], ["haram"] = ["unlawful", "forbidden"],
+        // British / American spellings both appear in the translations.
+        ["neighbour"] = ["neighbor"], ["neighbours"] = ["neighbors"], ["neighbor"] = ["neighbour"], ["neighbors"] = ["neighbours"],
+        ["behaviour"] = ["behavior"], ["behavior"] = ["behaviour"], ["honour"] = ["honor"], ["honor"] = ["honour"],
+        ["favour"] = ["favor"], ["favor"] = ["favour"],
+    };
+
+    /// <summary>Question filler ("how do I perform…", "explain the method of…"), dropped when a topic word remains.</summary>
+    private static readonly HashSet<string> Filler = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "perform", "performing", "performed", "offer", "offering", "do", "does", "doing", "done", "make", "making",
+        "way", "ways", "method", "methods", "steps", "step", "procedure", "correct", "correctly", "proper", "properly",
+        "explain", "explanation", "tell", "me", "about", "regarding", "please", "islam", "islamic", "according", "kya", "hai",
     };
 
     public static string NormalizeArabic(string s) =>
@@ -73,9 +91,10 @@ public class LibrarySearchService(ApplicationDbContext db)
         var join = all ? " & " : " | ";
         var en = new List<string>();
         var ar = new List<string>();
-        foreach (Match m in Word.Matches(query))
+        var words = Word.Matches(query).Select(m => m.Value).ToList();
+        if (words.Any(w => !Filler.Contains(FoldLatin(w)))) words.RemoveAll(w => Filler.Contains(FoldLatin(w)));
+        foreach (var w in words)
         {
-            var w = m.Value;
             if (ArabicScript.IsMatch(w))
             {
                 var n = NormalizeArabic(w);
@@ -101,6 +120,22 @@ public class LibrarySearchService(ApplicationDbContext db)
         var any = BuildQueries(query, all: false);
         if (any == all) return res with { Query = query, MatchedAllWords = true };
         return (await RunAsync(any, scope, collection, quranTake, hadithTake, skip, ct)) with { Query = query, MatchedAllWords = false };
+    }
+
+    /// <summary>
+    /// Free topic notes: the best-matching verses, then the best-matching hadith grouped under their
+    /// chapter headings (the books' own organization), strongest chapters first. No AI involved.
+    /// </summary>
+    public async Task<LibraryNotes> NotesAsync(string topic, CancellationToken ct)
+    {
+        var r = await SearchAsync(topic, "all", null, quranTake: 12, hadithTake: 80, skip: 0, ct);
+        var sections = r.Hadith
+            .GroupBy(h => (string.IsNullOrWhiteSpace(h.Chapter) ? h.BookName ?? h.CollectionTitle : h.Chapter).Trim(),
+                StringComparer.OrdinalIgnoreCase)
+            .Take(12)
+            .Select(g => new NotesSection(g.Key, g.Take(4).ToList()))
+            .ToList();
+        return new LibraryNotes(topic, r.MatchedAllWords, r.QuranTotal, r.HadithTotal, r.Quran, sections);
     }
 
     private async Task<LibraryResults> RunAsync((string English, string Arabic) q, string scope, string? collection,

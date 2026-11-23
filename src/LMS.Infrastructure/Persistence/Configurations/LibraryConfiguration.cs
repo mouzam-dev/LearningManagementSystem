@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LMS.Infrastructure.Persistence.Configurations;
 
-// Qur'an text (seeded) and the AI search usage log. The full-text "SearchVector" columns on
+// Qur'an text (seeded) for the library search. The full-text "SearchVector" columns on
 // QuranVerses and Hadiths are created by raw SQL in the AddLibrarySearch migration and are not
 // mapped here: only the search service (raw SQL) reads them.
 
@@ -33,14 +33,3 @@ public class QuranVerseConfiguration : IEntityTypeConfiguration<QuranVerse>
     }
 }
 
-public class AiQueryLogConfiguration : IEntityTypeConfiguration<AiQueryLog>
-{
-    public void Configure(EntityTypeBuilder<AiQueryLog> e)
-    {
-        e.ToTable("AiQueryLogs");
-        e.HasKey(x => x.Id);
-        e.Property(x => x.Mode).HasMaxLength(10);
-        e.Property(x => x.Question).HasMaxLength(500);
-        e.HasIndex(x => new { x.UserId, x.CreatedAt });
-    }
-}

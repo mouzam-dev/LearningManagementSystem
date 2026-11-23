@@ -1,30 +1,24 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { AuthService } from '../auth/auth.service';
+import { HadithHit, LibraryNotes, LibraryResults, LibraryScope, LibraryService, highlightRuns } from './library.service';
 
-import {
-  AiPassage, AiResult, AiUsage, HadithHit, LibraryResults, LibraryScope, LibraryService, highlightRuns,
-} from './library.service';
-
-type Tab = 'search' | 'answer' | 'notes';
+type Tab = 'search' | 'notes';
 
 /**
- * Qur'an & hadith library: free full-text search, plus AI answers and study notes that are written
- * only from the verses and hadith in our own database (each point cites its sources).
+ * Qur'an & hadith library (free, open to everyone): full-text search, and topic notes that gather
+ * the matching verses and hadith from our own database, grouped under the books' chapter headings.
  */
 @Component({
   selector: 'app-library-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule],
   templateUrl: './library-page.html',
 })
 export class LibraryPage {
   private readonly library = inject(LibraryService);
   private readonly router = inject(Router);
-  readonly signedIn = inject(AuthService).isAuthenticated;
-  readonly returnUrl = '/library';
 
   readonly amiri = "'Amiri', serif";
   readonly runs = highlightRuns;
@@ -41,33 +35,24 @@ export class LibraryPage {
   readonly moreLoading = signal(false);
   readonly open = signal<Set<number>>(new Set());
 
-  readonly usage = signal<AiUsage | null>(null);
-  readonly ai = signal<AiResult | null>(null);
+  readonly notes = signal<LibraryNotes | null>(null);
   readonly copied = signal(false);
-  readonly highlighted = signal<string | null>(null);
 
-  readonly aiLeft = computed(() => {
-    const u = this.usage();
-    return u ? Math.max(0, u.limit - u.used) : null;
-  });
   readonly canLoadMore = computed(() => {
     const r = this.results();
     return !!r && (r.quran.length < r.quranTotal || r.hadith.length < r.hadithTotal);
   });
-  readonly passageById = computed(() => new Map((this.ai()?.passages ?? []).map((p) => [p.id, p])));
 
   readonly examples: Record<Tab, string[]> = {
     search: ['patience', 'fasting in Ramadan', 'kindness to parents', 'الصبر'],
-    answer: ['How to perform salah?', 'What breaks the fast?', 'What are the rights of neighbours?'],
-    notes: ['Zakat', 'Honesty', 'Etiquette of eating', 'Repentance (tawbah)'],
+    notes: ['How to perform salah', 'Zakat', 'Rights of neighbours', 'Repentance'],
   };
 
   constructor() {
-    if (this.signedIn()) {
-      this.library.usage().subscribe({ next: (u) => this.usage.set(u), error: () => this.usage.set(null) });
-    }
-    // /library?q=... (the home page search box): run that search straight away.
-    const q = inject(ActivatedRoute).snapshot.queryParamMap.get('q')?.trim();
+    // /library?q=...&tab=notes (home page search box, shared links): run it straight away.
+    const params = inject(ActivatedRoute).snapshot.queryParamMap;
+    if (params.get('tab') === 'notes') this.tab.set('notes');
+    const q = params.get('q')?.trim();
     if (q) {
       this.text.set(q);
       this.run();
@@ -77,6 +62,7 @@ export class LibraryPage {
   setTab(t: Tab): void {
     this.tab.set(t);
     this.error.set(null);
+    if (this.text().trim().length >= 2) this.run();
   }
 
   useExample(q: string): void {
@@ -86,25 +72,20 @@ export class LibraryPage {
 
   run(): void {
     const q = this.text().trim();
-    if (q.length < 2 || this.loading()) return;
+    if (q.length < 2) return;
     this.error.set(null);
     this.loading.set(true);
+    void this.router.navigate([], { queryParams: { q, tab: this.tab() === 'notes' ? 'notes' : null }, replaceUrl: true });
     if (this.tab() === 'search') {
       this.page.set(1);
       this.open.set(new Set());
-      void this.router.navigate([], { queryParams: { q }, replaceUrl: true });
       this.library.search(q, this.scope(), 1).subscribe({
         next: (r) => { this.results.set(r); this.loading.set(false); },
         error: (e) => this.fail(e),
       });
     } else {
-      this.ai.set(null);
-      this.library.ask(q, this.tab() as 'answer' | 'notes').subscribe({
-        next: (r) => {
-          this.ai.set(r);
-          this.usage.update((u) => (u ? { ...u, used: r.usedToday, limit: r.dailyLimit } : u));
-          this.loading.set(false);
-        },
+      this.library.notes(q).subscribe({
+        next: (n) => { this.notes.set(n); this.loading.set(false); },
         error: (e) => this.fail(e),
       });
     }
@@ -125,6 +106,11 @@ export class LibraryPage {
     });
   }
 
+  /** Long narrations are clipped in notes; "Read full" shows all of it. */
+  short(s: string): string {
+    return s.length <= 400 ? s : s.slice(0, 400).replace(/\s+\S*$/, '') + ' …';
+  }
+
   toggle(h: HadithHit): void {
     this.open.update((s) => {
       const n = new Set(s);
@@ -133,36 +119,22 @@ export class LibraryPage {
     });
   }
 
-  /** Scrolls to a cited passage in the Sources list and flashes it. */
-  showSource(id: string): void {
-    this.highlighted.set(id);
-    document.getElementById('src-' + id.replace(':', '-'))?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => this.highlighted.set(null), 2000);
-  }
-
-  sourceLabel(id: string): string {
-    const p = this.passageById().get(id);
-    if (!p) return id;
-    return p.kind === 'quran' ? p.reference.replace(/ \(.*\)$/, '') : p.reference.split(',')[0];
-  }
-
-  anchor(p: AiPassage): string {
-    return 'src-' + p.id.replace(':', '-');
-  }
-
-  /** Plain-text copy of the notes with their references, for pasting into a notebook or WhatsApp. */
+  /** Plain-text copy of the notes with references, for a notebook or WhatsApp. */
   async copy(): Promise<void> {
-    const r = this.ai();
-    if (!r) return;
-    const a = r.answer;
-    const lines = [a.title, '', a.summary, ''];
-    for (const s of a.sections) {
-      lines.push(s.heading);
-      for (const p of s.points) lines.push(`• ${p.text} (${p.sources.map((id) => this.sourceLabel(id)).join('; ')})`);
+    const n = this.notes();
+    if (!n) return;
+    const lines = [`Notes: ${n.topic}`, ''];
+    if (n.quran.length) {
+      lines.push("From the Qur'an");
+      for (const v of n.quran) lines.push(`• ${v.textEn} (Qur'an ${v.surah}:${v.ayah})`);
       lines.push('');
     }
-    if (a.caution) lines.push(a.caution, '');
-    lines.push("Sources: our Qur'an and hadith library.");
+    for (const s of n.sections) {
+      lines.push(s.heading);
+      for (const h of s.hadith) lines.push(`• ${h.textEn} (${h.collectionTitle} ${h.hadithNumber}${h.grade ? ', ' + h.grade : ''})`);
+      lines.push('');
+    }
+    lines.push('Daura-e-Ilmiyah Shariyah library');
     try {
       await navigator.clipboard.writeText(lines.join('\n'));
       this.copied.set(true);
@@ -175,8 +147,8 @@ export class LibraryPage {
   private fail(e: unknown): void {
     this.loading.set(false);
     const err = e as HttpErrorResponse;
+    if (err?.status === 429) { this.error.set('Too many searches in a minute. Please wait a moment and try again.'); return; }
     const msg = err?.error?.message ?? Object.values(err?.error?.errors ?? {}).flat()[0];
     this.error.set(typeof msg === 'string' ? msg : 'Something went wrong. Please try again.');
-    if (err?.status === 429) this.usage.update((u) => (u ? { ...u, used: u.limit } : u));
   }
 }
