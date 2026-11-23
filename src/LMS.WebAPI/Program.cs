@@ -234,7 +234,11 @@ if (!skipAutoMigrate)
         startupLogger.LogWarning("Database not reachable yet (attempt {Attempt}/6); retrying in 5s", attempt);
         await Task.Delay(TimeSpan.FromSeconds(5));
     }
+    // Some migrations rebuild large tables (e.g. the hadith search index over 52k rows), which takes
+    // longer than the 30s default on Fly's small Postgres. Normal queries keep the default.
+    db.Database.SetCommandTimeout(TimeSpan.FromMinutes(15));
     db.Database.Migrate();
+    db.Database.SetCommandTimeout(null);
 
     // Tenancy bootstrap: seeds Permissions + RolePermissions, ensures the Default
     // Organization/Branch exist, renames legacy Admin -> SuperAdmin, and backfills
